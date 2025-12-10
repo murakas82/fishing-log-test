@@ -2,560 +2,146 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>My Fishing Log</title>
+  <title>Fishing Log</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://www.gstatic.com">
+  <link rel="preconnect" href="https://www.googleapis.com">
 </head>
-<body>
-  <div class="app fade-in">
-    <header class="card">
-      <div class="card-header">
-        <div>
-          <h1>My Fishing Log</h1>
-          <p class="muted-text">
-            Track your catches anywhere – with login, spots, weather &amp; predictions.
-          </p>
-        </div>
-        <div id="authArea"></div>
+
+<body class="page">
+  <main class="page-inner">
+
+    <!-- HEADER -->
+    <header class="page-header">
+      <div>
+        <h1 class="page-title">My fishing spots</h1>
+        <p class="page-subtitle">
+          Track spots, catches, predictions and weather.
+        </p>
       </div>
+
+      <button id="logoutBtn" class="btn-outline">
+        Log out
+      </button>
     </header>
 
-    <!-- Stats -->
-    <div class="card" id="statsCard" style="display:none;">
-      <h2>Stats</h2>
-      <div id="statsContent" class="stat-badges"></div>
-    </div>
+    <!-- USER INFO -->
+    <section class="card">
+      <h2 class="card-title">Logged in</h2>
+      <p class="card-body" id="userEmail">Loading…</p>
+    </section>
 
-    <!-- My fishing spots -->
-    <div class="card" id="spotsCard" style="display:none;">
-      <div class="card-header">
-        <h2>My fishing spots</h2>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="secondary-btn" id="mapViewBtn">Map view</button>
-          <button class="secondary-btn" id="addSpotBtn">Add new spot</button>
-        </div>
+    <!-- ADD NEW SPOT BUTTON -->
+    <section class="card">
+      <button onclick="window.location.href='add-spot.html'" class="btn-primary">
+        Add new spot
+      </button>
+    </section>
+
+    <!-- FISHING SPOTS LIST -->
+    <section class="card">
+      <h2 class="card-title">Your fishing spots</h2>
+      <div id="spotsList" class="list-vertical">
+        <p class="muted-text">Loading spots…</p>
       </div>
-      <div id="spotsList"></div>
-    </div>
+    </section>
 
-    <!-- Loading -->
-    <div class="card" id="loadingCard">
-      <div class="loading-center">
-        <div class="spinner"></div>
-        <div>Loading app…</div>
-      </div>
-    </div>
-  </div>
+    <!-- FOOTER -->
+    <footer style="text-align:center; padding:20px 0; opacity:0.8;">
+      <a href="privacy.html" style="color:#60a5fa; text-decoration:underline;">
+        Privacy Policy
+      </a>
+    </footer>
 
+  </main>
+
+  <!-- FIREBASE + APP LOGIC -->
   <script type="module">
-    import { initializeApp }
-      from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
     import {
       getAuth,
       onAuthStateChanged,
-      signInWithEmailAndPassword,
-      createUserWithEmailAndPassword,
-      signOut,
-      GoogleAuthProvider,
-      signInWithPopup
-    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import {
       getFirestore,
-      doc,
-      getDoc,
       collection,
       getDocs,
       query,
       where
-    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCXIdT74cNDSVIoMs3NZ86tPf2kzFm8Iug",
       authDomain: "fishing-log-app-murx.firebaseapp.com",
       projectId: "fishing-log-app-murx",
-      storageBucket: "fishing-log-app-murx.firebasestorage.app",
+      storageBucket: "fishing-log-app-murx.appspot.com",
       messagingSenderId: "1056807867882",
       appId: "1:1056807867882:web:e59ddd8f6353d190080e93"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db   = getFirestore(app);
+    const db = getFirestore(app);
 
-    const authArea     = document.getElementById("authArea");
-    const loadingCard  = document.getElementById("loadingCard");
-    const statsCard    = document.getElementById("statsCard");
-    const statsContent = document.getElementById("statsContent");
-    const spotsCard    = document.getElementById("spotsCard");
-    const spotsList    = document.getElementById("spotsList");
-    const mapViewBtn   = document.getElementById("mapViewBtn");
-    const addSpotBtn   = document.getElementById("addSpotBtn");
+    const userEmailEl = document.getElementById("userEmail");
+    const spotsListEl = document.getElementById("spotsList");
+    const logoutBtn = document.getElementById("logoutBtn");
 
-    /* ---------- Auth form ---------- */
-
-    function renderAuthForm(errorMessage = "") {
-      authArea.innerHTML = `
-        <div>
-          <form id="authForm" style="display:flex;flex-direction:column;gap:6px;min-width:260px;">
-            <div style="font-size:0.85rem;">Log in or sign up</div>
-            <input type="email" id="authEmail" placeholder="Email" required />
-            <input type="password" id="authPassword" placeholder="Password" required />
-            <div style="display:flex;gap:8px;">
-              <button type="submit" class="primary-btn" data-mode="login">Log in</button>
-              <button type="button" class="secondary-btn" id="signUpBtn">Sign up</button>
-            </div>
-            <div style="margin:6px 0 2px 0;font-size:0.8rem;text-align:center;" class="muted-text">
-              or
-            </div>
-            <button type="button"
-                    class="secondary-btn"
-                    id="googleLoginBtn"
-                    style="width:100%;justify-content:center;">
-              Continue with Google
-            </button>
-            <div id="authError" class="muted-text" style="color:#f97373;margin-top:4px;">
-              ${errorMessage}
-            </div>
-          </form>
-        </div>
-      `;
-
-      const form      = document.getElementById("authForm");
-      const signUpBtn = document.getElementById("signUpBtn");
-      const googleBtn = document.getElementById("googleLoginBtn");
-
-      form.onsubmit = async (e) => {
-        e.preventDefault();
-        const email = document.getElementById("authEmail").value.trim();
-        const pass  = document.getElementById("authPassword").value.trim();
-        try {
-          await signInWithEmailAndPassword(auth, email, pass);
-        } catch (err) {
-          renderAuthForm("Login failed: " + (err.code || err.message));
-        }
-      };
-
-      signUpBtn.onclick = async () => {
-        const email = document.getElementById("authEmail").value.trim();
-        const pass  = document.getElementById("authPassword").value.trim();
-        if (!email || !pass) {
-          renderAuthForm("Enter email & password, then press Sign up.");
-          return;
-        }
-        try {
-          await createUserWithEmailAndPassword(auth, email, pass);
-        } catch (err) {
-          renderAuthForm("Sign up failed: " + (err.code || err.message));
-        }
-      };
-
-      googleBtn.onclick = async () => {
-        try {
-          const provider = new GoogleAuthProvider();
-          await signInWithPopup(auth, provider);
-        } catch (err) {
-          renderAuthForm("Google sign-in failed: " + (err.code || err.message));
-        }
-      };
-    }
-
-    function renderLoggedInHeader(user, displayName) {
-      const nameText = displayName || user.email || "Unknown user";
-
-      authArea.innerHTML = `
-        <div style="text-align:right;display:flex;flex-direction:column;gap:4px;">
-          <div style="font-size:0.86rem;">
-            Logged in as <strong>${nameText}</strong>
-          </div>
-          <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
-            <button class="secondary-btn" id="settingsBtn">Settings</button>
-            <button class="secondary-btn" id="logoutBtn">Log out</button>
-          </div>
-        </div>
-      `;
-
-      document.getElementById("logoutBtn").onclick  = () => signOut(auth);
-      document.getElementById("settingsBtn").onclick = () => {
-        window.location.href = "settings.html";
-      };
-    }
-
-    async function loadUserDisplayName(userId) {
-      const profileRef = doc(db, "profiles", userId);
-      const snap = await getDoc(profileRef);
-      if (!snap.exists()) return null;
-      return snap.data().displayName || null;
-    }
-
-    /* ---------- Stats ---------- */
-
-    async function loadStats(user) {
-      const q = query(
-        collection(db, "catches"),
-        where("userId", "==", user.uid)
-      );
-      const snap = await getDocs(q);
-      if (snap.empty) {
-        statsContent.innerHTML = `<div class="muted-text">No catches yet.</div>`;
-        return;
-      }
-
-      let total = 0;
-      let totalWeight = 0;
-      let biggestWeight = 0;
-      let biggestSpecies = "-";
-
-      snap.forEach(docSnap => {
-        const c = docSnap.data();
-        total += 1;
-        if (typeof c.weightKg === "number" && !isNaN(c.weightKg)) {
-          totalWeight += c.weightKg;
-          if (c.weightKg > biggestWeight) {
-            biggestWeight = c.weightKg;
-            biggestSpecies = c.species || "-";
-          }
-        }
-      });
-
-      const avgWeight = totalWeight && total ? (totalWeight / total) : 0;
-
-      statsContent.innerHTML = `
-        <span class="stat-pill">Total catches <strong>${total}</strong></span>
-        <span class="stat-pill">Biggest fish <strong>${biggestWeight.toFixed(2)} kg ${biggestSpecies}</strong></span>
-        <span class="stat-pill">Average weight <strong>${avgWeight.toFixed(2)} kg</strong></span>
-      `;
-    }
-
-    /* ---------- Prediction helpers (same as before) ---------- */
-
-    function getApproxMoonPhase(date) {
-      const lp = 2551443;
-      const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14);
-      const diff = date.getTime() - knownNewMoon;
-      const phase = (diff / 1000) % lp;
-      let frac = phase / lp;
-      if (frac < 0) frac += 1;
-      return frac;
-    }
-
-    function computePredictionScoreForDay(catches, temp, windMs, press, moon) {
-      const usable = catches.filter(c =>
-        typeof c.weatherTemp === "number" &&
-        typeof c.weatherWindMs === "number" &&
-        typeof c.weatherPressure === "number"
-      );
-      if (!usable.length) return null;
-
-      const scores = usable.map(c => {
-        let penalty = 0;
-
-        const tempDiff = Math.abs(c.weatherTemp - temp);
-        if (tempDiff > 5) penalty += (tempDiff - 5) * 2;
-
-        const windDiff = Math.abs(c.weatherWindMs - windMs);
-        if (windDiff > 4) penalty += (windDiff - 4) * 3;
-
-        if (press < 1000) {
-          if (c.weatherPressure >= 1000) penalty += 10;
-        } else {
-          if (c.weatherPressure < 1000) penalty += 10;
-        }
-
-        if (typeof c.moonPhase === "number") {
-          const moonDiff = Math.abs(c.moonPhase - moon);
-          penalty += moonDiff * 40;
-        }
-
-        let score = 100 - penalty;
-        if (score < 0) score = 0;
-        if (score > 100) score = 100;
-        return score;
-      });
-
-      return scores.reduce((a, b) => a + b, 0) / scores.length;
-    }
-
-    function getWeatherIconAndLabel(code) {
-      if (code === 0) return { icon: "☀️", label: "Clear" };
-      if (code === 1) return { icon: "🌤️", label: "Mainly clear" };
-      if (code === 2) return { icon: "⛅",  label: "Partly cloudy" };
-      if (code === 3) return { icon: "☁️", label: "Overcast" };
-      if (code >= 51 && code <= 57) return { icon: "🌦️", label: "Drizzle" };
-      if (code >= 61 && code <= 67) return { icon: "🌧️", label: "Rain" };
-      if (code >= 71 && code <= 77) return { icon: "🌨️", label: "Snow" };
-      if (code >= 80 && code <= 82) return { icon: "🌦️", label: "Rain showers" };
-      if (code >= 85 && code <= 86) return { icon: "🌨️", label: "Snow showers" };
-      if (code === 95) return { icon: "⛈️", label: "Thunderstorm" };
-      if (code === 96 || code === 99) return { icon: "⛈️", label: "Thunderstorm with hail" };
-      return { icon: "❓", label: "Unknown" };
-    }
-
-    async function fetchWeatherAndPredictionForSpot(spot, spotCatches) {
-      const weatherEl = document.getElementById(`spotWeather-${spot.id}`);
-      const predEl    = document.getElementById(`spotPred-${spot.id}`);
-      if (!weatherEl || !predEl) return;
-
-      if (typeof spot.latitude !== "number" ||
-          typeof spot.longitude !== "number") {
-        weatherEl.textContent = "Weather now: location missing.";
-        predEl.textContent    = "Prediction (next 3 days): unavailable.";
-        return;
-      }
-
-      const lat = spot.latitude;
-      const lng = spot.longitude;
-
-      weatherEl.textContent = "Weather now: loading…";
-      predEl.textContent    = "Prediction (next 3 days): loading…";
-
-      try {
-        const url =
-          `https://api.open-meteo.com/v1/forecast` +
-          `?latitude=${lat}&longitude=${lng}` +
-          `&current=temperature_2m,wind_speed_10m,weather_code` +
-          `&hourly=temperature_2m,wind_speed_10m,pressure_msl` +
-          `&forecast_days=4&wind_speed_unit=ms&timezone=auto`;
-
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const data = await res.json();
-
-        const cur = data.current || {};
-        const ct  = cur.temperature_2m;
-        const cw  = cur.wind_speed_10m;
-        const cc  = cur.weather_code;
-        const { icon, label } = getWeatherIconAndLabel(cc);
-
-        const weatherParts = [];
-        if (label) weatherParts.push(label);
-        if (typeof ct === "number") weatherParts.push(`${ct.toFixed(1)} °C`);
-        if (typeof cw === "number") weatherParts.push(`wind ${cw.toFixed(1)} m/s`);
-
-        weatherEl.textContent =
-          "Weather now: " + icon + " " + weatherParts.join(", ");
-
-        const hourly = data.hourly || {};
-        const times  = hourly.time || [];
-        const temps  = hourly.temperature_2m || [];
-        const winds  = hourly.wind_speed_10m || [];
-        const presses = hourly.pressure_msl || [];
-
-        const weekdayShort = ["Sun.","Mon.","Tues.","Wed.","Thurs.","Fri.","Sat"];
-
-        function getForecastForOffset(offset) {
-          const base = new Date();
-          base.setDate(base.getDate() + offset);
-          const yyyy = base.getFullYear();
-          const mm = String(base.getMonth() + 1).padStart(2, "0");
-          const dd = String(base.getDate()).padStart(2, "0");
-          const dateStr = `${yyyy}-${mm}-${dd}`;
-
-          let idx = times.findIndex(t => t.startsWith(`${dateStr}T12`));
-          if (idx === -1) idx = times.findIndex(t => t.startsWith(dateStr));
-          if (idx === -1) return null;
-
-          const fTemp  = temps[idx];
-          const fWind  = winds[idx];
-          const fPress = presses[idx];
-          const fMoon  = getApproxMoonPhase(base);
-          return { temp: fTemp, wind: fWind, press: fPress, moon: fMoon, dateObj: base };
-        }
-
-        const pieces = [];
-        for (let offset = 1; offset <= 3; offset++) {
-          const fc = getForecastForOffset(offset);
-          const base = new Date();
-          base.setDate(base.getDate() + offset);
-
-          const wd = weekdayShort[base.getDay()];
-
-          if (!fc) {
-            pieces.push(`${wd}: n/a`);
-            continue;
-          }
-
-          const score = computePredictionScoreForDay(
-            spotCatches,
-            fc.temp,
-            fc.wind,
-            fc.press,
-            fc.moon
-          );
-
-          if (score == null) {
-            pieces.push(`${wd}: N/A`);
-          } else {
-            let color = "#f97373"; // poor
-            if (score >= 70)      color = "#22c55e"; // good
-            else if (score >= 40) color = "#eab308"; // medium
-
-            pieces.push(
-              `${wd} <span style="color:${color};font-weight:600;">${score.toFixed(0)}%</span>`
-            );
-          }
-        }
-
-        if (pieces.length) {
-          predEl.innerHTML =
-            "Prediction (next 3 days): " + pieces.join(" · ");
-        } else {
-          predEl.textContent =
-            "Prediction (next 3 days): not enough data yet.";
-        }
-      } catch (err) {
-        weatherEl.textContent =
-          "Weather now: failed to load.";
-        predEl.textContent =
-          "Prediction (next 3 days): failed to load.";
-      }
-    }
-
-    /* ---------- Load spots ---------- */
-
-    async function loadSpots(user) {
-      const q = query(
-        collection(db, "spots"),
-        where("userId", "==", user.uid)
-      );
-      const snap = await getDocs(q);
-
-      if (snap.empty) {
-        spotsList.innerHTML =
-          `<p class="muted-text">No spots yet. Add your first fishing spot.</p>`;
-        return;
-      }
-
-      const spots = [];
-      snap.forEach(docSnap => spots.push({ id: docSnap.id, ...docSnap.data() }));
-
-      const catchesSnap = await getDocs(
-        query(collection(db, "catches"), where("userId", "==", user.uid))
-      );
-      const allCatches = catchesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-      spotsList.innerHTML = "";
-      for (const spot of spots) {
-        const spotDiv = document.createElement("div");
-        spotDiv.className = "spot-row";
-
-        const spotCatches = allCatches.filter(c => c.spotId === spot.id);
-        const total = spotCatches.length;
-        let biggestWeight = 0;
-        let biggestSpecies = "-";
-
-        spotCatches.forEach(c => {
-          if (typeof c.weightKg === "number" && !isNaN(c.weightKg)) {
-            if (c.weightKg > biggestWeight) {
-              biggestWeight = c.weightKg;
-              biggestSpecies = c.species || "-";
-            }
-          }
-        });
-
-        const statsLine = total
-          ? `Total catches: ${total} • Biggest: ${biggestWeight.toFixed(2)} kg ${biggestSpecies}`
-          : "No catches yet.";
-
-        const mapsUrl =
-          typeof spot.latitude === "number" && typeof spot.longitude === "number"
-            ? `https://www.google.com/maps?q=${spot.latitude},${spot.longitude}`
-            : null;
-
-        spotDiv.innerHTML = `
-          <div class="spot-header-line">
-            <h3>${spot.name || "Unnamed spot"}</h3>
-          </div>
-          <div class="muted-text">${statsLine}</div>
-          <div class="muted-text" id="spotWeather-${spot.id}">
-            Weather now: loading…
-          </div>
-          <div class="muted-text" id="spotPred-${spot.id}">
-            Prediction (next 3 days): loading…
-          </div>
-        `;
-
-        const actionsDiv = document.createElement("div");
-        actionsDiv.className = "spot-actions";
-
-        const openBtn = document.createElement("button");
-        openBtn.className = "secondary-btn";
-        openBtn.textContent = "Open spot";
-        openBtn.onclick = () => {
-          window.location.href = `spot.html?id=${encodeURIComponent(spot.id)}`;
-        };
-
-        const addCatchBtn = document.createElement("button");
-        addCatchBtn.className = "secondary-btn";
-        addCatchBtn.textContent = "Add catch";
-        // IMPORTANT CHANGE: from main → from=main
-        addCatchBtn.onclick = () => {
-          window.location.href =
-            `add-catch.html?spotId=${encodeURIComponent(spot.id)}&from=main`;
-        };
-
-        const predBtn = document.createElement("button");
-        predBtn.className = "secondary-btn";
-        predBtn.textContent = "Predictions";
-        predBtn.onclick = () => {
-          window.location.href =
-            `predictions.html?spotId=${encodeURIComponent(spot.id)}`;
-        };
-
-        actionsDiv.appendChild(openBtn);
-        actionsDiv.appendChild(addCatchBtn);
-        actionsDiv.appendChild(predBtn);
-
-        if (mapsUrl) {
-          const mapsBtn = document.createElement("a");
-          mapsBtn.className = "secondary-btn";
-          mapsBtn.href = mapsUrl;
-          mapsBtn.target = "_blank";
-          mapsBtn.rel = "noopener noreferrer";
-          mapsBtn.textContent = "Google Maps";
-          actionsDiv.appendChild(mapsBtn);
-        }
-
-        spotDiv.appendChild(actionsDiv);
-        spotsList.appendChild(spotDiv);
-
-        await fetchWeatherAndPredictionForSpot(spot, spotCatches);
-      }
-    }
-
-    /* ---------- Auth state ---------- */
+    logoutBtn.addEventListener("click", () => signOut(auth));
 
     onAuthStateChanged(auth, async (user) => {
-      loadingCard.style.display = "none";
-
       if (!user) {
-        statsCard.style.display = "none";
-        spotsCard.style.display = "none";
-        renderAuthForm();
+        window.location.href = "login.html";
         return;
       }
 
-      const displayName = await loadUserDisplayName(user.uid);
-      renderLoggedInHeader(user, displayName);
+      userEmailEl.textContent = user.email;
 
-      statsCard.style.display = "block";
-      spotsCard.style.display = "block";
+      const spotsRef = collection(db, "spots");
+      const q = query(spotsRef, where("userId", "==", user.uid));
+      const snapshot = await getDocs(q);
 
-      await loadStats(user);
-      await loadSpots(user);
+      if (snapshot.empty) {
+        spotsListEl.innerHTML = `<p class="muted-text">No fishing spots added yet.</p>`;
+        return;
+      }
+
+      spotsListEl.innerHTML = "";
+
+      snapshot.forEach(doc => {
+        const spot = doc.data();
+
+        const row = document.createElement("div");
+        row.className = "list-row";
+
+        const left = document.createElement("div");
+        left.className = "list-row-main";
+        left.textContent = spot.name;
+
+        const right = document.createElement("div");
+        right.className = "list-row-meta";
+
+        const viewBtn = document.createElement("button");
+        viewBtn.className = "btn-small";
+        viewBtn.textContent = "Details";
+        viewBtn.onclick = () => {
+          window.location.href = `spot.html?id=${doc.id}`;
+        };
+
+        right.appendChild(viewBtn);
+        row.appendChild(left);
+        row.appendChild(right);
+
+        spotsListEl.appendChild(row);
+      });
     });
-
-    mapViewBtn.onclick = () => {
-      window.location.href = "spots-map.html";
-    };
-
-    addSpotBtn.onclick = () => {
-      window.location.href = "add-spot.html";
-    };
   </script>
+
+  <!-- COOKIE BANNER -->
   <script src="cookie-consent.js"></script>
 </body>
 </html>
-
-
