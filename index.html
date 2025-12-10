@@ -45,6 +45,15 @@
         <div>Loading app…</div>
       </div>
     </div>
+
+    <!-- Simple footer with privacy link -->
+    <footer style="text-align:center;margin:24px 0 8px;">
+      <a href="privacy.html"
+         class="muted-text"
+         style="color:#60a5fa;text-decoration:underline;">
+        Privacy Policy
+      </a>
+    </footer>
   </div>
 
   <script type="module">
@@ -489,7 +498,7 @@
         const addCatchBtn = document.createElement("button");
         addCatchBtn.className = "secondary-btn";
         addCatchBtn.textContent = "Add catch";
-        // IMPORTANT CHANGE: from main → from=main
+        // from main page
         addCatchBtn.onclick = () => {
           window.location.href =
             `add-catch.html?spotId=${encodeURIComponent(spot.id)}&from=main`;
@@ -554,9 +563,8 @@
       window.location.href = "add-spot.html";
     };
   </script>
+
+  <!-- Cookie consent banner -->
   <script src="cookie-consent.js"></script>
 </body>
 </html>
-
-
-
