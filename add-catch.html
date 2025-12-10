@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Add catch</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app fade-in">
+    <header class="card">
+      <div class="card-header">
+        <div>
+          <h1>Add catch</h1>
+          <p class="muted-text">
+            Log a new catch with spot, weight, weather & notes.
+          </p>
+        </div>
+        <div>
+          <button class="secondary-btn btn-back-main" id="backBtn">
+            ← Back to main
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="muted-text">
+          Logged in as <span id="loggedInAs">…</span>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="species">Species</label>
+          <input id="species" type="text" placeholder="pike, perch, etc." />
+        </div>
+
+        <div class="form-field">
+          <label for="weightKg">Weight (kg)</label>
+          <input id="weightKg" type="number" step="0.01" />
+        </div>
+
+        <div class="form-field">
+          <label for="spotSelect">Fishing spot (required)</label>
+          <select id="spotSelect"></select>
+        </div>
+
+        <div class="form-field">
+          <label for="lure">Lure</label>
+          <input id="lure" type="text" placeholder="Spinner, jig, worm…" />
+        </div>
+
+        <div class="form-field">
+          <label for="depth">Water depth (m)</label>
+          <input id="depth" type="number" step="0.1" />
+        </div>
+
+        <div class="form-field">
+          <label for="waterTemp">Water temperature (°C)</label>
+          <input id="waterTemp" type="number" step="0.1" />
+        </div>
+
+        <div class="form-field">
+          <label for="latitude">Latitude (auto from spot or GPS)</label>
+          <input id="latitude" type="number" step="0.000001" />
+        </div>
+
+        <div class="form-field">
+          <label for="longitude">Longitude (auto from spot or GPS)</label>
+          <input id="longitude" type="number" step="0.000001" />
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+        <button class="secondary-btn" id="useLocationBtn">
+          Use my location
+        </button>
+      </div>
+
+      <p id="weatherNow" class="muted-text" style="margin-top:8px;">
+        Weather now: (not loaded yet)
+      </p>
+
+      <div class="form-field" style="margin-top:12px;">
+        <label for="notes">Notes</label>
+        <textarea id="notes" rows="3"
+          placeholder="Weather, behavior, etc."></textarea>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;">
+        <button class="primary-btn" id="saveCatchBtn">Save catch</button>
+      </div>
+
+      <p id="statusMsg" class="muted-text" style="margin-top:10px;"></p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp }
+      from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      getDocs,
+      doc,
+      getDoc,
+      query,
+      where
+    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXIdT74cNDSVIoMs3NZ86tPf2kzFm8Iug",
+      authDomain: "fishing-log-app-murx.firebaseapp.com",
+      projectId: "fishing-log-app-murx",
+      storageBucket: "fishing-log-app-murx.firebasestorage.app",
+      messagingSenderId: "1056807867882",
+      appId: "1:1056807867882:web:e59ddd8f6353d190080e93"
+    };
+
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    const backBtn        = document.getElementById("backBtn");
+    const loggedInAsEl   = document.getElementById("loggedInAs");
+    const speciesEl      = document.getElementById("species");
+    const weightEl       = document.getElementById("weightKg");
+    const spotSelectEl   = document.getElementById("spotSelect");
+    const lureEl         = document.getElementById("lure");
+    const depthEl        = document.getElementById("depth");
+    const waterTempEl    = document.getElementById("waterTemp");
+    const latEl          = document.getElementById("latitude");
+    const lngEl          = document.getElementById("longitude");
+    const useLocationBtn = document.getElementById("useLocationBtn");
+    const saveCatchBtn   = document.getElementById("saveCatchBtn");
+    const weatherNowEl   = document.getElementById("weatherNow");
+    const statusMsg      = document.getElementById("statusMsg");
+
+    const params        = new URLSearchParams(window.location.search);
+    const urlSpotId     = params.get("spotId");
+    const fromParam     = params.get("from") || "main"; // "spot" or "main"
+
+    let currentUser = null;
+    let spots = [];
+    let latestWeather = null; // store for saving
+
+    backBtn.onclick = () => {
+      window.location.href = "index.html";
+    };
+
+    function getApproxMoonPhase(date) {
+      const lp = 2551443;
+      const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14);
+      const diff = date.getTime() - knownNewMoon;
+      const phase = (diff / 1000) % lp;
+      let frac = phase / lp;
+      if (frac < 0) frac += 1;
+      return frac;
+    }
+
+    function getWeatherIconAndLabel(code) {
+      if (code === 0) return { icon: "☀️", label: "Clear" };
+      if (code === 1) return { icon: "🌤️", label: "Mainly clear" };
+      if (code === 2) return { icon: "⛅",  label: "Partly cloudy" };
+      if (code === 3) return { icon: "☁️", label: "Overcast" };
+      if (code >= 51 && code <= 57) return { icon: "🌦️", label: "Drizzle" };
+      if (code >= 61 && code <= 67) return { icon: "🌧️", label: "Rain" };
+      if (code >= 71 && code <= 77) return { icon: "🌨️", label: "Snow" };
+      if (code >= 80 && code <= 82) return { icon: "🌦️", label: "Rain showers" };
+      if (code >= 85 && code <= 86) return { icon: "🌨️", label: "Snow showers" };
+      if (code === 95) return { icon: "⛈️", label: "Thunderstorm" };
+      if (code === 96 || code === 99) return { icon: "⛈️", label: "Thunderstorm with hail" };
+      return { icon: "❓", label: "Unknown" };
+    }
+
+    async function fetchCurrentWeather(lat, lng) {
+      try {
+        weatherNowEl.textContent = "Weather now: loading…";
+
+        const url =
+          `https://api.open-meteo.com/v1/forecast` +
+          `?latitude=${lat}&longitude=${lng}` +
+          `&current=temperature_2m,wind_speed_10m,weather_code,pressure_msl` +
+          `&timezone=auto&wind_speed_unit=ms`;
+
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+
+        const cur = data.current || {};
+        const temp   = cur.temperature_2m;
+        const windMs = cur.wind_speed_10m;
+        const press  = cur.pressure_msl;
+        const code   = cur.weather_code;
+
+        const { icon, label } = getWeatherIconAndLabel(code);
+
+        const parts = [];
+        if (label) parts.push(label);
+        if (typeof temp === "number") parts.push(`${temp.toFixed(1)} °C`);
+        if (typeof windMs === "number") parts.push(`wind ${windMs.toFixed(1)} m/s`);
+
+        weatherNowEl.textContent =
+          "Weather now: " + icon + " " + parts.join(", ");
+
+        latestWeather = {
+          weatherTemp: temp,
+          weatherWindMs: windMs,
+          weatherPressure: press,
+          weatherCode: code,
+          weatherCondition: label,
+          weatherDescription: `${label || "Weather"}, ${typeof temp === "number" ? temp.toFixed(1) + " °C" : "n/a"}, wind ${typeof windMs === "number" ? windMs.toFixed(1) : "n/a"} m/s`,
+          moonPhase: getApproxMoonPhase(new Date())
+        };
+      } catch (err) {
+        weatherNowEl.textContent = "Weather now: failed to load.";
+        latestWeather = null;
+      }
+    }
+
+    async function loadSpotsForUser(user) {
+      const q = query(
+        collection(db, "spots"),
+        where("userId", "==", user.uid)
+      );
+      const snap = await getDocs(q);
+      spots = [];
+      snap.forEach(d => spots.push({ id: d.id, ...d.data() }));
+      spots.sort((a,b) => (a.name || "").localeCompare(b.name || ""));
+
+      if (!spots.length) {
+        spotSelectEl.innerHTML =
+          `<option value="">No spots yet – create one first.</option>`;
+        spotSelectEl.disabled = true;
+        return;
+      }
+
+      spotSelectEl.disabled = false;
+      spotSelectEl.innerHTML =
+        `<option value="">Choose a fishing spot…</option>` +
+        spots.map(s =>
+          `<option value="${s.id}">${s.name || "Unnamed spot"}</option>`
+        ).join("");
+
+      if (urlSpotId) {
+        spotSelectEl.value = urlSpotId;
+      }
+      handleSpotChange();
+    }
+
+    function handleSpotChange() {
+      const spotId = spotSelectEl.value;
+      const spot = spots.find(s => s.id === spotId);
+      if (spot && typeof spot.latitude === "number" &&
+          typeof spot.longitude === "number") {
+        latEl.value = spot.latitude.toFixed(6);
+        lngEl.value = spot.longitude.toFixed(6);
+        fetchCurrentWeather(spot.latitude, spot.longitude);
+      }
+    }
+
+    spotSelectEl.addEventListener("change", handleSpotChange);
+
+    useLocationBtn.onclick = () => {
+      if (!navigator.geolocation) {
+        statusMsg.textContent = "Geolocation not available.";
+        return;
+      }
+      statusMsg.textContent = "Getting your location…";
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          latEl.value = latitude.toFixed(6);
+          lngEl.value = longitude.toFixed(6);
+          statusMsg.textContent = "";
+          fetchCurrentWeather(latitude, longitude);
+        },
+        (err) => {
+          statusMsg.textContent = "Could not get location: " + err.message;
+        }
+      );
+    };
+
+    async function saveCatch() {
+      statusMsg.textContent = "";
+
+      if (!currentUser) {
+        statusMsg.textContent = "You must be logged in.";
+        return;
+      }
+
+      const species = (speciesEl.value || "").trim() || "fish";
+      const weight  = parseFloat(weightEl.value);
+      const spotId  = spotSelectEl.value;
+
+      if (!spotId) {
+        statusMsg.textContent = "Please choose a fishing spot.";
+        return;
+      }
+      if (isNaN(weight) || weight <= 0) {
+        statusMsg.textContent = "Please enter a valid weight.";
+        return;
+      }
+
+      const lure = (lureEl.value || "").trim();
+      const depth = parseFloat(depthEl.value);
+      const waterTemp = parseFloat(waterTempEl.value);
+      const lat = parseFloat(latEl.value);
+      const lng = parseFloat(lngEl.value);
+      const notes = (document.getElementById("notes").value || "").trim();
+
+      const catchDoc = {
+        userId: currentUser.uid,
+        species,
+        weightKg: weight,
+        spotId,
+        spotName: (spots.find(s => s.id === spotId)?.name) || "",
+        lure,
+        depth: isNaN(depth) ? null : depth,
+        temperature: isNaN(waterTemp) ? null : waterTemp,
+        latitude: isNaN(lat) ? null : lat,
+        longitude: isNaN(lng) ? null : lng,
+        notes,
+        timestamp: Date.now()
+      };
+
+      if (latestWeather) {
+        Object.assign(catchDoc, {
+          weatherTemp: latestWeather.weatherTemp,
+          weatherWindMs: latestWeather.weatherWindMs,
+          weatherPressure: latestWeather.weatherPressure,
+          weatherCode: latestWeather.weatherCode,
+          weatherCondition: latestWeather.weatherCondition,
+          weatherDescription: latestWeather.weatherDescription,
+          moonPhase: latestWeather.moonPhase
+        });
+      }
+
+      saveCatchBtn.disabled = true;
+      saveCatchBtn.textContent = "Saving…";
+
+      try {
+        await addDoc(collection(db, "catches"), catchDoc);
+        statusMsg.textContent = "Catch saved. Redirecting…";
+
+        // 🔁 NEW REDIRECT LOGIC
+        if (fromParam === "spot" && spotId) {
+          window.location.href =
+            `spot.html?id=${encodeURIComponent(spotId)}`;
+        } else {
+          window.location.href = "index.html";
+        }
+      } catch (err) {
+        statusMsg.textContent = "Error saving catch: " + (err.message || err);
+        saveCatchBtn.disabled = false;
+        saveCatchBtn.textContent = "Save catch";
+      }
+    }
+
+    saveCatchBtn.onclick = saveCatch;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+      currentUser = user;
+      loggedInAsEl.textContent = user.email || "unknown user";
+      await loadSpotsForUser(user);
+    });
+  </script>
+</body>
+</html>

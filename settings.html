@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Settings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app fade-in">
+    <header class="card">
+      <div class="card-header">
+        <div>
+          <h1>Settings</h1>
+          <p class="muted-text">
+            Personalize how your name appears in the app.
+          </p>
+        </div>
+        <button class="secondary-btn btn-back-main" id="backBtn">
+          ← Back to main
+        </button>
+      </div>
+    </header>
+
+    <div class="card">
+      <form id="settingsForm">
+        <label for="displayName">Display name</label>
+        <input
+          id="displayName"
+          type="text"
+          placeholder="What should the app call you?"
+        />
+        <div style="margin-top:10px;">
+          <button type="submit" class="primary-btn">Save settings</button>
+        </div>
+        <p id="settingsMessage" class="muted-text" style="margin-top:8px;"></p>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp }
+      from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc
+    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXIdT74cNDSVIoMs3NZ86tPf2kzFm8Iug",
+      authDomain: "fishing-log-app-murx.firebaseapp.com",
+      projectId: "fishing-log-app-murx",
+      storageBucket: "fishing-log-app-murx.firebasestorage.app",
+      messagingSenderId: "1056807867882",
+      appId: "1:1056807867882:web:e59ddd8f6353d190080e93"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    const backBtn  = document.getElementById("backBtn");
+    const form     = document.getElementById("settingsForm");
+    const nameEl   = document.getElementById("displayName");
+    const messageEl = document.getElementById("settingsMessage");
+
+    backBtn.onclick = () => {
+      window.location.href = "index.html";
+    };
+
+    let currentUser = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+      currentUser = user;
+      await loadSettings();
+    });
+
+    async function loadSettings() {
+      const profileRef = doc(db, "profiles", currentUser.uid);
+      const snap = await getDoc(profileRef);
+      if (snap.exists()) {
+        const data = snap.data();
+        nameEl.value = data.displayName || "";
+      }
+    }
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      if (!currentUser) return;
+
+      const displayName = nameEl.value.trim();
+      try {
+        await setDoc(
+          doc(db, "profiles", currentUser.uid),
+          { displayName },
+          { merge: true }
+        );
+        messageEl.textContent = "Settings saved.";
+      } catch {
+        messageEl.textContent = "Failed to save settings.";
+      }
+    };
+  </script>
+</body>
+</html>

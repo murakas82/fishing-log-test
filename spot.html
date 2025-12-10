@@ -1,0 +1,289 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Fishing spot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app fade-in">
+    <header class="card">
+      <div class="card-header">
+        <div>
+          <h1>Fishing spot</h1>
+          <p class="muted-text">See details and catches for this spot.</p>
+        </div>
+        <div>
+          <button class="secondary-btn btn-back-main" id="backBtn">
+            ← Back to main
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="card" id="spotCard">
+      <div class="card-header">
+        <div>
+          <h2 id="spotName">Loading spot…</h2>
+          <p class="muted-text" id="spotLocation"></p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="secondary-btn" id="addCatchBtn">Add catch</button>
+          <button class="secondary-btn" id="predictionsBtn">Predictions</button>
+          <button class="secondary-btn" id="editSpotBtn">Edit</button>
+          <button class="danger-btn" id="deleteSpotBtn">Delete spot</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="catchesCard">
+      <h2>Catches at this spot</h2>
+      <div id="catchesList" class="spot-catches-list"></div>
+    </div>
+
+    <div class="card" id="loadingCard" style="display:none;">
+      <div class="loading-center">
+        <div class="spinner"></div>
+        <div>Loading…</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp }
+      from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      collection,
+      query,
+      where,
+      getDocs,
+      deleteDoc
+    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXIdT74cNDSVIoMs3NZ86tPf2kzFm8Iug",
+      authDomain: "fishing-log-app-murx.firebaseapp.com",
+      projectId: "fishing-log-app-murx",
+      storageBucket: "fishing-log-app-murx.firebasestorage.app",
+      messagingSenderId: "1056807867882",
+      appId: "1:1056807867882:web:e59ddd8f6353d190080e93"
+    };
+
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    const backBtn        = document.getElementById("backBtn");
+    const addCatchBtn    = document.getElementById("addCatchBtn");
+    const predictionsBtn = document.getElementById("predictionsBtn");
+    const editSpotBtn    = document.getElementById("editSpotBtn");
+    const deleteSpotBtn  = document.getElementById("deleteSpotBtn");
+
+    const spotNameEl     = document.getElementById("spotName");
+    const spotLocationEl = document.getElementById("spotLocation");
+    const catchesListEl  = document.getElementById("catchesList");
+    const loadingCard    = document.getElementById("loadingCard");
+    const catchesCard    = document.getElementById("catchesCard");
+
+    const params = new URLSearchParams(window.location.search);
+    const spotId = params.get("id") || params.get("spotId");
+
+    backBtn.onclick = () => {
+      window.location.href = "index.html";
+    };
+
+    if (addCatchBtn) {
+      addCatchBtn.onclick = () => {
+        if (!spotId) return;
+        // IMPORTANT CHANGE: from spot → from=spot
+        window.location.href =
+          `add-catch.html?spotId=${encodeURIComponent(spotId)}&from=spot`;
+      };
+    }
+
+    if (predictionsBtn) {
+      predictionsBtn.onclick = () => {
+        if (!spotId) return;
+        window.location.href =
+          `predictions.html?spotId=${encodeURIComponent(spotId)}`;
+      };
+    }
+
+    if (editSpotBtn) {
+      editSpotBtn.onclick = () => {
+        if (!spotId) return;
+        window.location.href =
+          `edit-spot.html?spotId=${encodeURIComponent(spotId)}`;
+      };
+    }
+
+    async function loadSpot(user) {
+      if (!spotId) {
+        spotNameEl.textContent = "No spot selected";
+        catchesListEl.innerHTML =
+          `<p class="muted-text">Missing spot id in URL.</p>`;
+        return;
+      }
+
+      loadingCard.style.display = "block";
+      catchesCard.style.display = "none";
+
+      const spotRef = doc(db, "spots", spotId);
+      const snap = await getDoc(spotRef);
+
+      if (!snap.exists()) {
+        spotNameEl.textContent = "Spot not found";
+        spotLocationEl.textContent = "";
+        catchesListEl.innerHTML =
+          `<p class="muted-text">This spot does not exist.</p>`;
+        loadingCard.style.display = "none";
+        return;
+      }
+
+      const spot = snap.data();
+      if (spot.userId !== user.uid) {
+        spotNameEl.textContent = "Access denied";
+        catchesListEl.innerHTML =
+          `<p class="muted-text">This spot belongs to another user.</p>`;
+        loadingCard.style.display = "none";
+        return;
+      }
+
+      spotNameEl.textContent = spot.name || "Unnamed spot";
+      if (typeof spot.latitude === "number" &&
+          typeof spot.longitude === "number") {
+        spotLocationEl.textContent =
+          `Location: ${spot.latitude.toFixed(4)}, ${spot.longitude.toFixed(4)}`;
+      } else {
+        spotLocationEl.textContent = "Location: not set";
+      }
+
+      const q = query(
+        collection(db, "catches"),
+        where("userId", "==", user.uid),
+        where("spotId", "==", spotId)
+      );
+      const catchesSnap = await getDocs(q);
+
+      if (catchesSnap.empty) {
+        catchesListEl.innerHTML =
+          `<p class="muted-text">No catches at this spot yet.</p>`;
+      } else {
+        const items = [];
+        catchesSnap.forEach(docSnap =>
+          items.push({ id: docSnap.id, ...docSnap.data() })
+        );
+        items.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+        catchesListEl.innerHTML = "";
+        for (const c of items) {
+          const row = document.createElement("div");
+          row.className = "catch-row";
+
+          const date = c.timestamp ? new Date(c.timestamp) : null;
+          const dateText = date
+            ? `${String(date.getDate()).padStart(2,"0")}.${String(date.getMonth()+1).padStart(2,"0")}.${date.getFullYear()}`
+            : "-";
+
+          const species = c.species || "-";
+          const weight  = (typeof c.weightKg === "number" && !isNaN(c.weightKg))
+            ? `${c.weightKg.toFixed(2)} kg`
+            : "-";
+          const lure    = c.lure || "-";
+          const depth   = (typeof c.depth === "number" && !isNaN(c.depth))
+            ? `${c.depth.toFixed(1)} m`
+            : "-";
+          const waterTemp = (typeof c.temperature === "number" && !isNaN(c.temperature))
+            ? `${c.temperature.toFixed(1)} °C`
+            : "-";
+          const weatherDesc = c.weatherDescription || "no weather data";
+
+          row.innerHTML = `
+            <p><strong>${species}</strong> • ${weight} ${dateText}</p>
+            <p>Lure: ${lure}</p>
+            <p>Depth: ${depth}</p>
+            <p>Water temp: ${waterTemp}</p>
+            <p>Weather at time of catch: ${weatherDesc}</p>
+            <button class="danger-btn catch-delete-btn" data-id="${c.id}">
+              Delete catch
+            </button>
+          `;
+          catchesListEl.appendChild(row);
+        }
+
+        document.querySelectorAll(".catch-delete-btn").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-id");
+            if (!id) return;
+            const ok = confirm("Delete this catch permanently?");
+            if (!ok) return;
+            try {
+              await deleteDoc(doc(db, "catches", id));
+              btn.closest(".catch-row")?.remove();
+              if (!catchesListEl.children.length) {
+                catchesListEl.innerHTML =
+                  `<p class="muted-text">No catches at this spot yet.</p>`;
+              }
+            } catch (err) {
+              alert("Error deleting catch: " + (err.message || err));
+            }
+          });
+        });
+      }
+
+      loadingCard.style.display = "none";
+      catchesCard.style.display = "block";
+    }
+
+    async function handleDeleteSpot(user) {
+      if (!spotId) return;
+      const ok = confirm(
+        "Delete this spot and all catches at this spot? This cannot be undone."
+      );
+      if (!ok) return;
+
+      deleteSpotBtn.disabled = true;
+      deleteSpotBtn.textContent = "Deleting…";
+
+      try {
+        const q = query(
+          collection(db, "catches"),
+          where("userId", "==", user.uid),
+          where("spotId", "==", spotId)
+        );
+        const snap = await getDocs(q);
+        const deletions = snap.docs.map(d =>
+          deleteDoc(doc(db, "catches", d.id))
+        );
+        await Promise.all(deletions);
+        await deleteDoc(doc(db, "spots", spotId));
+
+        alert("Spot and its catches deleted.");
+        window.location.href = "index.html";
+      } catch (err) {
+        alert("Error deleting spot: " + (err.message || err));
+        deleteSpotBtn.disabled = false;
+        deleteSpotBtn.textContent = "Delete spot";
+      }
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+      await loadSpot(user);
+      deleteSpotBtn.onclick = () => handleDeleteSpot(user);
+    });
+  </script>
+</body>
+</html>

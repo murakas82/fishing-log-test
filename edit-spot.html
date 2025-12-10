@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Edit fishing spot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app fade-in">
+    <header class="card">
+      <div class="card-header">
+        <div>
+          <h1>Edit fishing spot</h1>
+          <p class="muted-text">
+            Change the name and GPS coordinates of this spot.
+          </p>
+        </div>
+        <div>
+          <button class="secondary-btn btn-back-main" id="backBtn">
+            ← Back to main
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="muted-text">
+          Logged in as <span id="loggedInAs">…</span>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="spotName">Spot name</label>
+          <input id="spotName" type="text" autocomplete="off"
+                 placeholder="Spot name" />
+        </div>
+
+        <div class="form-field">
+          <label for="latitude">Latitude</label>
+          <input id="latitude" type="number" step="0.000001" />
+        </div>
+
+        <div class="form-field">
+          <label for="longitude">Longitude</label>
+          <input id="longitude" type="number" step="0.000001" />
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;">
+        <button class="primary-btn" id="saveSpotBtn">Save changes</button>
+      </div>
+
+      <p id="statusMsg" class="muted-text" style="margin-top:10px;"></p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp }
+      from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+
+    import {
+      getAuth,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      updateDoc,
+      collection,
+      getDocs,
+      query,
+      where
+    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXIdT74cNDSVIoMs3NZ86tPf2kzFm8Iug",
+      authDomain: "fishing-log-app-murx.firebaseapp.com",
+      projectId: "fishing-log-app-murx",
+      storageBucket: "fishing-log-app-murx.firebasestorage.app",
+      messagingSenderId: "1056807867882",
+      appId: "1:1056807867882:web:e59ddd8f6353d190080e93"
+    };
+
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    const backBtn      = document.getElementById("backBtn");
+    const loggedInAsEl = document.getElementById("loggedInAs");
+    const spotNameEl   = document.getElementById("spotName");
+    const latEl        = document.getElementById("latitude");
+    const lngEl        = document.getElementById("longitude");
+    const saveSpotBtn  = document.getElementById("saveSpotBtn");
+    const statusMsg    = document.getElementById("statusMsg");
+
+    const params = new URLSearchParams(window.location.search);
+    const spotId = params.get("spotId");
+
+    let currentUser = null;
+
+    backBtn.onclick = () => {
+      window.location.href = "index.html";
+    };
+
+    function normalizeSpotName(name) {
+      return name
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function prettifySpotName(name) {
+      const cleaned = name.replace(/\s+/g, " ").trim();
+      if (!cleaned) return "";
+      return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+    }
+
+    async function loadSpot(user) {
+      if (!spotId) {
+        statusMsg.textContent = "Missing spot id in URL.";
+        return;
+      }
+
+      const ref = doc(db, "spots", spotId);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        statusMsg.textContent = "Spot not found.";
+        return;
+      }
+
+      const spot = snap.data();
+      if (spot.userId !== user.uid) {
+        statusMsg.textContent = "You do not have access to this spot.";
+        return;
+      }
+
+      spotNameEl.value = spot.name || "";
+      if (typeof spot.latitude === "number")
+        latEl.value = spot.latitude;
+      if (typeof spot.longitude === "number")
+        lngEl.value = spot.longitude;
+    }
+
+    async function saveSpot() {
+      if (!currentUser || !spotId) return;
+
+      statusMsg.textContent = "";
+
+      let rawName = spotNameEl.value || "";
+      rawName = rawName.replace(/\s+/g, " ");
+      const prettyName = prettifySpotName(rawName);
+      const normalized = normalizeSpotName(rawName);
+
+      if (!normalized) {
+        statusMsg.textContent = "Spot name is required.";
+        return;
+      }
+
+      const lat = parseFloat(latEl.value);
+      const lng = parseFloat(lngEl.value);
+
+      if (isNaN(lat) || isNaN(lng)) {
+        statusMsg.textContent =
+          "Please enter valid latitude and longitude.";
+        return;
+      }
+
+      saveSpotBtn.disabled = true;
+      saveSpotBtn.textContent = "Saving…";
+
+      try {
+        // Check for duplicate name among THIS user's spots (excluding this spot)
+        const q = query(
+          collection(db, "spots"),
+          where("userId", "==", currentUser.uid)
+        );
+        const snap = await getDocs(q);
+        let nameTaken = false;
+        snap.forEach(d => {
+          if (d.id === spotId) return;
+          const data = d.data();
+          const base = data.normalizedName || data.name || "";
+          if (!base) return;
+          const n = normalizeSpotName(base);
+          if (n === normalized) {
+            nameTaken = true;
+          }
+        });
+
+        if (nameTaken) {
+          statusMsg.textContent =
+            "You already have another spot with this name (ignoring case and spaces).";
+          saveSpotBtn.disabled = false;
+          saveSpotBtn.textContent = "Save changes";
+          return;
+        }
+
+        const ref = doc(db, "spots", spotId);
+        await updateDoc(ref, {
+          name: prettyName,
+          normalizedName: normalized,
+          latitude: lat,
+          longitude: lng,
+          updatedAt: Date.now()
+        });
+
+        statusMsg.textContent = "Spot updated. Redirecting…";
+        setTimeout(() => {
+          window.location.href = `spot.html?id=${encodeURIComponent(spotId)}`;
+        }, 800);
+      } catch (err) {
+        statusMsg.textContent = "Error saving spot: " + (err.message || err);
+        saveSpotBtn.disabled = false;
+        saveSpotBtn.textContent = "Save changes";
+      }
+    }
+
+    saveSpotBtn.onclick = saveSpot;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+      currentUser = user;
+      loggedInAsEl.textContent = user.email || "unknown";
+      await loadSpot(user);
+    });
+  </script>
+</body>
+</html>

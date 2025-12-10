@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Predictions – Fishing Spot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    .pred-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(148,163,184,0.25);
+      font-size: 0.9rem;
+    }
+
+    .pred-row:last-child {
+      border-bottom: none;
+    }
+
+    .pred-label {
+      font-weight: 500;
+    }
+
+    .pred-score {
+      font-weight: 600;
+    }
+
+    .pred-tag {
+      font-size: 0.8rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.5);
+      margin-left: 6px;
+    }
+
+    .pred-tag-good {
+      border-color: #22c55e;
+      color: #22c55e;
+    }
+
+    .pred-tag-medium {
+      border-color: #eab308;
+      color: #eab308;
+    }
+
+    .pred-tag-poor {
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+
+    .pred-info {
+      font-size: 0.82rem;
+      opacity: 0.85;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app fade-in">
+    <header>
+      <h1>Predictions</h1>
+      <p>Forecast match vs your past catches at this spot.</p>
+    </header>
+
+    <div class="card" id="spotHeaderCard">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+        <div>
+          <h2 id="spotNameHeading" style="margin:0 0 4px;">Loading spot…</h2>
+          <p id="spotDesc" class="pred-info" style="margin:0;">
+            Fetching data…
+          </p>
+        </div>
+        <button class="secondary-btn" id="backToSpotBtn">
+          ← Back to main
+        </button>
+      </div>
+    </div>
+
+    <div class="card" id="predictionsCard" style="display:none;">
+      <h2>Next 3 days</h2>
+      <div id="predictionsList"></div>
+      <p class="pred-info" id="predSummary"></p>
+    </div>
+
+    <!-- Hot times tomorrow (daylight only) -->
+    <div class="card" id="hotTimesCard" style="display:none;">
+      <h2>Hot times tomorrow</h2>
+      <div id="hotTimesList"></div>
+      <p class="pred-info" id="hotTimesNote">
+        Times are between 1 hour before sunrise and 1 hour after sunset, based on your catches with weather data.
+      </p>
+    </div>
+
+    <div class="card" id="debugCard" style="display:none;">
+      <h2>Debug view (why these scores?)</h2>
+      <p class="pred-info" id="debugInfo"></p>
+      <p class="pred-info" id="weatherNowInfo"></p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp }
+      from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+
+    import {
+      getAuth,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+    import {
+      getFirestore,
+      doc, getDoc,
+      collection, getDocs,
+      query, where
+    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXIdT74cNDSVIoMs3NZ86tPf2kzFm8Iug",
+      authDomain: "fishing-log-app-murx.firebaseapp.com",
+      projectId: "fishing-log-app-murx",
+      storageBucket: "fishing-log-app-murx.firebasestorage.app",
+      messagingSenderId: "1056807867882",
+      appId: "1:1056807867882:web:e59ddd8f6353d190080e93"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    const spotNameHeading = document.getElementById("spotNameHeading");
+    const spotDesc        = document.getElementById("spotDesc");
+    const backToSpotBtn   = document.getElementById("backToSpotBtn");
+
+    const predictionsCard = document.getElementById("predictionsCard");
+    const predictionsList = document.getElementById("predictionsList");
+    const predSummary     = document.getElementById("predSummary");
+
+    const hotTimesCard = document.getElementById("hotTimesCard");
+    const hotTimesList = document.getElementById("hotTimesList");
+
+    const debugCard       = document.getElementById("debugCard");
+    const debugInfo       = document.getElementById("debugInfo");
+    const weatherNowInfo  = document.getElementById("weatherNowInfo");
+
+    let currentUser   = null;
+    let currentSpotId = null;
+    let currentSpot   = null;
+
+    function getSpotIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("spotId");
+    }
+
+    function formatDateLabel(dateObj) {
+      const d = dateObj.getDate();
+      const m = dateObj.getMonth() + 1;
+      const y = dateObj.getFullYear();
+      const weekday = WEEKDAYS[dateObj.getDay()];
+      return `${weekday} ${d}.${m}.${y}`;
+    }
+
+    function getWeatherIconAndLabel(code) {
+      if (code === 0) return { icon: "☀️", label: "Clear sky" };
+      if (code === 1) return { icon: "🌤️", label: "Mainly clear" };
+      if (code === 2) return { icon: "⛅",  label: "Partly cloudy" };
+      if (code === 3) return { icon: "☁️", label: "Overcast" };
+      if (code === 45 || code === 48) return { icon: "🌫️", label: "Fog" };
+      if (code >= 51 && code <= 57) return { icon: "🌦️", label: "Drizzle" };
+      if (code >= 61 && code <= 67) return { icon: "🌧️", label: "Rain" };
+      if (code >= 71 && code <= 77) return { icon: "🌨️", label: "Snow" };
+      if (code >= 80 && code <= 82) return { icon: "🌦️", label: "Rain showers" };
+      if (code >= 85 && code <= 86) return { icon: "🌨️", label: "Snow showers" };
+      if (code === 95) return { icon: "⛈️", label: "Thunderstorm" };
+      if (code === 96 || code === 99) return { icon: "⛈️", label: "Thunderstorm with hail" };
+      return { icon: "❓", label: "Unknown" };
+    }
+
+    // Approximate moon phase (0..1)
+    function getApproxMoonPhase(date) {
+      const lp = 2551443;
+      const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14);
+      const diff = date.getTime() - knownNewMoon;
+      const phase = (diff / 1000) % lp;
+      let frac = phase / lp;
+      if (frac < 0) frac += 1;
+      return frac;
+    }
+
+    function computePredictionScoreForDay(
+      spotCatches,
+      forecastTemp,
+      forecastWindMs,
+      forecastPress,
+      forecastMoonPhase
+    ) {
+      const usable = spotCatches.filter(c =>
+        typeof c.weatherTemp     === "number" &&
+        typeof c.weatherWindMs   === "number" &&
+        typeof c.weatherPressure === "number"
+      );
+
+      if (!usable.length) return null;
+
+      const scores = usable.map(c => {
+        let penalty = 0;
+
+        const tempDiff = Math.abs(c.weatherTemp - forecastTemp);
+        if (tempDiff > 5) penalty += (tempDiff - 5) * 2;
+
+        const windDiff = Math.abs(c.weatherWindMs - forecastWindMs);
+        if (windDiff > 4) penalty += (windDiff - 4) * 3;
+
+        if (forecastPress < 1000) {
+          if (c.weatherPressure >= 1000) penalty += 10;
+        } else {
+          if (c.weatherPressure < 1000)  penalty += 10;
+        }
+
+        const catchMoon =
+          typeof c.moonPhase === "number" ? c.moonPhase : null;
+        if (catchMoon != null && typeof forecastMoonPhase === "number") {
+          const moonDiff = Math.abs(c.moonPhase - forecastMoonPhase);
+          penalty += moonDiff * 40;
+        }
+
+        let score = 100 - penalty;
+        if (score < 0) score = 0;
+        if (score > 100) score = 100;
+        return score;
+      });
+
+      return scores.reduce((a, b) => a + b, 0) / scores.length;
+    }
+
+    async function computeSpotWeatherAndPredictions(lat, lng, spotCatches) {
+      let weatherNowText = "Weather: failed to load";
+      const predictions = [];
+      let hotHoursTomorrow = [];
+
+      const url =
+        `https://api.open-meteo.com/v1/forecast` +
+        `?latitude=${lat}&longitude=${lng}` +
+        `&current=temperature_2m,wind_speed_10m,weather_code` +
+        `&hourly=temperature_2m,wind_speed_10m,pressure_msl` +
+        `&forecast_days=4` +
+        `&wind_speed_unit=ms` +
+        `&timezone=auto`;
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Open-Meteo HTTP " + res.status);
+      const data = await res.json();
+
+      // ---- Current weather ----
+      const cur = data.current || {};
+      const tempNow =
+        typeof cur.temperature_2m === "number" ? cur.temperature_2m : null;
+      const windMsNow =
+        typeof cur.wind_speed_10m === "number" ? cur.wind_speed_10m : null;
+      const codeNow = cur.weather_code;
+
+      const { icon, label } = getWeatherIconAndLabel(codeNow);
+      const wParts = [];
+      if (label) wParts.push(label);
+      if (tempNow != null) wParts.push(`${tempNow.toFixed(1)} °C`);
+      if (windMsNow != null) wParts.push(`wind ${windMsNow.toFixed(1)} m/s`);
+      weatherNowText = wParts.length
+        ? `Weather now: ${icon} ${wParts.join(", ")}`
+        : "Weather now: not available";
+
+      // ---- Hourly forecast ----
+      const hourly = data.hourly || {};
+      const times   = hourly.time || [];
+      const temps   = hourly.temperature_2m || [];
+      const windsMs = hourly.wind_speed_10m || [];
+      const presses = hourly.pressure_msl || [];
+
+      if (!times.length || !temps.length || !windsMs.length || !presses.length) {
+        return { weatherNowText, predictions, hotHoursTomorrow };
+      }
+
+      function getForecastForDayOffset(dayOffset) {
+        const base = new Date();
+        base.setDate(base.getDate() + dayOffset);
+        const yyyy = base.getFullYear();
+        const mm = String(base.getMonth() + 1).padStart(2, "0");
+        const dd = String(base.getDate()).padStart(2, "0");
+        const dateStr = `${yyyy}-${mm}-${dd}`;
+
+        let idx = times.findIndex(t => t.startsWith(`${dateStr}T12`));
+        if (idx === -1) idx = times.findIndex(t => t.startsWith(dateStr));
+        if (idx === -1) return null;
+
+        const fTemp  = temps[idx];
+        const fWind  = windsMs[idx];
+        const fPress = presses[idx];
+        const fMoon  = getApproxMoonPhase(base);
+
+        return { dateObj: base, temp: fTemp, windMs: fWind, press: fPress, moon: fMoon };
+      }
+
+      // Daily predictions for next 3 days
+      for (let offset = 1; offset <= 3; offset++) {
+        const fc = getForecastForDayOffset(offset);
+        if (!fc) {
+          predictions.push({
+            score: null,
+            dateLabel: formatDateLabel(
+              new Date(new Date().setDate(new Date().getDate() + offset))
+            ),
+            forecast: null
+          });
+          continue;
+        }
+
+        const score = computePredictionScoreForDay(
+          spotCatches,
+          fc.temp,
+          fc.windMs,
+          fc.press,
+          fc.moon
+        );
+
+        predictions.push({
+          score,
+          dateLabel: formatDateLabel(fc.dateObj),
+          forecast: fc
+        });
+      }
+
+      // ---- Hot times tomorrow (hourly, daylight only) ----
+      async function getHotHoursForDayOffset(dayOffset) {
+        const base = new Date();
+        base.setDate(base.getDate() + dayOffset);
+        const yyyy = base.getFullYear();
+        const mm = String(base.getMonth() + 1).padStart(2, "0");
+        const dd = String(base.getDate()).padStart(2, "0");
+        const dateStr = `${yyyy}-${mm}-${dd}`;
+
+        // Sunrise / sunset for that day
+        const sunUrl =
+          `https://api.open-meteo.com/v1/forecast` +
+          `?latitude=${lat}&longitude=${lng}` +
+          `&daily=sunrise,sunset&timezone=auto` +
+          `&start_date=${dateStr}&end_date=${dateStr}`;
+
+        let sunrise, sunset;
+        try {
+          const sunRes = await fetch(sunUrl);
+          const sunData = await sunRes.json();
+          sunrise = new Date(sunData.daily.sunrise[0]);
+          sunset  = new Date(sunData.daily.sunset[0]);
+        } catch (e) {
+          console.warn("Sunrise/sunset not available:", e);
+          return [];
+        }
+
+        const allowedStart = new Date(sunrise.getTime() - 60 * 60 * 1000);
+        const allowedEnd   = new Date(sunset.getTime() + 60 * 60 * 1000);
+
+        const results = [];
+
+        for (let i = 0; i < times.length; i++) {
+          if (!times[i].startsWith(dateStr)) continue;
+
+          const dt = new Date(times[i]);
+
+          // Skip night hours
+          if (dt < allowedStart || dt > allowedEnd) continue;
+
+          const fTemp  = temps[i];
+          const fWind  = windsMs[i];
+          const fPress = presses[i];
+          const fMoon  = getApproxMoonPhase(dt);
+
+          const score = computePredictionScoreForDay(
+            spotCatches,
+            fTemp,
+            fWind,
+            fPress,
+            fMoon
+          );
+          if (score == null) continue;
+
+          results.push({ dateObj: dt, score });
+        }
+
+        results.sort((a, b) => b.score - a.score);
+
+        return results.slice(0, 5).map(r => ({
+          label: r.dateObj.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit"
+          }),
+          score: r.score
+        }));
+      }
+
+      hotHoursTomorrow = await getHotHoursForDayOffset(1);
+
+      return { weatherNowText, predictions, hotHoursTomorrow };
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+      currentUser   = user;
+      currentSpotId = getSpotIdFromUrl();
+      if (!currentSpotId) {
+        spotNameHeading.textContent = "No spot selected";
+        spotDesc.textContent = "Missing spotId in URL.";
+        return;
+      }
+      await initPredictionsPage();
+    });
+
+    async function initPredictionsPage() {
+      const spotRef  = doc(db, "spots", currentSpotId);
+      const spotSnap = await getDoc(spotRef);
+      if (!spotSnap.exists()) {
+        spotNameHeading.textContent = "Spot not found";
+        spotDesc.textContent        = "Unable to load this spot.";
+        return;
+      }
+
+      currentSpot = { id: spotSnap.id, ...spotSnap.data() };
+      spotNameHeading.textContent = currentSpot.name || "Unnamed spot";
+      spotDesc.textContent = "Loading catches and forecast…";
+
+      const q = query(
+        collection(db, "catches"),
+        where("userId", "==", currentUser.uid),
+        where("spotId", "==", currentSpot.id)
+      );
+      const snap = await getDocs(q);
+      const spotCatches = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const withWeather = spotCatches.filter(c =>
+        typeof c.weatherTemp     === "number" &&
+        typeof c.weatherWindMs   === "number" &&
+        typeof c.weatherPressure === "number"
+      );
+
+      spotDesc.textContent =
+        `${spotCatches.length} total catches at this spot, ` +
+        `${withWeather.length} with weather data saved.`;
+
+      if (typeof currentSpot.latitude !== "number" ||
+          typeof currentSpot.longitude !== "number") {
+        predictionsCard.style.display = "none";
+        hotTimesCard.style.display    = "none";
+        debugCard.style.display       = "block";
+        debugInfo.textContent         =
+          "This spot has no GPS coordinates, so forecast-based prediction is not available.";
+        return;
+      }
+
+      try {
+        const { weatherNowText, predictions, hotHoursTomorrow } =
+          await computeSpotWeatherAndPredictions(
+            currentSpot.latitude,
+            currentSpot.longitude,
+            spotCatches
+          );
+
+        predictionsCard.style.display = "block";
+        debugCard.style.display       = "block";
+
+        weatherNowInfo.textContent = weatherNowText;
+        renderPredictions(predictions, withWeather.length);
+        renderHotHours(hotHoursTomorrow);
+      } catch (err) {
+        console.error(err);
+        predictionsCard.style.display = "none";
+        hotTimesCard.style.display    = "none";
+        debugCard.style.display       = "block";
+        debugInfo.textContent         = "Failed to compute predictions.";
+      }
+    }
+
+    function renderPredictions(predictions, usableCount) {
+      predictionsList.innerHTML = "";
+
+      if (!predictions.length) {
+        predictionsList.innerHTML =
+          `<p class="pred-info">No forecast data available.</p>`;
+        return;
+      }
+
+      let sumScores = 0;
+      let countScores = 0;
+
+      predictions.forEach(p => {
+        const row = document.createElement("div");
+        row.className = "pred-row";
+
+        const left = document.createElement("div");
+        left.className = "pred-label";
+        left.textContent = p.dateLabel;
+
+        const right = document.createElement("div");
+
+        const scoreSpan = document.createElement("span");
+        scoreSpan.className = "pred-score";
+
+        const tag = document.createElement("span");
+        tag.className = "pred-tag";
+
+        if (typeof p.score === "number") {
+          scoreSpan.textContent = `${p.score.toFixed(0)}%`;
+
+          if (p.score >= 70) {
+            tag.textContent = "Good";
+            tag.classList.add("pred-tag-good");
+          } else if (p.score >= 40) {
+            tag.textContent = "Medium";
+            tag.classList.add("pred-tag-medium");
+          } else {
+            tag.textContent = "Poor";
+            tag.classList.add("pred-tag-poor");
+          }
+
+          sumScores   += p.score;
+          countScores += 1;
+        } else {
+          scoreSpan.textContent = "n/a";
+          tag.textContent = "No data";
+        }
+
+        right.appendChild(scoreSpan);
+        right.appendChild(tag);
+        row.appendChild(left);
+        row.appendChild(right);
+        predictionsList.appendChild(row);
+      });
+
+      if (countScores > 0) {
+        const avg = sumScores / countScores;
+        predSummary.textContent =
+          `Average score for the next 3 days: ${avg.toFixed(0)}% ` +
+          `(based on ${usableCount} catches with weather data).`;
+      } else {
+        predSummary.textContent =
+          `No usable catches with weather data yet – predictions are not available.`;
+      }
+    }
+
+    function renderHotHours(hotHours) {
+      if (!hotHours || !hotHours.length) {
+        hotTimesCard.style.display = "none";
+        return;
+      }
+
+      hotTimesCard.style.display = "block";
+      hotTimesList.innerHTML = "";
+
+      hotHours.forEach(h => {
+        const row = document.createElement("div");
+        row.className = "pred-row";
+
+        const left = document.createElement("div");
+        left.className = "pred-label";
+        left.textContent = h.label;
+
+        const right = document.createElement("div");
+        right.className = "pred-score";
+        right.textContent = `${h.score.toFixed(0)}%`;
+
+        row.appendChild(left);
+        row.appendChild(right);
+        hotTimesList.appendChild(row);
+      });
+    }
+
+    backToSpotBtn.onclick = () => {
+      window.location.href = "index.html";
+    };
+  </script>
+</body>
+</html>

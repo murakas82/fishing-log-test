@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Your Catches – My Fishing Log</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Faster Firebase -->
+  <link rel="preconnect" href="https://www.gstatic.com">
+  <link rel="preconnect" href="https://www.googleapis.com">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="app fade-in">
+    <header>
+      <h1>Your Catches</h1>
+      <p>All catches for your account.</p>
+    </header>
+
+    <!-- LOADING -->
+    <div id="loadingCard" class="loading-spinner-wrapper">
+      <div class="loading-spinner"></div>
+    </div>
+
+    <!-- IF NOT LOGGED IN -->
+    <div class="card" id="needLogin" style="display:none;">
+      <p>You need to be logged in to see your catches.</p>
+      <button id="goLoginBtn">Back to main page</button>
+    </div>
+
+    <!-- CATCHES LIST -->
+    <div class="card" id="catchesCard" style="display:none;">
+      <p style="font-size:0.9rem; margin-bottom:10px;">
+        Logged in as <span id="userEmail"></span>
+      </p>
+
+      <div id="catchList" class="catch-list">
+        <p class="empty-state">Loading catches…</p>
+      </div>
+
+      <button id="backBtn" class="secondary-btn" style="margin-top:8px;">
+        Back to main page
+      </button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp }
+      from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+    import {
+      getFirestore, collection, getDocs, query, where, deleteDoc, doc
+    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXIdT74cNDSVIoMs3NZ86tPf2kzFm8Iug",
+      authDomain: "fishing-log-app-murx.firebaseapp.com",
+      projectId: "fishing-log-app-murx",
+      storageBucket: "fishing-log-app-murx.firebasestorage.app",
+      messagingSenderId: "1656807867882",
+      appId: "1:1656807867882:web:e59ddd8f6353d190080e93"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    const loadingCard  = document.getElementById("loadingCard");
+    const needLogin    = document.getElementById("needLogin");
+    const card         = document.getElementById("catchesCard");
+    const listEl       = document.getElementById("catchList");
+    const userEmailEl  = document.getElementById("userEmail");
+
+    document.getElementById("backBtn").onclick = () => {
+      window.location.href = "index.html";
+    };
+    document.getElementById("goLoginBtn").onclick = () => {
+      window.location.href = "index.html";
+    };
+
+    // Global state for catches and user location
+    let catchesData = [];
+    let userLat = null;
+    let userLng = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      // hide loading once we know
+      loadingCard.style.display = "none";
+
+      if (!user) {
+        needLogin.style.display = "block";
+        card.style.display      = "none";
+        return;
+      }
+
+      needLogin.style.display = "none";
+      card.style.display      = "block";
+      userEmailEl.textContent = user.email;
+
+      await loadCatches(user.uid);
+      getUserLocationAndUpdateDistances();
+    });
+
+    async function loadCatches(uid) {
+      const q = query(
+        collection(db, "catches"),
+        where("userId", "==", uid)
+      );
+      const snap = await getDocs(q);
+      catchesData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderCatches();
+    }
+
+    async function deleteCatch(id, uid) {
+      await deleteDoc(doc(db, "catches", id));
+      await loadCatches(uid);
+      // re-use location that we already have
+      renderCatches();
+    }
+
+    function getUserLocationAndUpdateDistances() {
+      if (!navigator.geolocation) {
+        console.warn("Geolocation not supported.");
+        // we just won't show distances
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          userLat = position.coords.latitude;
+          userLng = position.coords.longitude;
+          renderCatches(); // re-render with distances
+        },
+        (error) => {
+          console.warn("Could not get current position", error);
+          // distances remain "-"
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 8000,
+          maximumAge: 60000
+        }
+      );
+    }
+
+    // Haversine distance in km
+    function distanceKm(lat1, lon1, lat2, lon2) {
+      const R = 6371; // km
+      const toRad = (deg) => deg * Math.PI / 180;
+
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+
+    function renderCatches() {
+      listEl.innerHTML = "";
+
+      if (!catchesData.length) {
+        listEl.innerHTML = `<p class="empty-state">You have no catches yet.</p>`;
+        return;
+      }
+
+      catchesData.slice().reverse().forEach(c => {
+        const div = document.createElement("div");
+        div.className = "catch-item";
+
+        let locationHtml = "-";
+        let distanceText = "-";
+
+        if (typeof c.latitude === "number" && typeof c.longitude === "number") {
+          const lat = c.latitude;
+          const lng = c.longitude;
+          const latStr = lat.toFixed(5);
+          const lngStr = lng.toFixed(5);
+          const mapsUrl = `https://www.google.com/maps?q=${latStr},${lngStr}`;
+
+          locationHtml = `
+            <a href="${mapsUrl}" target="_blank" style="color:#4dabff;text-decoration:underline;">
+              View on Google Maps (${latStr}, ${lngStr})
+            </a>
+          `;
+
+          if (typeof userLat === "number" && typeof userLng === "number") {
+            const dist = distanceKm(userLat, userLng, lat, lng);
+            distanceText = dist.toFixed(1) + " km";
+          }
+        }
+
+        div.innerHTML = `
+          <div class="catch-top">
+            <span>${c.species} • ${c.weightKg} kg</span>
+            <span>${new Date(c.timestamp).toLocaleDateString()}</span>
+          </div>
+          <div class="catch-meta">Spot: ${c.spotName || "-"}</div>
+          <div class="catch-meta">Lure: ${c.lure || "-"}</div>
+          <div class="catch-meta">Depth: ${c.depth || "-"} m</div>
+          <div class="catch-meta">Water temp: ${c.temperature || "-"} °C</div>
+          <div class="catch-meta">Location: ${locationHtml}</div>
+          <div class="catch-meta">Distance from you: ${distanceText}</div>
+          <div class="catch-notes">${c.notes || ""}</div>
+        `;
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "delete-btn";
+        delBtn.textContent = "Delete";
+        delBtn.onclick = () => {
+          const uid = auth.currentUser?.uid;
+          if (!uid) return;
+          deleteCatch(c.id, uid);
+        };
+
+        div.appendChild(delBtn);
+        listEl.appendChild(div);
+      });
+    }
+  </script>
+</body>
+</html>
