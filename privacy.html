@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Privacy Policy – Fishing Log</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://www.gstatic.com">
+  <link rel="preconnect" href="https://www.googleapis.com">
+</head>
+<body class="page">
+  <main class="page-inner">
+    <header class="page-header">
+      <div>
+        <h1 class="page-title">Privacy Policy</h1>
+        <p class="page-subtitle">
+          How this fishing log app handles your data.
+        </p>
+      </div>
+      <button class="btn-outline" onclick="window.location.href='index.html'">
+        ← Back to main
+      </button>
+    </header>
+
+    <section class="card">
+      <h2 class="card-title">1. Who operates this app?</h2>
+      <p class="card-body">
+        This fishing log application is a personal hobby project operated by
+        <strong>Ilmar Murakas</strong>. It is not a commercial service.
+      </p>
+      <p class="card-body">
+        If you have questions about privacy or data, you can reach me at:
+        <strong>ilmar.murakas@gmail.com</strong>.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">2. What data is collected?</h2>
+      <p class="card-body">
+        The app stores the minimum amount of data needed to provide its
+        functionality. This includes:
+      </p>
+      <ul class="card-list">
+        <li>
+          <strong>Account data</strong> – your email address used for login
+          (via Firebase Authentication). Passwords are handled and stored only
+          by Firebase and are never visible to the app code.
+        </li>
+        <li>
+          <strong>Fishing spots</strong> – names and GPS coordinates of spots
+          you save.
+        </li>
+        <li>
+          <strong>Catches</strong> – information you enter such as species,
+          weight, lure, notes and optional weather information associated with
+          the catch.
+        </li>
+        <li>
+          <strong>Weather data</strong> – when you log a catch, the app may
+          store the current weather (temperature, wind, pressure, etc.)
+          fetched from a third-party weather API.
+        </li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">3. How is data used?</h2>
+      <p class="card-body">
+        The data you enter is used only to:
+      </p>
+      <ul class="card-list">
+        <li>Display your fishing spots and catch history.</li>
+        <li>Calculate simple statistics and predictions based on your own data.</li>
+        <li>
+          Show local weather and forecasts for your saved spots using external
+          weather APIs.
+        </li>
+      </ul>
+      <p class="card-body">
+        Your data is not sold, rented, or shared with advertisers.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">4. Where is data stored?</h2>
+      <p class="card-body">
+        The app uses <strong>Google Firebase</strong> for authentication and
+        data storage:
+      </p>
+      <ul class="card-list">
+        <li>
+          <strong>Firebase Authentication</strong> – stores your login
+          credentials securely and manages your sign-in session.
+        </li>
+        <li>
+          <strong>Firebase Firestore</strong> – stores your spots, catches and
+          related metadata in a cloud database.
+        </li>
+      </ul>
+      <p class="card-body">
+        All access to your data from the app is tied to your authenticated user
+        account.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">5. Cookies and local storage</h2>
+      <p class="card-body">
+        The app uses essential cookies and local storage for:
+      </p>
+      <ul class="card-list">
+        <li>Keeping you logged in with Firebase Authentication.</li>
+        <li>Remembering that you dismissed the cookie notice.</li>
+      </ul>
+      <p class="card-body">
+        No advertising or tracking cookies are used.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">6. Third-party services</h2>
+      <p class="card-body">
+        The app relies on external services to provide maps and weather:
+      </p>
+      <ul class="card-list">
+        <li>
+          <strong>Firebase</strong> (Google) – authentication and database.
+        </li>
+        <li>
+          <strong>OpenStreetMap + Leaflet</strong> – map tiles and geographic
+          search.
+        </li>
+        <li>
+          <strong>Open-Meteo</strong> (and/or other free weather APIs) –
+          current weather and forecast for your locations.
+        </li>
+      </ul>
+      <p class="card-body">
+        These services may receive your IP address and the location coordinates
+        you request in order to return map tiles or weather data.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">7. Your rights and control</h2>
+      <p class="card-body">
+        Because this is a personal hobby app and not a commercial product, no
+        automated account management is implemented yet. However, you can:
+      </p>
+      <ul class="card-list">
+        <li>Delete individual spots and catches using the app UI.</li>
+        <li>
+          If you want your entire account and data removed, contact:
+          <strong>ilmar.murakas@gmail.com</strong>.
+        </li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">8. Changes to this policy</h2>
+      <p class="card-body">
+        This privacy policy may be updated as the app evolves or if features
+        change significantly. The latest version will always be available on
+        this page.
+      </p>
+    </section>
+
+    <section class="card">
+      <p class="card-subtitle">
+        This document is provided for transparency and convenience and is not
+        formal legal advice.
+      </p>
+    </section>
+  </main>
+</body>
+</html>
