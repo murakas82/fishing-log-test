@@ -4,9 +4,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- IMPORTANT: rel="stylesheet" + correct path -->
-  <link rel="stylesheet" href="/fishing-log-test/style.csss.title">Settings</title>
+  <!-- IMPORTANT: correct path for a project site -->
+  /fishing-log-test/style.css
+  <title data-i18n="settings.title">Settings</title>
 </head>
 <body class="fade-in">
   <div class="app">
@@ -20,18 +20,16 @@
     </header>
 
     <p class="btn-back-main" style="margin-top:10px">
-      <a class="btn-glow" href="/fishing-log-test>
+      <a class="btn-glt/index.htmlBack to main</a>
     </p>
 
     <section class="card">
-      <!-- Language picker -->
       <label for="langSelect" data-i18n="settings.language">Language</label>
       <select id="langSelect" data-lang-select>
         <option value="en" data-i18n="settings.languageEnglish">English</option>
         <option value="et" data-i18n="settings.languageEstonian">Estonian</option>
       </select>
 
-      <!-- Display name -->
       <label for="displayName" data-i18n="settings.displayName">Display name</label>
       <input id="displayName" type="text" placeholder="Your name" />
 
@@ -41,10 +39,9 @@
     </section>
   </div>
 
-  <!-- IMPORTANT: proper <script> tag + correct path -->
-  <script srcg-test/i18n.js</script>
+  <!-- IMPORTANT: correct path for a project site -->
+  /fishing-log-test/i18n.js</script>
   <script>
-    // Persist display name (optional)
     document.getElementById('saveBtn').addEventListener('click', () => {
       const name = (document.getElementById('displayName').value || '').trim();
       if (name) localStorage.setItem('displayName', name);
