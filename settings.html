@@ -5,10 +5,12 @@
   <meta charset="utf-8" />
   <title data-i18n="settings.title">Settings</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Your global theme -->
   ./style.css
 </head>
 <body class="fade-in">
   <div class="app">
+    <!-- Header card -->
     <header class="card card-header">
       <div>
         <h1 data-i18n="settings.title">Settings</h1>
@@ -16,18 +18,29 @@
           Personalize how your name appears in the app.
         </p>
       </div>
+      <!-- Optional inline language buttons (if you like) 
+      <div>
+        <button class="secondary-btn" data-lang-btn="en">EN</button>
+        <button class="secondary-btn" data-lang-btn="et">ET</button>
+      </div>
+      -->
     </header>
 
+    <!-- Back link -->
     <p class="btn-back-main" style="margin-top:10px">
-      <a class="btn-glow" href="./index.html" data-iction class="card">
-      <!-- Language picker -->
+      <a class="btnack to main</a>
+    </p>
+
+    <!-- Settings card -->
+    <section class="card">
+      <!-- Language picker (styled by your CSS) -->
       <label for="langSelect" data-i18n="settings.language">Language</label>
       <select id="langSelect" data-lang-select>
         <option value="en" data-i18n="settings.languageEnglish">English</option>
         <option value="et" data-i18n="settings.languageEstonian">Estonian</option>
       </select>
 
-      <!-- Your existing setting -->
+      <!-- Display name (your original setting) -->
       <label for="displayName" data-i18n="settings.displayName">Display name</label>
       <input id="displayName" type="text" placeholder="Your name" />
 
@@ -37,17 +50,16 @@
     </section>
   </div>
 
-  <!-- Load i18n last so it can translate the DOM -->
+  <!-- Load i18n last, so it can translate the DOM -->
   ./i18n.js</script>
   <script>
-    // Example handler for your "Save settings" button (optional)
+    // Example: persist display name (optional)
     document.getElementById('saveBtn').addEventListener('click', () => {
       const name = (document.getElementById('displayName').value || '').trim();
       if (name) localStorage.setItem('displayName', name);
-      // Nothing else to do for language: changing the <select> already called i18n.setLanguage()
     });
 
-    // Pre-fill display name if previously saved
+    // Pre-fill saved display name
     document.addEventListener('DOMContentLoaded', () => {
       const saved = localStorage.getItem('displayName');
       if (saved) document.getElementById('displayName').value = saved;
