@@ -11,8 +11,9 @@
     <header class="card">
       <div class="card-header">
         <div>
+          <!-- i18n: main title + subtitle -->
           <h1 data-i18n="home.title">My Fishing Log</h1>
-          <p data-i18n="home.subtitle">class="muted-text">
+          <p class="muted-text" data-i18n="home.subtitle">
             Track your catches anywhere – with login, spots, weather &amp; predictions.
           </p>
         </div>
@@ -31,8 +32,13 @@
       <div class="card-header">
         <h2 data-i18n="home.spotsTitle">My fishing spots</h2>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="secondary-btn" id="mapViewBtn">Map view</button>
-          <button class="secondary-btn" id="addSpotBtn">Add new spot</button>
+          <!-- i18n: buttons -->
+          <button class="secondary-btn" id="mapViewBtn" data-i18n="home.mapView">
+            Map view
+          </button>
+          <button class="secondary-btn" id="addSpotBtn" data-i18n="home.addNewSpot">
+            Add new spot
+          </button>
         </div>
       </div>
       <div id="spotsList"></div>
@@ -42,11 +48,15 @@
     <div class="card" id="loadingCard">
       <div class="loading-center">
         <div class="spinner"></div>
-        <div>Loading app…</div>
+        <div data-i18n="home.loadingApp">Loading app…</div>
       </div>
     </div>
   </div>
 
+  <!-- i18n: must be loaded so data-i18n works -->
+  <script src="translations.js"></script>
+
+  <!-- Main app logic (unchanged, except for being after translations.js) -->
   <script type="module">
     import { initializeApp }
       from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
@@ -228,7 +238,7 @@
       `;
     }
 
-    /* ---------- Prediction helpers (same as before) ---------- */
+    /* ---------- Prediction helpers ---------- */
 
     function getApproxMoonPhase(date) {
       const lp = 2551443;
@@ -489,7 +499,7 @@
         const addCatchBtn = document.createElement("button");
         addCatchBtn.className = "secondary-btn";
         addCatchBtn.textContent = "Add catch";
-        // IMPORTANT CHANGE: from main → from=main
+        // IMPORTANT: from main → from=main
         addCatchBtn.onclick = () => {
           window.location.href =
             `add-catch.html?spotId=${encodeURIComponent(spot.id)}&from=main`;
@@ -554,13 +564,5 @@
       window.location.href = "add-spot.html";
     };
   </script>
-  <script src="translations.js"></script>
-
 </body>
 </html>
-
-
-
-
-
-
