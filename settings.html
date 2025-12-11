@@ -3,13 +3,17 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <title>Settings</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- IMPORTANT: correct path for a project site -->
-  /fishing-log-test/style.css
-  <title data-i18n="settings.title">Settings</title>
+
+  <!-- GitHub Pages project path: change 'fishing-log' if your repo name differs -->
+  /fishing-log/style.css
+  <!-- If you’re testing locally with settings.html and style.css in the same folder, you can use:
+       ./style.css -->
 </head>
 <body class="fade-in">
   <div class="app">
+    <!-- Header card -->
     <header class="card card-header">
       <div>
         <h1 data-i18n="settings.title">Settings</h1>
@@ -17,19 +21,29 @@
           Personalize how your name appears in the app.
         </p>
       </div>
+
+      <!-- Optional quick language buttons -->
+      <div>
+        <button class="secondary-btn" data-lang-btn="en">EN</button>
+        <button class="secondary-btn" data-lang-btn="et">ET</button>
+      </div>
     </header>
 
+    <!-- Back to main (project path) -->
     <p class="btn-back-main" style="margin-top:10px">
-      <a class="btn-glt/index.htmlBack to main</a>
+      /fishing-log/index.htmlBack to main</a>
     </p>
 
+    <!-- Settings content -->
     <section class="card">
+      <!-- Language -->
       <label for="langSelect" data-i18n="settings.language">Language</label>
       <select id="langSelect" data-lang-select>
         <option value="en" data-i18n="settings.languageEnglish">English</option>
         <option value="et" data-i18n="settings.languageEstonian">Estonian</option>
       </select>
 
+      <!-- Display name -->
       <label for="displayName" data-i18n="settings.displayName">Display name</label>
       <input id="displayName" type="text" placeholder="Your name" />
 
@@ -39,17 +53,19 @@
     </section>
   </div>
 
-  <!-- IMPORTANT: correct path for a project site -->
-  /fishing-log-test/i18n.js</script>
+  <!-- i18n for EN/ET -->
+  /fishing-log/i18n.js</script>
   <script>
+    // Persist display name (optional)
     document.getElementById('saveBtn').addEventListener('click', () => {
       const name = (document.getElementById('displayName').value || '').trim();
       if (name) localStorage.setItem('displayName', name);
     });
+
+    // Pre-fill saved display name
     document.addEventListener('DOMContentLoaded', () => {
       const saved = localStorage.getItem('displayName');
       if (saved) document.getElementById('displayName').value = saved;
     });
   </script>
 </body>
-</html>
