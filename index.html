@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title data-i18n="app_title">My Fishing Log</title>
+  <title>My Fishing Log</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -11,8 +11,8 @@
     <header class="card">
       <div class="card-header">
         <div>
-          <h1 data-i18n="app_title">My Fishing Log</h1>
-          <p class="muted-text" data-i18n="app_subtitle">
+          <h1>My Fishing Log</h1>
+          <p class="muted-text">
             Track your catches anywhere – with login, spots, weather &amp; predictions.
           </p>
         </div>
@@ -22,17 +22,17 @@
 
     <!-- Stats -->
     <div class="card" id="statsCard" style="display:none;">
-      <h2 data-i18n="stats_title">Stats</h2>
+      <h2>Stats</h2>
       <div id="statsContent" class="stat-badges"></div>
     </div>
 
     <!-- My fishing spots -->
     <div class="card" id="spotsCard" style="display:none;">
       <div class="card-header">
-        <h2 data-i18n="spots_title">My fishing spots</h2>
+        <h2>My fishing spots</h2>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="secondary-btn" id="mapViewBtn" data-i18n="btn_map_view">Map view</button>
-          <button class="secondary-btn" id="addSpotBtn" data-i18n="btn_add_spot">Add new spot</button>
+          <button class="secondary-btn" id="mapViewBtn">Map view</button>
+          <button class="secondary-btn" id="addSpotBtn">Add new spot</button>
         </div>
       </div>
       <div id="spotsList"></div>
@@ -42,23 +42,10 @@
     <div class="card" id="loadingCard">
       <div class="loading-center">
         <div class="spinner"></div>
-        <div data-i18n="loading_app">Loading app…</div>
+        <div>Loading app…</div>
       </div>
     </div>
-
-    <!-- Footer -->
-    <footer style="text-align:center;margin:24px 0 8px;">
-      <a href="privacy.html"
-         class="muted-text"
-         data-i18n="footer_privacy"
-         style="color:#60a5fa;text-decoration:underline;">
-        Privacy Policy
-      </a>
-    </footer>
   </div>
-
-  <!-- i18n must load BEFORE module so window.t() is available -->
-  <script src="i18n.js"></script>
 
   <script type="module">
     import { initializeApp }
@@ -106,37 +93,27 @@
     const mapViewBtn   = document.getElementById("mapViewBtn");
     const addSpotBtn   = document.getElementById("addSpotBtn");
 
-    const t = window.t || ((k) => k); // fallback if i18n missing
-
     /* ---------- Auth form ---------- */
 
     function renderAuthForm(errorMessage = "") {
-      const titleText       = t("auth_title");
-      const emailPlaceholder = t("auth_email_placeholder");
-      const pwPlaceholder    = t("auth_password_placeholder");
-      const loginLabel       = t("auth_login");
-      const signupLabel      = t("auth_signup");
-      const orLabel          = t("auth_or");
-      const googleLabel      = t("auth_continue_google");
-
       authArea.innerHTML = `
         <div>
           <form id="authForm" style="display:flex;flex-direction:column;gap:6px;min-width:260px;">
-            <div style="font-size:0.85rem;">${titleText}</div>
-            <input type="email" id="authEmail" placeholder="${emailPlaceholder}" required />
-            <input type="password" id="authPassword" placeholder="${pwPlaceholder}" required />
+            <div style="font-size:0.85rem;">Log in or sign up</div>
+            <input type="email" id="authEmail" placeholder="Email" required />
+            <input type="password" id="authPassword" placeholder="Password" required />
             <div style="display:flex;gap:8px;">
-              <button type="submit" class="primary-btn" data-mode="login">${loginLabel}</button>
-              <button type="button" class="secondary-btn" id="signUpBtn">${signupLabel}</button>
+              <button type="submit" class="primary-btn" data-mode="login">Log in</button>
+              <button type="button" class="secondary-btn" id="signUpBtn">Sign up</button>
             </div>
             <div style="margin:6px 0 2px 0;font-size:0.8rem;text-align:center;" class="muted-text">
-              ${orLabel}
+              or
             </div>
             <button type="button"
                     class="secondary-btn"
                     id="googleLoginBtn"
                     style="width:100%;justify-content:center;">
-              ${googleLabel}
+              Continue with Google
             </button>
             <div id="authError" class="muted-text" style="color:#f97373;margin-top:4px;">
               ${errorMessage}
@@ -156,8 +133,7 @@
         try {
           await signInWithEmailAndPassword(auth, email, pass);
         } catch (err) {
-          const msg = `${t("auth_login_failed_prefix")} ${err.code || err.message}`;
-          renderAuthForm(msg);
+          renderAuthForm("Login failed: " + (err.code || err.message));
         }
       };
 
@@ -165,14 +141,13 @@
         const email = document.getElementById("authEmail").value.trim();
         const pass  = document.getElementById("authPassword").value.trim();
         if (!email || !pass) {
-          renderAuthForm(t("auth_enter_email_password"));
+          renderAuthForm("Enter email & password, then press Sign up.");
           return;
         }
         try {
           await createUserWithEmailAndPassword(auth, email, pass);
         } catch (err) {
-          const msg = `${t("auth_signup_failed_prefix")} ${err.code || err.message}`;
-          renderAuthForm(msg);
+          renderAuthForm("Sign up failed: " + (err.code || err.message));
         }
       };
 
@@ -181,26 +156,22 @@
           const provider = new GoogleAuthProvider();
           await signInWithPopup(auth, provider);
         } catch (err) {
-          const msg = `${t("auth_google_failed_prefix")} ${err.code || err.message}`;
-          renderAuthForm(msg);
+          renderAuthForm("Google sign-in failed: " + (err.code || err.message));
         }
       };
     }
 
     function renderLoggedInHeader(user, displayName) {
       const nameText = displayName || user.email || "Unknown user";
-      const loggedInAs = t("header_logged_in_as");
-      const settingsLabel = t("header_settings");
-      const logoutLabel   = t("header_logout");
 
       authArea.innerHTML = `
         <div style="text-align:right;display:flex;flex-direction:column;gap:4px;">
           <div style="font-size:0.86rem;">
-            ${loggedInAs} <strong>${nameText}</strong>
+            Logged in as <strong>${nameText}</strong>
           </div>
           <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
-            <button class="secondary-btn" id="settingsBtn">${settingsLabel}</button>
-            <button class="secondary-btn" id="logoutBtn">${logoutLabel}</button>
+            <button class="secondary-btn" id="settingsBtn">Settings</button>
+            <button class="secondary-btn" id="logoutBtn">Log out</button>
           </div>
         </div>
       `;
@@ -227,8 +198,7 @@
       );
       const snap = await getDocs(q);
       if (snap.empty) {
-        statsContent.innerHTML =
-          `<div class="muted-text">${t("stats_no_catches_overall")}</div>`;
+        statsContent.innerHTML = `<div class="muted-text">No catches yet.</div>`;
         return;
       }
 
@@ -251,18 +221,14 @@
 
       const avgWeight = totalWeight && total ? (totalWeight / total) : 0;
 
-      const labelTotal   = t("stats_total_catches_label");
-      const labelBiggest = t("stats_biggest_fish_label");
-      const labelAvg     = t("stats_avg_weight_label");
-
       statsContent.innerHTML = `
-        <span class="stat-pill">${labelTotal} <strong>${total}</strong></span>
-        <span class="stat-pill">${labelBiggest} <strong>${biggestWeight.toFixed(2)} kg ${biggestSpecies}</strong></span>
-        <span class="stat-pill">${labelAvg} <strong>${avgWeight.toFixed(2)} kg</strong></span>
+        <span class="stat-pill">Total catches <strong>${total}</strong></span>
+        <span class="stat-pill">Biggest fish <strong>${biggestWeight.toFixed(2)} kg ${biggestSpecies}</strong></span>
+        <span class="stat-pill">Average weight <strong>${avgWeight.toFixed(2)} kg</strong></span>
       `;
     }
 
-    /* ---------- Prediction helpers ---------- */
+    /* ---------- Prediction helpers (same as before) ---------- */
 
     function getApproxMoonPhase(date) {
       const lp = 2551443;
@@ -333,18 +299,16 @@
 
       if (typeof spot.latitude !== "number" ||
           typeof spot.longitude !== "number") {
-        weatherEl.textContent = `${t("weather_now_prefix")} ${t("weather_location_missing")}`;
-        predEl.textContent    = `${t("predictions_prefix")} ${t("predictions_unavailable")}`;
+        weatherEl.textContent = "Weather now: location missing.";
+        predEl.textContent    = "Prediction (next 3 days): unavailable.";
         return;
       }
 
       const lat = spot.latitude;
       const lng = spot.longitude;
 
-      weatherEl.textContent =
-        `${t("weather_now_prefix")} ${t("weather_loading")}`;
-      predEl.textContent =
-        `${t("predictions_prefix")} ${t("predictions_loading")}`;
+      weatherEl.textContent = "Weather now: loading…";
+      predEl.textContent    = "Prediction (next 3 days): loading…";
 
       try {
         const url =
@@ -370,7 +334,7 @@
         if (typeof cw === "number") weatherParts.push(`wind ${cw.toFixed(1)} m/s`);
 
         weatherEl.textContent =
-          `${t("weather_now_prefix")} ${icon} ${weatherParts.join(", ")}`;
+          "Weather now: " + icon + " " + weatherParts.join(", ");
 
         const hourly = data.hourly || {};
         const times  = hourly.time || [];
@@ -378,13 +342,7 @@
         const winds  = hourly.wind_speed_10m || [];
         const presses = hourly.pressure_msl || [];
 
-        // Weekday abbreviations depend on chosen language
-const lang = window.getStoredLanguage ? window.getStoredLanguage() : "en";
-
-const weekdayShort = (lang === "et")
-  ? ["P", "E", "T", "K", "N", "R", "L"]   // Estonian one-letter codes
-  : ["Sun.","Mon.","Tues.","Wed.","Thurs.","Fri.","Sat"];  // English defaults
-
+        const weekdayShort = ["Sun.","Mon.","Tues.","Wed.","Thurs.","Fri.","Sat"];
 
         function getForecastForOffset(offset) {
           const base = new Date();
@@ -441,16 +399,16 @@ const weekdayShort = (lang === "et")
 
         if (pieces.length) {
           predEl.innerHTML =
-            `${t("predictions_prefix")} ` + pieces.join(" · ");
+            "Prediction (next 3 days): " + pieces.join(" · ");
         } else {
           predEl.textContent =
-            `${t("predictions_prefix")} ${t("predictions_not_enough")}`;
+            "Prediction (next 3 days): not enough data yet.";
         }
       } catch (err) {
         weatherEl.textContent =
-          `${t("weather_now_prefix")} ${t("weather_failed_suffix")}`;
+          "Weather now: failed to load.";
         predEl.textContent =
-          `${t("predictions_prefix")} ${t("predictions_not_enough")}`;
+          "Prediction (next 3 days): failed to load.";
       }
     }
 
@@ -465,7 +423,7 @@ const weekdayShort = (lang === "et")
 
       if (snap.empty) {
         spotsList.innerHTML =
-          `<p class="muted-text">${t("spots_no_spots")}</p>`;
+          `<p class="muted-text">No spots yet. Add your first fishing spot.</p>`;
         return;
       }
 
@@ -496,16 +454,9 @@ const weekdayShort = (lang === "et")
           }
         });
 
-        let statsLine;
-        if (total) {
-          statsLine = t("spot_stats_line", {
-            total,
-            weight: biggestWeight.toFixed(2),
-            species: biggestSpecies
-          });
-        } else {
-          statsLine = t("spot_no_catches");
-        }
+        const statsLine = total
+          ? `Total catches: ${total} • Biggest: ${biggestWeight.toFixed(2)} kg ${biggestSpecies}`
+          : "No catches yet.";
 
         const mapsUrl =
           typeof spot.latitude === "number" && typeof spot.longitude === "number"
@@ -518,10 +469,10 @@ const weekdayShort = (lang === "et")
           </div>
           <div class="muted-text">${statsLine}</div>
           <div class="muted-text" id="spotWeather-${spot.id}">
-            ${t("weather_now_prefix")} ${t("weather_loading")}
+            Weather now: loading…
           </div>
           <div class="muted-text" id="spotPred-${spot.id}">
-            ${t("predictions_prefix")} ${t("predictions_loading")}
+            Prediction (next 3 days): loading…
           </div>
         `;
 
@@ -530,14 +481,15 @@ const weekdayShort = (lang === "et")
 
         const openBtn = document.createElement("button");
         openBtn.className = "secondary-btn";
-        openBtn.textContent = t("btn_open_spot");
+        openBtn.textContent = "Open spot";
         openBtn.onclick = () => {
           window.location.href = `spot.html?id=${encodeURIComponent(spot.id)}`;
         };
 
         const addCatchBtn = document.createElement("button");
         addCatchBtn.className = "secondary-btn";
-        addCatchBtn.textContent = t("btn_add_catch");
+        addCatchBtn.textContent = "Add catch";
+        // IMPORTANT CHANGE: from main → from=main
         addCatchBtn.onclick = () => {
           window.location.href =
             `add-catch.html?spotId=${encodeURIComponent(spot.id)}&from=main`;
@@ -545,7 +497,7 @@ const weekdayShort = (lang === "et")
 
         const predBtn = document.createElement("button");
         predBtn.className = "secondary-btn";
-        predBtn.textContent = t("btn_predictions");
+        predBtn.textContent = "Predictions";
         predBtn.onclick = () => {
           window.location.href =
             `predictions.html?spotId=${encodeURIComponent(spot.id)}`;
@@ -561,7 +513,7 @@ const weekdayShort = (lang === "et")
           mapsBtn.href = mapsUrl;
           mapsBtn.target = "_blank";
           mapsBtn.rel = "noopener noreferrer";
-          mapsBtn.textContent = t("btn_google_maps");
+          mapsBtn.textContent = "Google Maps";
           actionsDiv.appendChild(mapsBtn);
         }
 
@@ -602,9 +554,6 @@ const weekdayShort = (lang === "et")
       window.location.href = "add-spot.html";
     };
   </script>
-
-  <!-- Cookie banner -->
-  <script src="cookie-consent.js"></script>
 </body>
 </html>
 
