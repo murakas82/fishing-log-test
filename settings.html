@@ -11,12 +11,12 @@
     <header class="card">
       <div class="card-header">
         <div>
-          <h1>Settings</h1>
-          <p class="muted-text">
+          <h1 data-i18n="settings.title">Settings</h1>
+          <p class="muted-text" data-i18n="settings.subtitle">
             Personalize how your name appears in the app.
           </p>
         </div>
-        <button class="secondary-btn btn-back-main" id="backBtn">
+        <button class="secondary-btn btn-back-main" id="backBtn" data-i18n="common.backToMain">
           ← Back to main
         </button>
       </div>
@@ -24,20 +24,56 @@
 
     <div class="card">
       <form id="settingsForm">
-        <label for="displayName">Display name</label>
+        <!-- Display name -->
+        <label for="displayName" data-i18n="settings.displayNameLabel">Display name</label>
         <input
           id="displayName"
           type="text"
           placeholder="What should the app call you?"
+          data-i18n-placeholder="settings.displayNamePlaceholder"
         />
+
+        <!-- Language selector (only here) -->
+        <div style="margin-top:16px;">
+          <label data-i18n="settings.languageLabel">Language</label>
+          <p class="muted-text" data-i18n="settings.languageDescription">
+            Choose the language for the app. This setting is saved on this device.
+          </p>
+
+          <div class="lang-switch">
+            <button
+              type="button"
+              class="secondary-btn"
+              data-lang="en"
+              data-i18n="settings.languageEnglish"
+            >
+              English
+            </button>
+            <button
+              type="button"
+              class="secondary-btn"
+              data-lang="et"
+              data-i18n="settings.languageEstonian"
+            >
+              Estonian
+            </button>
+          </div>
+        </div>
+
         <div style="margin-top:10px;">
-          <button type="submit" class="primary-btn">Save settings</button>
+          <button type="submit" class="primary-btn" data-i18n="settings.saveButton">
+            Save settings
+          </button>
         </div>
         <p id="settingsMessage" class="muted-text" style="margin-top:8px;"></p>
       </form>
     </div>
   </div>
 
+  <!-- i18n script (global, non-module) -->
+  <script src="translations.js"></script>
+
+  <!-- Firebase + settings logic -->
   <script type="module">
     import { initializeApp }
       from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
@@ -65,10 +101,14 @@
     const auth = getAuth(app);
     const db   = getFirestore(app);
 
-    const backBtn  = document.getElementById("backBtn");
-    const form     = document.getElementById("settingsForm");
-    const nameEl   = document.getElementById("displayName");
-    const messageEl = document.getElementById("settingsMessage");
+    const backBtn    = document.getElementById("backBtn");
+    const form       = document.getElementById("settingsForm");
+    const nameEl     = document.getElementById("displayName");
+    const messageEl  = document.getElementById("settingsMessage");
+
+    // i18n helper (from translations.js)
+    const i18n = window.fishingLogI18n;
+    const t = i18n?.t ? i18n.t.bind(i18n) : (k) => k;
 
     backBtn.onclick = () => {
       window.location.href = "index.html";
@@ -105,11 +145,34 @@
           { displayName },
           { merge: true }
         );
-        messageEl.textContent = "Settings saved.";
+        const msg = t("settings.saved");
+        messageEl.textContent =
+          msg !== "settings.saved" ? msg : "Settings saved.";
       } catch {
-        messageEl.textContent = "Failed to save settings.";
+        const msg = t("settings.saveFailed");
+        messageEl.textContent =
+          msg !== "settings.saveFailed" ? msg : "Failed to save settings.";
       }
     };
+
+    // Language switcher (only here)
+    const langButtons = document.querySelectorAll(".lang-switch [data-lang]");
+    if (langButtons.length) {
+      langButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const lang = btn.getAttribute("data-lang");
+          if (!lang || !i18n) return;
+
+          i18n.setLanguage(lang); // saves to localStorage + re-applies translations
+
+          const msg = t("settings.languageSaved");
+          messageEl.textContent =
+            msg !== "settings.languageSaved"
+              ? msg
+              : "Language preference saved.";
+        });
+      });
+    }
   </script>
 </body>
 </html>
