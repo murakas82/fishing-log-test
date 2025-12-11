@@ -99,6 +99,31 @@ catch_weather_label: "Weather at time of catch",
 catch_weather_unknown: "No weather data",
 species_unknown: "fish",
 
+  // Predictions page ENG
+  predictions_title: "Predictions",
+predictions_subtitle: "Forecast match vs your past catches at this spot.",
+pred_species_label: "Species for prediction",
+pred_species_all: "All species",
+pred_next3_title: "Next 3 days",
+pred_hot_title: "Hot times tomorrow",
+pred_hot_note:
+  "Times are between 1 hour before sunrise and 1 hour after sunset, based on your catches with weather data.",
+pred_debug_title: "Debug view (why these scores?)",
+pred_weather_now_label: "Weather now",
+
+pred_spot_stats_template:
+  "{total} total catches at this spot, {withWeather} with weather data saved.",
+pred_weather_location_missing: "Weather error: location missing.",
+pred_no_weather_data:
+  "No catches with weather data yet for this filter.",
+pred_hot_no_sunrise: "No sunrise/sunset data for tomorrow.",
+pred_no_hot_times: "No good time windows found for tomorrow.",
+
+pred_score_good: "Good",
+pred_score_medium: "Medium",
+pred_score_poor: "Poor",
+
+
   },
 
   et: {
@@ -198,6 +223,32 @@ catch_watertemp_label: "Vee temp",
 catch_weather_label: "Ilm püügi hetkel",
 catch_weather_unknown: "Ilmaandmeid pole",
 species_unknown: "kala",
+
+    // predictins page et
+    predictions_title: "Prognoosid",
+predictions_subtitle:
+  "Ilmaprognoosi sobivus sinu varasemate selle koha saakidega.",
+pred_species_label: "Liik prognoosi jaoks",
+pred_species_all: "Kõik liigid",
+pred_next3_title: "Järgmised 3 päeva",
+pred_hot_title: "Parimad ajad homme",
+pred_hot_note:
+  "Ajad on 1 tund enne päikesetõusu ja 1 tund pärast loojangut, põhinevad sinu ilmaandmetega saakidel.",
+pred_debug_title: "Debug vaade (miks need skoorid?)",
+pred_weather_now_label: "Praegune ilm",
+
+pred_spot_stats_template:
+  "{total} saaki selles kohas, {withWeather} ilmaandmetega.",
+pred_weather_location_missing: "Ilmavea: asukoht puudub.",
+pred_no_weather_data:
+  "Selle filtri jaoks pole veel ilmaandmetega saake.",
+pred_hot_no_sunrise: "Homme päikesetõusu/loojangu andmed puuduvad.",
+pred_no_hot_times: "Homme ei leitud häid ajavahemikke.",
+
+pred_score_good: "Hea",
+pred_score_medium: "Keskmine",
+pred_score_poor: "Nõrk",
+
 
   }
 };
