@@ -2,49 +2,66 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Settings</title>
+  <title data-i18n="settings_title">Settings</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app fade-in">
+    <!-- Header -->
     <header class="card">
       <div class="card-header">
         <div>
-          <h1>Settings</h1>
-          <p class="muted-text">
-            Personalize how your name appears in the app.
+          <h1 data-i18n="settings_title">Settings</h1>
+          <p class="muted-text" data-i18n="settings_subtitle">
+            Choose your language for the app.
           </p>
         </div>
-        <button class="secondary-btn btn-back-main" id="backBtn">
-          ← Back to main
-        </button>
+        <div>
+          <button class="secondary-btn btn-back-main" id="backBtn" data-i18n="settings_back_main">
+            ← Back to main
+          </button>
+        </div>
       </div>
     </header>
 
-    <div class="card">
-      <form id="settingsForm">
-        <label for="displayName">Display name</label>
-        <input
-          id="displayName"
-          type="text"
-          placeholder="What should the app call you?"
-        />
-        <div style="margin-top:10px;">
-          <button type="submit" class="primary-btn">Save settings</button>
-        </div>
-        <p id="settingsMessage" class="muted-text" style="margin-top:8px;"></p>
-      </form>
-    </div>
+    <!-- Language card -->
+    <section class="card">
+      <h2 data-i18n="settings_language_label">Language</h2>
+      <p class="muted-text" style="margin-bottom:10px;">
+        Choose which language to use in the interface. This setting is stored on this device.
+      </p>
+
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+        <label style="display:flex;align-items:center;gap:6px;">
+          <input type="radio" name="language" value="en" id="langEn" />
+          <span data-i18n="settings_language_en">English</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;">
+          <input type="radio" name="language" value="et" id="langEt" />
+          <span data-i18n="settings_language_et">Estonian</span>
+        </label>
+      </div>
+
+      <div style="margin-top:16px;display:flex;gap:8px;">
+        <button class="primary-btn" id="saveBtn" data-i18n="settings_save_button">
+          Save settings
+        </button>
+      </div>
+
+      <p class="muted-text" id="statusMessage" style="margin-top:10px;"></p>
+    </section>
   </div>
 
   <script type="module">
     import { initializeApp }
       from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+
     import {
       getAuth,
       onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
     import {
       getFirestore,
       doc,
@@ -65,10 +82,12 @@
     const auth = getAuth(app);
     const db   = getFirestore(app);
 
-    const backBtn  = document.getElementById("backBtn");
-    const form     = document.getElementById("settingsForm");
-    const nameEl   = document.getElementById("displayName");
-    const messageEl = document.getElementById("settingsMessage");
+    const backBtn       = document.getElementById("backBtn");
+    const saveBtn       = document.getElementById("saveBtn");
+    const statusMessage = document.getElementById("statusMessage");
+
+    const langEn = document.getElementById("langEn");
+    const langEt = document.getElementById("langEt");
 
     backBtn.onclick = () => {
       window.location.href = "index.html";
@@ -78,38 +97,77 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
+        // If not logged in, go back to main (which handles login)
         window.location.href = "index.html";
         return;
       }
       currentUser = user;
-      await loadSettings();
+
+      // Load language from Firestore profile if exists, otherwise from localStorage
+      let lang = window.getStoredLanguage ? window.getStoredLanguage() : "en";
+
+      try {
+        const profileRef = doc(db, "profiles", user.uid);
+        const snap = await getDoc(profileRef);
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.language === "et" || data.language === "en") {
+            lang = data.language;
+          }
+        }
+      } catch (e) {
+        console.warn("Failed to load profile language, using local storage only.", e);
+      }
+
+      // Set radios and apply language
+      if (lang === "et") {
+        langEt.checked = true;
+      } else {
+        langEn.checked = true;
+        lang = "en";
+      }
+
+      if (window.setStoredLanguage) window.setStoredLanguage(lang);
+      if (window.applyLanguage) window.applyLanguage(lang);
     });
 
-    async function loadSettings() {
-      const profileRef = doc(db, "profiles", currentUser.uid);
-      const snap = await getDoc(profileRef);
-      if (snap.exists()) {
-        const data = snap.data();
-        nameEl.value = data.displayName || "";
-      }
-    }
-
-    form.onsubmit = async (e) => {
-      e.preventDefault();
+    saveBtn.onclick = async () => {
       if (!currentUser) return;
 
-      const displayName = nameEl.value.trim();
+      const selected =
+        (langEt.checked && "et") ||
+        (langEn.checked && "en") ||
+        "en";
+
+      // Update local storage + live UI
+      if (window.setStoredLanguage) window.setStoredLanguage(selected);
+      if (window.applyLanguage) window.applyLanguage(selected);
+
+      statusMessage.textContent = "Saving…";
+
       try {
+        const profileRef = doc(db, "profiles", currentUser.uid);
         await setDoc(
-          doc(db, "profiles", currentUser.uid),
-          { displayName },
+          profileRef,
+          { language: selected },
           { merge: true }
         );
-        messageEl.textContent = "Settings saved.";
-      } catch {
-        messageEl.textContent = "Failed to save settings.";
+        statusMessage.textContent =
+          selected === "et"
+            ? "Keel uuendatud."
+            : "Language updated.";
+      } catch (e) {
+        console.error(e);
+        statusMessage.textContent =
+          selected === "et"
+            ? "Salvestamine ebaõnnestus."
+            : "Failed to save settings.";
       }
     };
   </script>
+
+  <!-- i18n + cookie banner -->
+  <script src="i18n.js"></script>
+  <script src="cookie-consent.js"></script>
 </body>
 </html>
