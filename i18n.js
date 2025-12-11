@@ -1,4 +1,4 @@
-
+ 
 <script>
 // --- Simple i18n for static HTML pages --------------------------------------
 
