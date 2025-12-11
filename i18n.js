@@ -1,4 +1,4 @@
-// i18n.js – simple EN / ET translations for static texts
+// i18n.js – simple EN / ET translations for static texts + JS helpers
 
 const I18N_DICTIONARY = {
   en: {
@@ -11,6 +11,54 @@ const I18N_DICTIONARY = {
     btn_add_spot: "Add new spot",
     loading_app: "Loading app…",
 
+    // Footer
+    footer_privacy: "Privacy Policy",
+
+    // Auth / header (JS)
+    auth_title: "Log in or sign up",
+    auth_email_placeholder: "Email",
+    auth_password_placeholder: "Password",
+    auth_login: "Log in",
+    auth_signup: "Sign up",
+    auth_or: "or",
+    auth_continue_google: "Continue with Google",
+    auth_login_failed_prefix: "Login failed:",
+    auth_signup_failed_prefix: "Sign up failed:",
+    auth_enter_email_password: "Enter email & password, then press Sign up.",
+    auth_google_failed_prefix: "Google sign-in failed:",
+
+    header_logged_in_as: "Logged in as",
+    header_settings: "Settings",
+    header_logout: "Log out",
+
+    // Stats (JS)
+    stats_no_catches_overall: "No catches yet.",
+    stats_total_catches_label: "Total catches",
+    stats_biggest_fish_label: "Biggest fish",
+    stats_avg_weight_label: "Average weight",
+
+    // Spots list & spot stats (JS)
+    spots_no_spots: "No spots yet. Add your first fishing spot.",
+    spot_no_catches: "No catches yet.",
+    // {total}, {weight}, {species}
+    spot_stats_line: "Total catches: {total} • Biggest: {weight} kg {species}",
+
+    // Weather & predictions (JS)
+    weather_now_prefix: "Weather now:",
+    weather_location_missing: "location missing.",
+    weather_loading: "loading…",
+    weather_failed_suffix: "failed to load.",
+    predictions_prefix: "Prediction (next 3 days):",
+    predictions_unavailable: "unavailable.",
+    predictions_loading: "loading…",
+    predictions_not_enough: "not enough data yet.",
+
+    // Buttons created via JS
+    btn_open_spot: "Open spot",
+    btn_add_catch: "Add catch",
+    btn_predictions: "Predictions",
+    btn_google_maps: "Google Maps",
+
     // Settings page
     settings_title: "Settings",
     settings_subtitle: "Choose your language for the app.",
@@ -18,10 +66,7 @@ const I18N_DICTIONARY = {
     settings_language_en: "English",
     settings_language_et: "Estonian",
     settings_save_button: "Save settings",
-    settings_back_main: "← Back to main",
-
-    // Generic
-    footer_privacy: "Privacy Policy"
+    settings_back_main: "← Back to main"
   },
 
   et: {
@@ -34,6 +79,54 @@ const I18N_DICTIONARY = {
     btn_add_spot: "Lisa uus koht",
     loading_app: "Rakendus laeb…",
 
+    // Footer
+    footer_privacy: "Privaatsustingimused",
+
+    // Auth / header (JS)
+    auth_title: "Logi sisse või loo konto",
+    auth_email_placeholder: "E-post",
+    auth_password_placeholder: "Parool",
+    auth_login: "Logi sisse",
+    auth_signup: "Loo konto",
+    auth_or: "või",
+    auth_continue_google: "Jätka Google'iga",
+    auth_login_failed_prefix: "Sisselogimine ebaõnnestus:",
+    auth_signup_failed_prefix: "Konto loomine ebaõnnestus:",
+    auth_enter_email_password: "Sisesta e-post ja parool, seejärel vajuta \"Loo konto\".",
+    auth_google_failed_prefix: "Google'i sisselogimine ebaõnnestus:",
+
+    header_logged_in_as: "Sisse logitud kui",
+    header_settings: "Seaded",
+    header_logout: "Logi välja",
+
+    // Stats (JS)
+    stats_no_catches_overall: "Saake veel pole.",
+    stats_total_catches_label: "Saakide arv",
+    stats_biggest_fish_label: "Suurim kala",
+    stats_avg_weight_label: "Keskmine kaal",
+
+    // Spots list & spot stats (JS)
+    spots_no_spots: "Ühtegi püügikohta pole. Lisa oma esimene püügikoht.",
+    spot_no_catches: "Selles kohas pole saake.",
+    // {total}, {weight}, {species}
+    spot_stats_line: "Saake kokku: {total} • Suurim: {weight} kg {species}",
+
+    // Weather & predictions (JS)
+    weather_now_prefix: "Hetke ilm:",
+    weather_location_missing: "asukoht puudub.",
+    weather_loading: "laetakse…",
+    weather_failed_suffix: "laadimine ebaõnnestus.",
+    predictions_prefix: "Prognoos (järgmised 3 päeva):",
+    predictions_unavailable: "pole saadaval.",
+    predictions_loading: "laetakse…",
+    predictions_not_enough: "prognoosi jaoks pole veel piisavalt andmeid.",
+
+    // Buttons created via JS
+    btn_open_spot: "Ava koht",
+    btn_add_catch: "Lisa saak",
+    btn_predictions: "Prognoosid",
+    btn_google_maps: "Google Maps",
+
     // Settings page
     settings_title: "Seaded",
     settings_subtitle: "Vali rakenduse keel.",
@@ -41,10 +134,7 @@ const I18N_DICTIONARY = {
     settings_language_en: "Inglise",
     settings_language_et: "Eesti",
     settings_save_button: "Salvesta seaded",
-    settings_back_main: "← Tagasi avalehele",
-
-    // Generic
-    footer_privacy: "Privaatsustingimused"
+    settings_back_main: "← Tagasi avalehele"
   }
 };
 
@@ -66,14 +156,27 @@ function setStoredLanguage(lang) {
   }
 }
 
+// Translation with optional {placeholders}
+function translate(key, vars = {}) {
+  const lang = getStoredLanguage();
+  const dict = I18N_DICTIONARY[lang] || I18N_DICTIONARY.en;
+  let str = dict[key] || I18N_DICTIONARY.en[key] || key;
+
+  // Replace {placeholders}
+  for (const k in vars) {
+    if (!Object.prototype.hasOwnProperty.call(vars, k)) continue;
+    const value = String(vars[k]);
+    str = str.replace(new RegExp(`\\{${k}\\}`, "g"), value);
+  }
+  return str;
+}
+
 function applyLanguage(lang) {
   const langCode = lang === "et" ? "et" : "en";
   const dict = I18N_DICTIONARY[langCode] || I18N_DICTIONARY.en;
 
-  // Set <html lang="...">
   document.documentElement.setAttribute("lang", langCode);
 
-  // Replace text in all data-i18n elements
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     const key = el.getAttribute("data-i18n");
     if (!key) return;
@@ -84,10 +187,11 @@ function applyLanguage(lang) {
   });
 }
 
-// Expose helpers globally so other scripts (settings) can call them
+// Expose helpers globally so other scripts can use them
 window.getStoredLanguage = getStoredLanguage;
 window.setStoredLanguage = setStoredLanguage;
 window.applyLanguage = applyLanguage;
+window.t = translate;
 
 // Initialize language on page load
 (function initI18n() {
