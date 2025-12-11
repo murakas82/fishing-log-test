@@ -5,8 +5,7 @@
 const TRANSLATIONS = {
   en: {
     common: {
-      backToMain: "Back to main",
-      save: "Save"
+      backToMain: "Back to main"
     },
     settings: {
       title: "Settings",
@@ -20,8 +19,7 @@ const TRANSLATIONS = {
   },
   et: {
     common: {
-      backToMain: "Tagasi avalehele",
-      save: "Salvesta"
+      backToMain: "Tagasi avalehele"
     },
     settings: {
       title: "Seaded",
@@ -35,7 +33,7 @@ const TRANSLATIONS = {
   }
 };
 
-// Detect user language: URL ?lng= → localStorage → browser → fallback "en"
+// Detect user language: URL ?lng= → localStorage → browser → fallback
 function detectLanguage() {
   const urlLng = new URLSearchParams(window.location.search).get('lng');
   const saved = localStorage.getItem('lang');
@@ -61,7 +59,7 @@ function translatePage(lng) {
       console.warn('Missing i18n key:', key);
     }
   });
-  // Keep any <select> with data-lang-select in sync
+  // Keep language <select> in sync if present
   document.querySelectorAll('[data-lang-select]').forEach(sel => {
     sel.value = lng;
   });
@@ -71,10 +69,6 @@ function setLanguage(lng) {
   localStorage.setItem('lang', lng);
   setHtmlLang(lng);
   translatePage(lng);
-  // Optional: visually disable the active language buttons if you add them
-  document.querySelectorAll('[data-lang-btn]').forEach(btn => {
-    btn.toggleAttribute('disabled', btn.dataset.langBtn === lng);
-  });
 }
 
 function getLanguage() {
