@@ -46,7 +46,7 @@
       </div>
     </div>
 
-    <!-- Footer with privacy link (also translatable) -->
+    <!-- Footer -->
     <footer style="text-align:center;margin:24px 0 8px;">
       <a href="privacy.html"
          class="muted-text"
@@ -56,6 +56,9 @@
       </a>
     </footer>
   </div>
+
+  <!-- i18n must load BEFORE module so window.t() is available -->
+  <script src="i18n.js"></script>
 
   <script type="module">
     import { initializeApp }
@@ -103,27 +106,37 @@
     const mapViewBtn   = document.getElementById("mapViewBtn");
     const addSpotBtn   = document.getElementById("addSpotBtn");
 
+    const t = window.t || ((k) => k); // fallback if i18n missing
+
     /* ---------- Auth form ---------- */
 
     function renderAuthForm(errorMessage = "") {
+      const titleText       = t("auth_title");
+      const emailPlaceholder = t("auth_email_placeholder");
+      const pwPlaceholder    = t("auth_password_placeholder");
+      const loginLabel       = t("auth_login");
+      const signupLabel      = t("auth_signup");
+      const orLabel          = t("auth_or");
+      const googleLabel      = t("auth_continue_google");
+
       authArea.innerHTML = `
         <div>
           <form id="authForm" style="display:flex;flex-direction:column;gap:6px;min-width:260px;">
-            <div style="font-size:0.85rem;">Log in or sign up</div>
-            <input type="email" id="authEmail" placeholder="Email" required />
-            <input type="password" id="authPassword" placeholder="Password" required />
+            <div style="font-size:0.85rem;">${titleText}</div>
+            <input type="email" id="authEmail" placeholder="${emailPlaceholder}" required />
+            <input type="password" id="authPassword" placeholder="${pwPlaceholder}" required />
             <div style="display:flex;gap:8px;">
-              <button type="submit" class="primary-btn" data-mode="login">Log in</button>
-              <button type="button" class="secondary-btn" id="signUpBtn">Sign up</button>
+              <button type="submit" class="primary-btn" data-mode="login">${loginLabel}</button>
+              <button type="button" class="secondary-btn" id="signUpBtn">${signupLabel}</button>
             </div>
             <div style="margin:6px 0 2px 0;font-size:0.8rem;text-align:center;" class="muted-text">
-              or
+              ${orLabel}
             </div>
             <button type="button"
                     class="secondary-btn"
                     id="googleLoginBtn"
                     style="width:100%;justify-content:center;">
-              Continue with Google
+              ${googleLabel}
             </button>
             <div id="authError" class="muted-text" style="color:#f97373;margin-top:4px;">
               ${errorMessage}
@@ -143,7 +156,8 @@
         try {
           await signInWithEmailAndPassword(auth, email, pass);
         } catch (err) {
-          renderAuthForm("Login failed: " + (err.code || err.message));
+          const msg = `${t("auth_login_failed_prefix")} ${err.code || err.message}`;
+          renderAuthForm(msg);
         }
       };
 
@@ -151,13 +165,14 @@
         const email = document.getElementById("authEmail").value.trim();
         const pass  = document.getElementById("authPassword").value.trim();
         if (!email || !pass) {
-          renderAuthForm("Enter email & password, then press Sign up.");
+          renderAuthForm(t("auth_enter_email_password"));
           return;
         }
         try {
           await createUserWithEmailAndPassword(auth, email, pass);
         } catch (err) {
-          renderAuthForm("Sign up failed: " + (err.code || err.message));
+          const msg = `${t("auth_signup_failed_prefix")} ${err.code || err.message}`;
+          renderAuthForm(msg);
         }
       };
 
@@ -166,22 +181,26 @@
           const provider = new GoogleAuthProvider();
           await signInWithPopup(auth, provider);
         } catch (err) {
-          renderAuthForm("Google sign-in failed: " + (err.code || err.message));
+          const msg = `${t("auth_google_failed_prefix")} ${err.code || err.message}`;
+          renderAuthForm(msg);
         }
       };
     }
 
     function renderLoggedInHeader(user, displayName) {
       const nameText = displayName || user.email || "Unknown user";
+      const loggedInAs = t("header_logged_in_as");
+      const settingsLabel = t("header_settings");
+      const logoutLabel   = t("header_logout");
 
       authArea.innerHTML = `
         <div style="text-align:right;display:flex;flex-direction:column;gap:4px;">
           <div style="font-size:0.86rem;">
-            Logged in as <strong>${nameText}</strong>
+            ${loggedInAs} <strong>${nameText}</strong>
           </div>
           <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
-            <button class="secondary-btn" id="settingsBtn">Settings</button>
-            <button class="secondary-btn" id="logoutBtn">Log out</button>
+            <button class="secondary-btn" id="settingsBtn">${settingsLabel}</button>
+            <button class="secondary-btn" id="logoutBtn">${logoutLabel}</button>
           </div>
         </div>
       `;
@@ -208,7 +227,8 @@
       );
       const snap = await getDocs(q);
       if (snap.empty) {
-        statsContent.innerHTML = `<div class="muted-text">No catches yet.</div>`;
+        statsContent.innerHTML =
+          `<div class="muted-text">${t("stats_no_catches_overall")}</div>`;
         return;
       }
 
@@ -231,14 +251,18 @@
 
       const avgWeight = totalWeight && total ? (totalWeight / total) : 0;
 
+      const labelTotal   = t("stats_total_catches_label");
+      const labelBiggest = t("stats_biggest_fish_label");
+      const labelAvg     = t("stats_avg_weight_label");
+
       statsContent.innerHTML = `
-        <span class="stat-pill">Total catches <strong>${total}</strong></span>
-        <span class="stat-pill">Biggest fish <strong>${biggestWeight.toFixed(2)} kg ${biggestSpecies}</strong></span>
-        <span class="stat-pill">Average weight <strong>${avgWeight.toFixed(2)} kg</strong></span>
+        <span class="stat-pill">${labelTotal} <strong>${total}</strong></span>
+        <span class="stat-pill">${labelBiggest} <strong>${biggestWeight.toFixed(2)} kg ${biggestSpecies}</strong></span>
+        <span class="stat-pill">${labelAvg} <strong>${avgWeight.toFixed(2)} kg</strong></span>
       `;
     }
 
-    /* ---------- Prediction helpers (same as before) ---------- */
+    /* ---------- Prediction helpers ---------- */
 
     function getApproxMoonPhase(date) {
       const lp = 2551443;
@@ -309,16 +333,18 @@
 
       if (typeof spot.latitude !== "number" ||
           typeof spot.longitude !== "number") {
-        weatherEl.textContent = "Weather now: location missing.";
-        predEl.textContent    = "Prediction (next 3 days): unavailable.";
+        weatherEl.textContent = `${t("weather_now_prefix")} ${t("weather_location_missing")}`;
+        predEl.textContent    = `${t("predictions_prefix")} ${t("predictions_unavailable")}`;
         return;
       }
 
       const lat = spot.latitude;
       const lng = spot.longitude;
 
-      weatherEl.textContent = "Weather now: loading…";
-      predEl.textContent    = "Prediction (next 3 days): loading…";
+      weatherEl.textContent =
+        `${t("weather_now_prefix")} ${t("weather_loading")}`;
+      predEl.textContent =
+        `${t("predictions_prefix")} ${t("predictions_loading")}`;
 
       try {
         const url =
@@ -344,7 +370,7 @@
         if (typeof cw === "number") weatherParts.push(`wind ${cw.toFixed(1)} m/s`);
 
         weatherEl.textContent =
-          "Weather now: " + icon + " " + weatherParts.join(", ");
+          `${t("weather_now_prefix")} ${icon} ${weatherParts.join(", ")}`;
 
         const hourly = data.hourly || {};
         const times  = hourly.time || [];
@@ -409,16 +435,16 @@
 
         if (pieces.length) {
           predEl.innerHTML =
-            "Prediction (next 3 days): " + pieces.join(" · ");
+            `${t("predictions_prefix")} ` + pieces.join(" · ");
         } else {
           predEl.textContent =
-            "Prediction (next 3 days): not enough data yet.";
+            `${t("predictions_prefix")} ${t("predictions_not_enough")}`;
         }
       } catch (err) {
         weatherEl.textContent =
-          "Weather now: failed to load.";
+          `${t("weather_now_prefix")} ${t("weather_failed_suffix")}`;
         predEl.textContent =
-          "Prediction (next 3 days): failed to load.";
+          `${t("predictions_prefix")} ${t("predictions_not_enough")}`;
       }
     }
 
@@ -433,7 +459,7 @@
 
       if (snap.empty) {
         spotsList.innerHTML =
-          `<p class="muted-text">No spots yet. Add your first fishing spot.</p>`;
+          `<p class="muted-text">${t("spots_no_spots")}</p>`;
         return;
       }
 
@@ -464,9 +490,16 @@
           }
         });
 
-        const statsLine = total
-          ? `Total catches: ${total} • Biggest: ${biggestWeight.toFixed(2)} kg ${biggestSpecies}`
-          : "No catches yet.";
+        let statsLine;
+        if (total) {
+          statsLine = t("spot_stats_line", {
+            total,
+            weight: biggestWeight.toFixed(2),
+            species: biggestSpecies
+          });
+        } else {
+          statsLine = t("spot_no_catches");
+        }
 
         const mapsUrl =
           typeof spot.latitude === "number" && typeof spot.longitude === "number"
@@ -479,10 +512,10 @@
           </div>
           <div class="muted-text">${statsLine}</div>
           <div class="muted-text" id="spotWeather-${spot.id}">
-            Weather now: loading…
+            ${t("weather_now_prefix")} ${t("weather_loading")}
           </div>
           <div class="muted-text" id="spotPred-${spot.id}">
-            Prediction (next 3 days): loading…
+            ${t("predictions_prefix")} ${t("predictions_loading")}
           </div>
         `;
 
@@ -491,14 +524,14 @@
 
         const openBtn = document.createElement("button");
         openBtn.className = "secondary-btn";
-        openBtn.textContent = "Open spot";
+        openBtn.textContent = t("btn_open_spot");
         openBtn.onclick = () => {
           window.location.href = `spot.html?id=${encodeURIComponent(spot.id)}`;
         };
 
         const addCatchBtn = document.createElement("button");
         addCatchBtn.className = "secondary-btn";
-        addCatchBtn.textContent = "Add catch";
+        addCatchBtn.textContent = t("btn_add_catch");
         addCatchBtn.onclick = () => {
           window.location.href =
             `add-catch.html?spotId=${encodeURIComponent(spot.id)}&from=main`;
@@ -506,7 +539,7 @@
 
         const predBtn = document.createElement("button");
         predBtn.className = "secondary-btn";
-        predBtn.textContent = "Predictions";
+        predBtn.textContent = t("btn_predictions");
         predBtn.onclick = () => {
           window.location.href =
             `predictions.html?spotId=${encodeURIComponent(spot.id)}`;
@@ -522,7 +555,7 @@
           mapsBtn.href = mapsUrl;
           mapsBtn.target = "_blank";
           mapsBtn.rel = "noopener noreferrer";
-          mapsBtn.textContent = "Google Maps";
+          mapsBtn.textContent = t("btn_google_maps");
           actionsDiv.appendChild(mapsBtn);
         }
 
@@ -564,8 +597,7 @@
     };
   </script>
 
-  <!-- i18n + cookie banner -->
-  <script src="i18n.js"></script>
+  <!-- Cookie banner -->
   <script src="cookie-consent.js"></script>
 </body>
 </html>
