@@ -171,29 +171,37 @@
       };
     }
 
-    function renderLoggedInHeader(user, displayName) {
-      const nameText = displayName || user.email || "Unknown user";
+function renderLoggedInHeader(user, displayName) {
+  const nameText = displayName || user.email || "Unknown user";
 
-      authArea.innerHTML = `
-        <div style="text-align:right;display:flex;flex-direction:column;gap:4px;">
-          <div style="font-size:0.86rem;">
-            Logged in as <strong>${nameText}</strong>
-          </div>
-          <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
-            <button class="secondary-btn" id="settingsBtn" data-i18n="home.settings">
-  Settings
-</button>
+  authArea.innerHTML = `
+    <div style="text-align:right;display:flex;flex-direction:column;gap:4px;">
+      <div style="font-size:0.86rem;">
+        <span data-i18n="common.loggedInAs">Logged in as …</span>
+        <strong>${nameText}</strong>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
+        <button class="secondary-btn" id="settingsBtn" data-i18n="home.settings">
+          Settings
+        </button>
+        <button class="secondary-btn" id="logoutBtn" data-i18n="home.logOut">
+          Log out
+        </button>
+      </div>
+    </div>
+  `;
 
-            <button class="secondary-btn" id="logoutBtn" data-i18n="home.logOut">Log out</button>
-          </div>
-        </div>
-      `;
+  // Re-apply translations to the freshly injected HTML
+  if (window.fishingLogI18n && typeof window.fishingLogI18n.applyTranslations === "function") {
+    window.fishingLogI18n.applyTranslations();
+  }
 
-      document.getElementById("logoutBtn").onclick  = () => signOut(auth);
-      document.getElementById("settingsBtn").onclick = () => {
-        window.location.href = "settings.html";
-      };
-    }
+  document.getElementById("logoutBtn").onclick = () => signOut(auth);
+  document.getElementById("settingsBtn").onclick = () => {
+    window.location.href = "settings.html";
+  };
+}
+
 
     async function loadUserDisplayName(userId) {
       const profileRef = doc(db, "profiles", userId);
@@ -569,5 +577,6 @@
   </script>
 </body>
 </html>
+
 
 
