@@ -18,6 +18,9 @@
       "home.loadingApp": "Loading app…",
       "home.settings": "Settings",
       "home.logOut": "Log Out",
+      "home.statsTotalCatches": "Total catches",
+      "home.biggestFish": "Biggest Fish",
+      "home.statsAverageWeight": "Average weight",
 
       // Common
       "common.backToMain": "← Back to main",
@@ -132,6 +135,9 @@
       "home.loadingApp": "Rakendus laadib…",
       "home.settings": "Seaded",
       "home.logOut": "Logi välja",
+      "home.statsTotalCatches": "Kõik kalad",
+      "home.biggestFish": "Suurim kala",
+      "home.statsAverageWeight": "Keskmine kaal",
 
       // Common
       "common.backToMain": "← Tagasi avalehele",
