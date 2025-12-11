@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>My Fishing Log</title>
+  <title data-i18n="app_title">My Fishing Log</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -11,8 +11,8 @@
     <header class="card">
       <div class="card-header">
         <div>
-          <h1>My Fishing Log</h1>
-          <p class="muted-text">
+          <h1 data-i18n="app_title">My Fishing Log</h1>
+          <p class="muted-text" data-i18n="app_subtitle">
             Track your catches anywhere – with login, spots, weather &amp; predictions.
           </p>
         </div>
@@ -22,17 +22,17 @@
 
     <!-- Stats -->
     <div class="card" id="statsCard" style="display:none;">
-      <h2>Stats</h2>
+      <h2 data-i18n="stats_title">Stats</h2>
       <div id="statsContent" class="stat-badges"></div>
     </div>
 
     <!-- My fishing spots -->
     <div class="card" id="spotsCard" style="display:none;">
       <div class="card-header">
-        <h2>My fishing spots</h2>
+        <h2 data-i18n="spots_title">My fishing spots</h2>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="secondary-btn" id="mapViewBtn">Map view</button>
-          <button class="secondary-btn" id="addSpotBtn">Add new spot</button>
+          <button class="secondary-btn" id="mapViewBtn" data-i18n="btn_map_view">Map view</button>
+          <button class="secondary-btn" id="addSpotBtn" data-i18n="btn_add_spot">Add new spot</button>
         </div>
       </div>
       <div id="spotsList"></div>
@@ -42,14 +42,15 @@
     <div class="card" id="loadingCard">
       <div class="loading-center">
         <div class="spinner"></div>
-        <div>Loading app…</div>
+        <div data-i18n="loading_app">Loading app…</div>
       </div>
     </div>
 
-    <!-- Simple footer with privacy link -->
+    <!-- Footer with privacy link (also translatable) -->
     <footer style="text-align:center;margin:24px 0 8px;">
       <a href="privacy.html"
          class="muted-text"
+         data-i18n="footer_privacy"
          style="color:#60a5fa;text-decoration:underline;">
         Privacy Policy
       </a>
@@ -498,7 +499,6 @@
         const addCatchBtn = document.createElement("button");
         addCatchBtn.className = "secondary-btn";
         addCatchBtn.textContent = "Add catch";
-        // from main page
         addCatchBtn.onclick = () => {
           window.location.href =
             `add-catch.html?spotId=${encodeURIComponent(spot.id)}&from=main`;
@@ -564,7 +564,8 @@
     };
   </script>
 
-  <!-- Cookie consent banner -->
+  <!-- i18n + cookie banner -->
+  <script src="i18n.js"></script>
   <script src="cookie-consent.js"></script>
 </body>
 </html>
