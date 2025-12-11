@@ -1,46 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <title data-i18n="spot_page_title">Spot details</title>
+  <meta charset="UTF-8" />
+  <title data-i18n="spot_title">Fishing spot</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app fade-in">
+    <!-- Header -->
     <header class="card">
       <div class="card-header">
         <div>
-          <h1 data-i18n="spot_header">Fishing spot</h1>
+          <h1 data-i18n="spot_title">Fishing spot</h1>
+          <p class="muted-text" data-i18n="spot_subtitle">
+            See details and catches for this spot.
+          </p>
         </div>
-        <div>
-          <button class="secondary-btn" id="backBtn" data-i18n="btn_back_main">
-            ← Back to main
-          </button>
-        </div>
+        <button
+          id="backBtn"
+          class="secondary-btn"
+          data-i18n="btn_back_main"
+        >
+          ← Back to main
+        </button>
       </div>
     </header>
 
-    <div class="card" id="spotInfoCard">
-      <h2 id="spotName"></h2>
-      <div id="spotStats" class="muted-text"></div>
+    <!-- Spot info + actions -->
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2 id="spotName">…</h2>
+          <div class="muted-text">
+            <span data-i18n="spot_location_label">Location</span>:
+            <span id="spotLocation"></span>
+          </div>
+        </div>
+        <div class="spot-actions">
+          <button
+            id="addCatchBtn"
+            class="secondary-btn"
+            data-i18n="btn_add_catch"
+          >
+            Add catch
+          </button>
+          <button
+            id="predictionsBtn"
+            class="secondary-btn"
+            data-i18n="btn_predictions"
+          >
+            Predictions
+          </button>
+          <button
+            id="editSpotBtn"
+            class="secondary-btn"
+            data-i18n="btn_edit_spot"
+          >
+            Edit
+          </button>
+          <button
+            id="deleteSpotBtn"
+            class="danger-btn"
+            data-i18n="btn_delete_spot"
+          >
+            Delete spot
+          </button>
+        </div>
+      </div>
+    </section>
 
-      <div class="muted-text" id="spotWeather"></div>
-      <div class="muted-text" id="spotPred"></div>
-
-      <div class="spot-actions"></div>
-    </div>
+    <!-- Catches list -->
+    <section class="card">
+      <h2 data-i18n="spot_catches_title">Catches at this spot</h2>
+      <div id="catchesContainer"></div>
+    </section>
   </div>
 
-  <!-- Load i18n first -->
+  <!-- i18n + app scripts -->
   <script src="i18n.js"></script>
 
   <script type="module">
-    import { initializeApp }
-      from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
     import {
       getAuth,
-      onAuthStateChanged
+      onAuthStateChanged,
     } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
     import {
       getFirestore,
@@ -50,7 +94,7 @@
       query,
       where,
       getDocs,
-      deleteDoc
+      deleteDoc,
     } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -59,23 +103,26 @@
       projectId: "fishing-log-app-murx",
       storageBucket: "fishing-log-app-murx.firebasestorage.app",
       messagingSenderId: "1056807867882",
-      appId: "1:1056807867882:web:e59ddd8f6353d190080e93"
+      appId: "1:1056807867882:web:e59ddd8f6353d190080e93",
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db   = getFirestore(app);
+    const db = getFirestore(app);
+
     const t = window.t || ((k) => k);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const spotId = urlParams.get("id");
+    const params = new URLSearchParams(window.location.search);
+    const spotId = params.get("id");
 
     const backBtn = document.getElementById("backBtn");
-    const spotNameEl  = document.getElementById("spotName");
-    const spotStatsEl = document.getElementById("spotStats");
-    const spotWeatherEl = document.getElementById("spotWeather");
-    const spotPredEl    = document.getElementById("spotPred");
-    const actionsDiv    = document.querySelector("#spotInfoCard .spot-actions");
+    const spotNameEl = document.getElementById("spotName");
+    const spotLocationEl = document.getElementById("spotLocation");
+    const catchesContainer = document.getElementById("catchesContainer");
+    const addCatchBtn = document.getElementById("addCatchBtn");
+    const predictionsBtn = document.getElementById("predictionsBtn");
+    const editSpotBtn = document.getElementById("editSpotBtn");
+    const deleteSpotBtn = document.getElementById("deleteSpotBtn");
 
     backBtn.onclick = () => {
       window.location.href = "index.html";
@@ -88,7 +135,7 @@
       }
 
       if (!spotId) {
-        spotNameEl.textContent = t("spot_not_found");
+        spotNameEl.textContent = t("spot_not_found") || "Spot not found";
         return;
       }
 
@@ -97,176 +144,176 @@
         const spotSnap = await getDoc(spotRef);
 
         if (!spotSnap.exists()) {
-          spotNameEl.textContent = t("spot_not_found");
+          spotNameEl.textContent = t("spot_not_found") || "Spot not found";
           return;
         }
+
         const spot = { id: spotSnap.id, ...spotSnap.data() };
 
-        spotNameEl.textContent = spot.name || t("spot_no_name");
+        spotNameEl.textContent = spot.name || (t("spot_no_name") || "Unnamed spot");
 
-        // Load catches for this spot
-        const catchesQ = query(
-          collection(db, "catches"),
-          where("spotId", "==", spot.id),
-          where("userId", "==", user.uid)
-        );
-        const catchesSnap = await getDocs(catchesQ);
-
-        let total = 0;
-        let biggestWeight = 0;
-        let biggestSpecies = "-";
-
-        const catchesArr = [];
-        catchesSnap.forEach(c => {
-          const data = c.data();
-          catchesArr.push({ id: c.id, ...data });
-          total++;
-          if (typeof data.weightKg === "number" && !isNaN(data.weightKg)) {
-            if (data.weightKg > biggestWeight) {
-              biggestWeight  = data.weightKg;
-              biggestSpecies = data.species || "-";
-            }
-          }
-        });
-
-        // Stats line translation
-        let statsLine;
-        if (total === 0) {
-          statsLine = t("spot_no_catches");
+        if (
+          typeof spot.latitude === "number" &&
+          typeof spot.longitude === "number"
+        ) {
+          spotLocationEl.textContent =
+            spot.latitude.toFixed(6) + ", " + spot.longitude.toFixed(6);
         } else {
-          statsLine = t("spot_stats_line", {
-            total,
-            weight: biggestWeight.toFixed(2),
-            species: biggestSpecies
-          });
+          spotLocationEl.textContent = t("spot_location_unknown") || "Unknown";
         }
-        spotStatsEl.textContent = statsLine;
 
-        // Buttons: Edit, Add catch, Delete, Predictions, Maps
-        const editBtn = document.createElement("button");
-        editBtn.className = "secondary-btn";
-        editBtn.textContent = t("btn_edit_spot");
-        editBtn.onclick = () => {
-          window.location.href = `edit-spot.html?id=${encodeURIComponent(spot.id)}`;
-        };
-
-        const addCatchBtn = document.createElement("button");
-        addCatchBtn.className = "secondary-btn";
-        addCatchBtn.textContent = t("btn_add_catch");
+        // Button actions
         addCatchBtn.onclick = () => {
-          window.location.href = `add-catch.html?spotId=${encodeURIComponent(spot.id)}&from=spot`;
+          window.location.href =
+            "add-catch.html?spotId=" +
+            encodeURIComponent(spot.id) +
+            "&from=spot";
         };
 
-        const deleteBtn = document.createElement("button");
-        deleteBtn.className = "secondary-btn";
-        deleteBtn.textContent = t("btn_delete_spot");
-        deleteBtn.onclick = async () => {
-          if (confirm(t("confirm_delete_spot"))) {
-            try {
-              await deleteDoc(spotRef);
-              window.location.href = "index.html";
-            } catch (err) {
-              alert(t("error_delete_spot"));
-            }
+        predictionsBtn.onclick = () => {
+          window.location.href =
+            "predictions.html?spotId=" + encodeURIComponent(spot.id);
+        };
+
+        editSpotBtn.onclick = () => {
+          window.location.href =
+            "edit-spot.html?id=" + encodeURIComponent(spot.id);
+        };
+
+        deleteSpotBtn.onclick = async () => {
+          if (!confirm(t("confirm_delete_spot") || "Delete this spot?")) {
+            return;
+          }
+          try {
+            // delete spot document
+            await deleteDoc(spotRef);
+
+            // (optional) delete catches under this spot
+            const qCatches = query(
+              collection(db, "catches"),
+              where("spotId", "==", spot.id),
+              where("userId", "==", user.uid)
+            );
+            const cSnap = await getDocs(qCatches);
+            const batchDeletes = cSnap.docs.map((d) =>
+              deleteDoc(doc(db, "catches", d.id))
+            );
+            await Promise.all(batchDeletes);
+
+            window.location.href = "index.html";
+          } catch (err) {
+            console.error(err);
+            alert(t("error_delete_spot") || "Error deleting spot.");
           }
         };
 
-        actionsDiv.append(editBtn, addCatchBtn, deleteBtn);
-
-        // Weather & prediction loading (same logic as index, but with translated labels)
-        const qAllCatches = await getDocs(
-          query(collection(db, "catches"), where("spotId", "==", spot.id))
-        );
-        const allCatches = qAllCatches.docs.map(d => ({ id: d.id, ...d.data() }));
-
-        // Fetch weather and prediction (use same logic as index; reuse your fetchWeatherAndPredictionForSpot)
-        await fetchWeatherAndPredictionForSpot(spot, allCatches);
-
+        await loadCatches(user, spot.id);
       } catch (err) {
         console.error(err);
+        spotNameEl.textContent = t("spot_load_error") || "Error loading spot.";
       }
     });
 
-    async function fetchWeatherAndPredictionForSpot(spot, spotCatches) {
-      if (!spot) return;
+    async function loadCatches(user, spotId) {
+      catchesContainer.innerHTML = "";
 
-      const lat = spot.latitude;
-      const lng = spot.longitude;
+      const qCatches = query(
+        collection(db, "catches"),
+        where("userId", "==", user.uid),
+        where("spotId", "==", spotId)
+      );
+      const snap = await getDocs(qCatches);
 
-      spotWeatherEl.textContent = `${t("weather_now_prefix")} ${t("weather_loading")}`;
-      spotPredEl.textContent    = `${t("predictions_prefix")} ${t("predictions_loading")}`;
-
-      try {
-        const url =
-          `https://api.open-meteo.com/v1/forecast` +
-          `?latitude=${lat}&longitude=${lng}` +
-          `&current=temperature_2m,wind_speed_10m,weather_code` +
-          `&hourly=temperature_2m,wind_speed_10m,pressure_msl` +
-          `&forecast_days=4&wind_speed_unit=ms&timezone=auto`;
-
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const data = await res.json();
-
-        const cur = data.current || {};
-        const ct  = cur.temperature_2m;
-        const cw  = cur.wind_speed_10m;
-        const cc  = cur.weather_code;
-
-        const weatherLabelParts = [];
-        weatherLabelParts.push(`${ct.toFixed(1)} °C`);
-        weatherLabelParts.push(`${Math.round(cw)} m/s`);
-
-        spotWeatherEl.textContent = `${t("weather_now_prefix")} ${weatherLabelParts.join(", ")}`;
-
-        const times  = data.hourly.time || [];
-        const temps  = data.hourly.temperature_2m || [];
-        const winds  = data.hourly.wind_speed_10m || [];
-        const presses = data.hourly.pressure_msl || [];
-
-        // localized weekdays
-        const lang = window.getStoredLanguage ? window.getStoredLanguage() : "en";
-        const weekdayShort = (lang === "et")
-          ? ["P","E","T","K","N","R","L"]
-          : ["Sun.","Mon.","Tues.","Wed.","Thurs.","Fri.","Sat"];
-
-        function getForecastForOffset(offset) {
-          const base = new Date();
-          base.setDate(base.getDate() + offset);
-          const yyyy = base.getFullYear();
-          const mm   = String(base.getMonth() + 1).padStart(2, "0");
-          const dd   = String(base.getDate()).padStart(2, "0");
-          const dateStr = `${yyyy}-${mm}-${dd}`;
-
-          let idx = times.findIndex(t => t.startsWith(`${dateStr}T12`));
-          if (idx === -1) idx = times.findIndex(t => t.startsWith(dateStr));
-          if (idx === -1) return null;
-
-          return {
-            temp: temps[idx],
-            wind: winds[idx],
-            press: presses[idx],
-            dateObj: base
-          };
-        }
-
-        const pieces = [];
-        for (let offset = 1; offset <= 3; offset++) {
-          const fc = getForecastForOffset(offset);
-          const day = weekdayShort[new Date().getDay()];
-          if (!fc) {
-            pieces.push(`${day}: N/A`);
-            continue;
-          }
-
-          pieces.push(`${day}: ${Math.round(fc.temp)} °C`);
-        }
-
-        spotPredEl.textContent = `${t("predictions_prefix")} ` + pieces.join(" · ");
-      } catch (err) {
-        spotWeatherEl.textContent = `${t("weather_now_prefix")} ${t("weather_failed_suffix")}`;
-        spotPredEl.textContent    = `${t("predictions_prefix")} ${t("predictions_not_enough")}`;
+      if (snap.empty) {
+        catchesContainer.innerHTML =
+          '<p class="muted-text">' +
+          (t("spot_no_catches") || "No catches yet.") +
+          "</p>";
+        return;
       }
+
+      const catches = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+      for (const c of catches) {
+        const div = document.createElement("div");
+        div.className = "catch-row";
+
+        const species = c.species || (t("species_unknown") || "fish");
+        const weight = typeof c.weightKg === "number" ? c.weightKg.toFixed(2) : "-";
+
+        const date = c.timestamp
+          ? new Date(c.timestamp).toLocaleDateString()
+          : "";
+
+        const lureText = c.lure || "-";
+        const depthText =
+          typeof c.depth === "number" ? c.depth.toFixed(1) + " m" : "-";
+        const waterTempText =
+          typeof c.temperature === "number"
+            ? c.temperature.toFixed(1) + " °C"
+            : "-";
+
+        const weatherDesc =
+          c.weatherDescription ||
+          (t("catch_weather_unknown") || "No weather data");
+
+        div.innerHTML = `
+          <div class="catch-header">
+            <strong>${escapeHtml(species)}</strong> • ${escapeHtml(
+          weight
+        )} kg ${escapeHtml(date)}
+          </div>
+          <div>${t("catch_lure_label") || "Lure"}: ${escapeHtml(
+          lureText
+        )}</div>
+          <div>${t("catch_depth_label") || "Depth"}: ${escapeHtml(
+          depthText
+        )}</div>
+          <div>${t("catch_watertemp_label") || "Water temp"}: ${escapeHtml(
+          waterTempText
+        )}</div>
+          <div>${
+            t("catch_weather_label") || "Weather at time of catch"
+          }: ${escapeHtml(weatherDesc)}</div>
+        `;
+
+        const btnRow = document.createElement("div");
+        btnRow.style.marginTop = "8px";
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "danger-btn";
+        delBtn.textContent =
+          t("btn_delete_catch") || "Delete catch";
+        delBtn.onclick = async () => {
+          if (!confirm(t("confirm_delete_catch") || "Delete this catch?")) {
+            return;
+          }
+          try {
+            await deleteDoc(doc(db, "catches", c.id));
+            await loadCatches(user, spotId);
+          } catch (err) {
+            console.error(err);
+            alert(t("error_delete_catch") || "Error deleting catch.");
+          }
+        };
+
+        btnRow.appendChild(delBtn);
+        div.appendChild(btnRow);
+
+        catchesContainer.appendChild(div);
+      }
+    }
+
+    function escapeHtml(str) {
+      if (str == null) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
     }
   </script>
 
