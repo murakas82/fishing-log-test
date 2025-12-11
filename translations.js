@@ -19,7 +19,7 @@
       "home.settings": "Settings",
       "home.logOut": "Log Out",
       "home.statsTotalCatches": "Total catches",
-      "home.biggestFish": "Biggest Fish",
+      "home.statsBiggestFish": "Biggest Fish",
       "home.statsAverageWeight": "Average weight",
 
       // Common
@@ -136,7 +136,7 @@
       "home.settings": "Seaded",
       "home.logOut": "Logi välja",
       "home.statsTotalCatches": "Kõik kalad",
-      "home.biggestFish": "Suurim kala",
+      "home.statsBiggestFish": "Suurim kala",
       "home.statsAverageWeight": "Keskmine kaal",
 
       // Common
