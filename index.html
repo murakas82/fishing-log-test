@@ -378,7 +378,13 @@
         const winds  = hourly.wind_speed_10m || [];
         const presses = hourly.pressure_msl || [];
 
-        const weekdayShort = ["Sun.","Mon.","Tues.","Wed.","Thurs.","Fri.","Sat"];
+        // Weekday abbreviations depend on chosen language
+const lang = window.getStoredLanguage ? window.getStoredLanguage() : "en";
+
+const weekdayShort = (lang === "et")
+  ? ["P", "E", "T", "K", "N", "R", "L"]   // Estonian one-letter codes
+  : ["Sun.","Mon.","Tues.","Wed.","Thurs.","Fri.","Sat"];  // English defaults
+
 
         function getForecastForOffset(offset) {
           const base = new Date();
@@ -601,3 +607,4 @@
   <script src="cookie-consent.js"></script>
 </body>
 </html>
+
