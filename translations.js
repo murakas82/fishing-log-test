@@ -131,7 +131,7 @@
       "home.addNewSpot": "Lisa uus püügikoht",
       "home.loadingApp": "Rakendus laadib…",
       "home.settings": "Seaded",
-      "home.logOut": "Seaded",
+      "home.logOut": "Logi välja",
 
       // Common
       "common.backToMain": "← Tagasi avalehele",
