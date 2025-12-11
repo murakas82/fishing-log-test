@@ -53,6 +53,9 @@
     </section>
   </div>
 
+  <!-- i18n first -->
+  <script src="i18n.js"></script>
+
   <script type="module">
     import { initializeApp }
       from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
@@ -89,6 +92,10 @@
     const langEn = document.getElementById("langEn");
     const langEt = document.getElementById("langEt");
 
+    const setStoredLanguage = window.setStoredLanguage || (() => {});
+    const applyLanguage     = window.applyLanguage || (() => {});
+    const getStoredLanguage = window.getStoredLanguage || (() => "en");
+
     backBtn.onclick = () => {
       window.location.href = "index.html";
     };
@@ -97,14 +104,12 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        // If not logged in, go back to main (which handles login)
         window.location.href = "index.html";
         return;
       }
       currentUser = user;
 
-      // Load language from Firestore profile if exists, otherwise from localStorage
-      let lang = window.getStoredLanguage ? window.getStoredLanguage() : "en";
+      let lang = getStoredLanguage();
 
       try {
         const profileRef = doc(db, "profiles", user.uid);
@@ -119,7 +124,6 @@
         console.warn("Failed to load profile language, using local storage only.", e);
       }
 
-      // Set radios and apply language
       if (lang === "et") {
         langEt.checked = true;
       } else {
@@ -127,8 +131,8 @@
         lang = "en";
       }
 
-      if (window.setStoredLanguage) window.setStoredLanguage(lang);
-      if (window.applyLanguage) window.applyLanguage(lang);
+      setStoredLanguage(lang);
+      applyLanguage(lang);
     });
 
     saveBtn.onclick = async () => {
@@ -139,9 +143,8 @@
         (langEn.checked && "en") ||
         "en";
 
-      // Update local storage + live UI
-      if (window.setStoredLanguage) window.setStoredLanguage(selected);
-      if (window.applyLanguage) window.applyLanguage(selected);
+      setStoredLanguage(selected);
+      applyLanguage(selected);
 
       statusMessage.textContent = "Saving…";
 
@@ -166,8 +169,7 @@
     };
   </script>
 
-  <!-- i18n + cookie banner -->
-  <script src="i18n.js"></script>
+  <!-- Cookie banner -->
   <script src="cookie-consent.js"></script>
 </body>
 </html>
