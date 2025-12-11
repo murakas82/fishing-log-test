@@ -67,6 +67,38 @@ const I18N_DICTIONARY = {
     settings_language_et: "Estonian",
     settings_save_button: "Save settings",
     settings_back_main: "← Back to main"
+
+      // Spot page
+    spot_title: "Fishing spot",
+spot_subtitle: "See details and catches for this spot.",
+btn_back_main: "← Back to main",
+
+spot_location_label: "Location",
+spot_location_unknown: "Unknown",
+spot_not_found: "Spot not found",
+spot_no_name: "Unnamed spot",
+spot_load_error: "Error loading spot.",
+spot_catches_title: "Catches at this spot",
+spot_no_catches: "No catches yet.",
+
+btn_add_catch: "Add catch",
+btn_predictions: "Predictions",
+btn_edit_spot: "Edit",
+btn_delete_spot: "Delete spot",
+btn_delete_catch: "Delete catch",
+
+confirm_delete_spot: "Delete this spot (and its catches)?",
+error_delete_spot: "Error deleting spot.",
+confirm_delete_catch: "Delete this catch?",
+error_delete_catch: "Error deleting catch.",
+
+catch_lure_label: "Lure",
+catch_depth_label: "Depth",
+catch_watertemp_label: "Water temp",
+catch_weather_label: "Weather at time of catch",
+catch_weather_unknown: "No weather data",
+species_unknown: "fish",
+
   },
 
   et: {
@@ -135,6 +167,38 @@ const I18N_DICTIONARY = {
     settings_language_et: "Eesti",
     settings_save_button: "Salvesta seaded",
     settings_back_main: "← Tagasi avalehele"
+
+  // spot page
+  spot_title: "Kalakoht",
+spot_subtitle: "Vaata koha andmeid ja saake.",
+btn_back_main: "← Tagasi avalehele",
+
+spot_location_label: "Asukoht",
+spot_location_unknown: "Teadmata",
+spot_not_found: "Kohta ei leitud",
+spot_no_name: "Nimetu koht",
+spot_load_error: "Viga koha laadimisel.",
+spot_catches_title: "Saagid selles kohas",
+spot_no_catches: "Saake veel pole.",
+
+btn_add_catch: "Lisa saak",
+btn_predictions: "Prognoosid",
+btn_edit_spot: "Muuda kohta",
+btn_delete_spot: "Kustuta koht",
+btn_delete_catch: "Kustuta saak",
+
+confirm_delete_spot: "Kas kustutada see koht ja kõik selle saagid?",
+error_delete_spot: "Viga koha kustutamisel.",
+confirm_delete_catch: "Kas kustutada see saak?",
+error_delete_catch: "Viga saagi kustutamisel.",
+
+catch_lure_label: "Lant",
+catch_depth_label: "Sügavus",
+catch_watertemp_label: "Vee temp",
+catch_weather_label: "Ilm püügi hetkel",
+catch_weather_unknown: "Ilmaandmeid pole",
+species_unknown: "kala",
+
   }
 };
 
