@@ -16,6 +16,8 @@
       "home.mapView": "Map view",
       "home.addNewSpot": "Add new spot",
       "home.loadingApp": "Loading app…",
+      "home.settings": "Settings",
+      "home.logOut": "Log Out",
 
       // Common
       "common.backToMain": "← Back to main",
@@ -128,6 +130,8 @@
       "home.mapView": "Kaardivaade",
       "home.addNewSpot": "Lisa uus püügikoht",
       "home.loadingApp": "Rakendus laadib…",
+      "home.settings": "Seaded",
+      "home.logOut": "Seaded",
 
       // Common
       "common.backToMain": "← Tagasi avalehele",
