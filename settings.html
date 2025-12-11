@@ -3,14 +3,13 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title data-i18n="settings.title">Settings</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Your global theme -->
-  ./style.css
+
+  <!-- IMPORTANT: rel="stylesheet" + correct path -->
+  <link rel="stylesheet" href="/fishing-log-test/style.csss.title">Settings</title>
 </head>
 <body class="fade-in">
   <div class="app">
-    <!-- Header card -->
     <header class="card card-header">
       <div>
         <h1 data-i18n="settings.title">Settings</h1>
@@ -18,29 +17,21 @@
           Personalize how your name appears in the app.
         </p>
       </div>
-      <!-- Optional inline language buttons (if you like) 
-      <div>
-        <button class="secondary-btn" data-lang-btn="en">EN</button>
-        <button class="secondary-btn" data-lang-btn="et">ET</button>
-      </div>
-      -->
     </header>
 
-    <!-- Back link -->
     <p class="btn-back-main" style="margin-top:10px">
-      <a class="btnack to main</a>
+      <a class="btn-glow" href="/fishing-log-test>
     </p>
 
-    <!-- Settings card -->
     <section class="card">
-      <!-- Language picker (styled by your CSS) -->
+      <!-- Language picker -->
       <label for="langSelect" data-i18n="settings.language">Language</label>
       <select id="langSelect" data-lang-select>
         <option value="en" data-i18n="settings.languageEnglish">English</option>
         <option value="et" data-i18n="settings.languageEstonian">Estonian</option>
       </select>
 
-      <!-- Display name (your original setting) -->
+      <!-- Display name -->
       <label for="displayName" data-i18n="settings.displayName">Display name</label>
       <input id="displayName" type="text" placeholder="Your name" />
 
@@ -50,16 +41,14 @@
     </section>
   </div>
 
-  <!-- Load i18n last, so it can translate the DOM -->
-  ./i18n.js</script>
+  <!-- IMPORTANT: proper <script> tag + correct path -->
+  <script srcg-test/i18n.js</script>
   <script>
-    // Example: persist display name (optional)
+    // Persist display name (optional)
     document.getElementById('saveBtn').addEventListener('click', () => {
       const name = (document.getElementById('displayName').value || '').trim();
       if (name) localStorage.setItem('displayName', name);
     });
-
-    // Pre-fill saved display name
     document.addEventListener('DOMContentLoaded', () => {
       const saved = localStorage.getItem('displayName');
       if (saved) document.getElementById('displayName').value = saved;
