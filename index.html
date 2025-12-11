@@ -56,7 +56,7 @@
   <!-- i18n: must be loaded so data-i18n works -->
   <script src="translations.js"></script>
 
-  <!-- Main app logic (unchanged, except for being after translations.js) -->
+  <!-- Main app logic -->
   <script type="module">
     import { initializeApp }
       from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
@@ -171,37 +171,36 @@
       };
     }
 
-function renderLoggedInHeader(user, displayName) {
-  const nameText = displayName || user.email || "Unknown user";
+    function renderLoggedInHeader(user, displayName) {
+      const nameText = displayName || user.email || "Unknown user";
 
-  authArea.innerHTML = `
-    <div style="text-align:right;display:flex;flex-direction:column;gap:4px;">
-      <div style="font-size:0.86rem;">
-        <span data-i18n="common.loggedInAs">Logged in as …</span>
-        <strong>${nameText}</strong>
-      </div>
-      <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
-        <button class="secondary-btn" id="settingsBtn" data-i18n="home.settings">
-          Settings
-        </button>
-        <button class="secondary-btn" id="logoutBtn" data-i18n="home.logOut">
-          Log out
-        </button>
-      </div>
-    </div>
-  `;
+      authArea.innerHTML = `
+        <div style="text-align:right;display:flex;flex-direction:column;gap:4px;">
+          <div style="font-size:0.86rem;">
+            <span data-i18n="common.loggedInAs">Logged in as …</span>
+            <strong>${nameText}</strong>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
+            <button class="secondary-btn" id="settingsBtn" data-i18n="home.settings">
+              Settings
+            </button>
+            <button class="secondary-btn" id="logoutBtn" data-i18n="home.logOut">
+              Log out
+            </button>
+          </div>
+        </div>
+      `;
 
-  // Re-apply translations to the freshly injected HTML
-  if (window.fishingLogI18n && typeof window.fishingLogI18n.applyTranslations === "function") {
-    window.fishingLogI18n.applyTranslations();
-  }
+      // Re-apply translations to the freshly injected HTML
+      if (window.fishingLogI18n && typeof window.fishingLogI18n.applyTranslations === "function") {
+        window.fishingLogI18n.applyTranslations();
+      }
 
-  document.getElementById("logoutBtn").onclick = () => signOut(auth);
-  document.getElementById("settingsBtn").onclick = () => {
-    window.location.href = "settings.html";
-  };
-}
-
+      document.getElementById("logoutBtn").onclick = () => signOut(auth);
+      document.getElementById("settingsBtn").onclick = () => {
+        window.location.href = "settings.html";
+      };
+    }
 
     async function loadUserDisplayName(userId) {
       const profileRef = doc(db, "profiles", userId);
@@ -242,11 +241,26 @@ function renderLoggedInHeader(user, displayName) {
 
       const avgWeight = totalWeight && total ? (totalWeight / total) : 0;
 
+      // Use i18n keys for labels
       statsContent.innerHTML = `
-        <span class="stat-pill">Total catches <strong>${total}</strong></span>
-        <span class="stat-pill">Biggest fish <strong>${biggestWeight.toFixed(2)} kg ${biggestSpecies}</strong></span>
-        <span class="stat-pill">Average weight <strong>${avgWeight.toFixed(2)} kg</strong></span>
+        <span class="stat-pill">
+          <span data-i18n="home.statsTotalCatches">Total catches</span>
+          <strong>${total}</strong>
+        </span>
+        <span class="stat-pill">
+          <span data-i18n="home.statsBiggestFish">Biggest Fish</span>
+          <strong>${biggestWeight.toFixed(2)} kg ${biggestSpecies}</strong>
+        </span>
+        <span class="stat-pill">
+          <span data-i18n="home.statsAverageWeight">Average weight</span>
+          <strong>${avgWeight.toFixed(2)} kg</strong>
+        </span>
       `;
+
+      // Re-apply translations for dynamically injected labels
+      if (window.fishingLogI18n && typeof window.fishingLogI18n.applyTranslations === "function") {
+        window.fishingLogI18n.applyTranslations();
+      }
     }
 
     /* ---------- Prediction helpers ---------- */
@@ -577,6 +591,3 @@ function renderLoggedInHeader(user, displayName) {
   </script>
 </body>
 </html>
-
-
-
