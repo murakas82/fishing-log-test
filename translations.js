@@ -22,6 +22,9 @@
       "home.statsBiggestFish": "Biggest Fish",
       "home.statsAverageWeight": "Average weight",
       "home.openSpot": "Open spot",
+      "home.AddCatch": "Add catch",
+      "home.predictions": "Predictions",
+      "home.googleMaps": "Google Maps",
 
       // Common
       "common.backToMain": "← Back to main",
@@ -140,6 +143,9 @@
       "home.statsBiggestFish": "Suurim kala",
       "home.statsAverageWeight": "Keskmine kaal",
       "home.openSpot": "Ava koht",
+      "home.AddCatch": "Lisa kala",
+      "home.predictions": "Ennustused",
+      "home.googleMaps": "Google Maps",
 
       // Common
       "common.backToMain": "← Tagasi avalehele",
