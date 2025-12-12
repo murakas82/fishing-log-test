@@ -25,6 +25,7 @@
       "home.AddCatch": "Add catch",
       "home.predictions": "Predictions",
       "home.googleMaps": "Google Maps",
+      "home.biggestFish": "Biggest:",
 
       // Common
       "common.backToMain": "← Back to main",
@@ -146,6 +147,7 @@
       "home.AddCatch": "Lisa kala",
       "home.predictions": "Ennustused",
       "home.googleMaps": "Google Maps",
+      "home.biggestFish": "Suurim:",
 
       // Common
       "common.backToMain": "← Tagasi avalehele",
