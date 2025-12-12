@@ -489,9 +489,17 @@
           }
         });
 
-        const statsLine = total
-          ? `Total catches: ${total} • Biggest: ${biggestWeight.toFixed(2)} kg ${biggestSpecies}`
-          : "No catches yet.";
+        // Use i18n keys inside the stats line per spot
+        let statsLineHtml;
+        if (total) {
+          statsLineHtml = `
+            <span data-i18n="home.statsTotalCatches">Total catches</span>: ${total}
+            •
+            <span data-i18n="home.biggestFish">Biggest</span>: ${biggestWeight.toFixed(2)} kg ${biggestSpecies}
+          `;
+        } else {
+          statsLineHtml = "No catches yet.";
+        }
 
         const mapsUrl =
           typeof spot.latitude === "number" && typeof spot.longitude === "number"
@@ -502,7 +510,9 @@
           <div class="spot-header-line">
             <h3>${spot.name || "Unnamed spot"}</h3>
           </div>
-          <div class="muted-text">${statsLine}</div>
+          <div class="muted-text">
+            ${statsLineHtml}
+          </div>
           <div class="muted-text" id="spotWeather-${spot.id}">
             Weather now: loading…
           </div>
@@ -564,7 +574,7 @@
         await fetchWeatherAndPredictionForSpot(spot, spotCatches);
       }
 
-      // Re-apply translations for dynamically injected spot action buttons
+      // Re-apply translations for dynamically injected spot content
       if (window.fishingLogI18n && typeof window.fishingLogI18n.applyTranslations === "function") {
         window.fishingLogI18n.applyTranslations();
       }
