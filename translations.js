@@ -27,6 +27,44 @@
       "home.googleMaps": "Google Maps",
       "home.biggestFish": "Biggest:",
 
+            // Weather/pred rows
+      "home.weatherNow": "Weather now",
+      "home.predictionNext3Days": "Prediction (next 3 days)",
+      "home.loading": "loading…",
+      "home.failedToLoad": "failed to load.",
+      "home.locationMissing": "location missing.",
+      "home.unavailable": "unavailable.",
+      "home.notEnoughDataYet": "not enough data yet.",
+      "home.na": "n/a",
+
+      // Units + wind label
+      "home.wind": "wind",
+      "home.unitCelsius": "°C",
+      "home.unitMetersPerSecond": "m/s",
+
+      // Weekdays (short)
+      "home.weekdaySun": "Sun.",
+      "home.weekdayMon": "Mon.",
+      "home.weekdayTue": "Tue.",
+      "home.weekdayWed": "Wed.",
+      "home.weekdayThu": "Thu.",
+      "home.weekdayFri": "Fri.",
+      "home.weekdaySat": "Sat.",
+
+      // Weather conditions
+      "home.weatherClear": "Clear",
+      "home.weatherMainlyClear": "Mainly clear",
+      "home.weatherPartlyCloudy": "Partly cloudy",
+      "home.weatherOvercast": "Overcast",
+      "home.weatherDrizzle": "Drizzle",
+      "home.weatherRain": "Rain",
+      "home.weatherSnow": "Snow",
+      "home.weatherRainShowers": "Rain showers",
+      "home.weatherSnowShowers": "Snow showers",
+      "home.weatherThunderstorm": "Thunderstorm",
+      "home.weatherThunderstormHail": "Thunderstorm with hail",
+      "home.weatherUnknown": "Unknown",
+
       // Common
       "common.backToMain": "← Back to main",
       "common.backToMainPage": "Back to main page",
@@ -148,6 +186,44 @@
       "home.predictions": "Ennustused",
       "home.googleMaps": "Google Maps",
       "home.biggestFish": "Suurim:",
+
+      // Weather/pred rows
+      "home.weatherNow": "Ilm praegu",
+      "home.predictionNext3Days": "Prognoos (järgmised 3 päeva)",
+      "home.loading": "laadimine…",
+      "home.failedToLoad": "laadimine ebaõnnestus.",
+      "home.locationMissing": "asukoht puudub.",
+      "home.unavailable": "pole saadaval.",
+      "home.notEnoughDataYet": "andmeid pole veel piisavalt.",
+      "home.na": "puudub",
+
+      // Units + wind label
+      "home.wind": "tuul",
+      "home.unitCelsius": "°C",
+      "home.unitMetersPerSecond": "m/s",
+
+      // Weekdays (short)
+      "home.weekdaySun": "P",
+      "home.weekdayMon": "E",
+      "home.weekdayTue": "T",
+      "home.weekdayWed": "K",
+      "home.weekdayThu": "N",
+      "home.weekdayFri": "R",
+      "home.weekdaySat": "L",
+
+      // Weather conditions
+      "home.weatherClear": "Selge",
+      "home.weatherMainlyClear": "Peamiselt selge",
+      "home.weatherPartlyCloudy": "Vahelduv pilvisus",
+      "home.weatherOvercast": "Pilves",
+      "home.weatherDrizzle": "Uduvihm",
+      "home.weatherRain": "Vihm",
+      "home.weatherSnow": "Lumi",
+      "home.weatherRainShowers": "Vihmahood",
+      "home.weatherSnowShowers": "Lumehood",
+      "home.weatherThunderstorm": "Äike",
+      "home.weatherThunderstormHail": "Äike rahega",
+      "home.weatherUnknown": "Teadmata",
 
       // Common
       "common.backToMain": "← Tagasi avalehele",
