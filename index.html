@@ -248,7 +248,7 @@
           <strong>${total}</strong>
         </span>
         <span class="stat-pill">
-          <span data-i18n="home.statsBiggestFish">Biggest Fish</span>
+          <span data-i18n="home.biggestFish">Biggest Fish</span>
           <strong>${biggestWeight.toFixed(2)} kg ${biggestSpecies}</strong>
         </span>
         <span class="stat-pill">
@@ -514,41 +514,47 @@
         const actionsDiv = document.createElement("div");
         actionsDiv.className = "spot-actions";
 
+        /* ---- Open Spot button ---- */
         const openBtn = document.createElement("button");
         openBtn.className = "secondary-btn";
-        openBtn.textContent = "Open spot";
+        openBtn.textContent = "Open spot";              // fallback English
+        openBtn.setAttribute("data-i18n", "home.openSpot");
         openBtn.onclick = () => {
           window.location.href = `spot.html?id=${encodeURIComponent(spot.id)}`;
         };
+        actionsDiv.appendChild(openBtn);
 
+        /* ---- Add Catch button ---- */
         const addCatchBtn = document.createElement("button");
         addCatchBtn.className = "secondary-btn";
-        addCatchBtn.textContent = "Add catch";
-        // IMPORTANT: from main → from=main
+        addCatchBtn.textContent = "Add catch";          // fallback English
+        addCatchBtn.setAttribute("data-i18n", "home.AddCatch");
         addCatchBtn.onclick = () => {
           window.location.href =
             `add-catch.html?spotId=${encodeURIComponent(spot.id)}&from=main`;
         };
+        actionsDiv.appendChild(addCatchBtn);
 
+        /* ---- Predictions button ---- */
         const predBtn = document.createElement("button");
         predBtn.className = "secondary-btn";
-        predBtn.textContent = "Predictions";
+        predBtn.textContent = "Predictions";            // fallback English
+        predBtn.setAttribute("data-i18n", "home.predictions");
         predBtn.onclick = () => {
           window.location.href =
             `predictions.html?spotId=${encodeURIComponent(spot.id)}`;
         };
-
-        actionsDiv.appendChild(openBtn);
-        actionsDiv.appendChild(addCatchBtn);
         actionsDiv.appendChild(predBtn);
 
+        /* ---- Google Maps button ---- */
         if (mapsUrl) {
           const mapsBtn = document.createElement("a");
           mapsBtn.className = "secondary-btn";
           mapsBtn.href = mapsUrl;
           mapsBtn.target = "_blank";
           mapsBtn.rel = "noopener noreferrer";
-          mapsBtn.textContent = "Google Maps";
+          mapsBtn.textContent = "Google Maps";         // fallback English
+          mapsBtn.setAttribute("data-i18n", "home.googleMaps");
           actionsDiv.appendChild(mapsBtn);
         }
 
@@ -556,6 +562,11 @@
         spotsList.appendChild(spotDiv);
 
         await fetchWeatherAndPredictionForSpot(spot, spotCatches);
+      }
+
+      // Re-apply translations for dynamically injected spot action buttons
+      if (window.fishingLogI18n && typeof window.fishingLogI18n.applyTranslations === "function") {
+        window.fishingLogI18n.applyTranslations();
       }
     }
 
@@ -591,6 +602,3 @@
   </script>
 </body>
 </html>
-
-
-
