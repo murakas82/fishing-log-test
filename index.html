@@ -53,7 +53,7 @@
     </div>
   </div>
 
-  <!-- i18n: must be loaded so data-i18n works -->
+  <!-- i18n -->
   <script src="translations.js"></script>
 
   <!-- Main app logic -->
@@ -102,6 +102,14 @@
     const spotsList    = document.getElementById("spotsList");
     const mapViewBtn   = document.getElementById("mapViewBtn");
     const addSpotBtn   = document.getElementById("addSpotBtn");
+
+    // i18n helper for dynamic strings
+    const i18n = window.fishingLogI18n;
+    const t = (key) => (i18n && typeof i18n.t === "function") ? i18n.t(key) : key;
+
+    function reapplyTranslations() {
+      if (i18n && typeof i18n.applyTranslations === "function") i18n.applyTranslations();
+    }
 
     /* ---------- Auth form ---------- */
 
@@ -191,10 +199,7 @@
         </div>
       `;
 
-      // Re-apply translations to the freshly injected HTML
-      if (window.fishingLogI18n && typeof window.fishingLogI18n.applyTranslations === "function") {
-        window.fishingLogI18n.applyTranslations();
-      }
+      reapplyTranslations();
 
       document.getElementById("logoutBtn").onclick = () => signOut(auth);
       document.getElementById("settingsBtn").onclick = () => {
@@ -241,7 +246,6 @@
 
       const avgWeight = totalWeight && total ? (totalWeight / total) : 0;
 
-      // Use i18n keys for labels
       statsContent.innerHTML = `
         <span class="stat-pill">
           <span data-i18n="home.statsTotalCatches">Total catches</span>
@@ -257,10 +261,7 @@
         </span>
       `;
 
-      // Re-apply translations for dynamically injected labels
-      if (window.fishingLogI18n && typeof window.fishingLogI18n.applyTranslations === "function") {
-        window.fishingLogI18n.applyTranslations();
-      }
+      reapplyTranslations();
     }
 
     /* ---------- Prediction helpers ---------- */
@@ -312,19 +313,33 @@
       return scores.reduce((a, b) => a + b, 0) / scores.length;
     }
 
+    function getWeekdayShortName(dayIndex) {
+      // JS: 0=Sun ... 6=Sat
+      const keys = [
+        "home.weekdaySun",
+        "home.weekdayMon",
+        "home.weekdayTue",
+        "home.weekdayWed",
+        "home.weekdayThu",
+        "home.weekdayFri",
+        "home.weekdaySat"
+      ];
+      return t(keys[dayIndex] || "home.weekdaySun");
+    }
+
     function getWeatherIconAndLabel(code) {
-      if (code === 0) return { icon: "☀️", label: "Clear" };
-      if (code === 1) return { icon: "🌤️", label: "Mainly clear" };
-      if (code === 2) return { icon: "⛅",  label: "Partly cloudy" };
-      if (code === 3) return { icon: "☁️", label: "Overcast" };
-      if (code >= 51 && code <= 57) return { icon: "🌦️", label: "Drizzle" };
-      if (code >= 61 && code <= 67) return { icon: "🌧️", label: "Rain" };
-      if (code >= 71 && code <= 77) return { icon: "🌨️", label: "Snow" };
-      if (code >= 80 && code <= 82) return { icon: "🌦️", label: "Rain showers" };
-      if (code >= 85 && code <= 86) return { icon: "🌨️", label: "Snow showers" };
-      if (code === 95) return { icon: "⛈️", label: "Thunderstorm" };
-      if (code === 96 || code === 99) return { icon: "⛈️", label: "Thunderstorm with hail" };
-      return { icon: "❓", label: "Unknown" };
+      if (code === 0)  return { icon: "☀️", label: t("home.weatherClear") };
+      if (code === 1)  return { icon: "🌤️", label: t("home.weatherMainlyClear") };
+      if (code === 2)  return { icon: "⛅",  label: t("home.weatherPartlyCloudy") };
+      if (code === 3)  return { icon: "☁️", label: t("home.weatherOvercast") };
+      if (code >= 51 && code <= 57) return { icon: "🌦️", label: t("home.weatherDrizzle") };
+      if (code >= 61 && code <= 67) return { icon: "🌧️", label: t("home.weatherRain") };
+      if (code >= 71 && code <= 77) return { icon: "🌨️", label: t("home.weatherSnow") };
+      if (code >= 80 && code <= 82) return { icon: "🌦️", label: t("home.weatherRainShowers") };
+      if (code >= 85 && code <= 86) return { icon: "🌨️", label: t("home.weatherSnowShowers") };
+      if (code === 95) return { icon: "⛈️", label: t("home.weatherThunderstorm") };
+      if (code === 96 || code === 99) return { icon: "⛈️", label: t("home.weatherThunderstormHail") };
+      return { icon: "❓", label: t("home.weatherUnknown") };
     }
 
     async function fetchWeatherAndPredictionForSpot(spot, spotCatches) {
@@ -332,18 +347,31 @@
       const predEl    = document.getElementById(`spotPred-${spot.id}`);
       if (!weatherEl || !predEl) return;
 
-      if (typeof spot.latitude !== "number" ||
-          typeof spot.longitude !== "number") {
-        weatherEl.textContent = "Weather now: location missing.";
-        predEl.textContent    = "Prediction (next 3 days): unavailable.";
+      const setWeatherRow = (rhsHtml) => {
+        weatherEl.innerHTML =
+          `<span data-i18n="home.weatherNow">Weather now</span>: ` + rhsHtml;
+      };
+
+      const setPredictionRow = (rhsHtml) => {
+        predEl.innerHTML =
+          `<span data-i18n="home.predictionNext3Days">Prediction (next 3 days)</span>: ` + rhsHtml;
+      };
+
+      // Missing coordinates
+      if (typeof spot.latitude !== "number" || typeof spot.longitude !== "number") {
+        setWeatherRow(`<span data-i18n="home.locationMissing">location missing.</span>`);
+        setPredictionRow(`<span data-i18n="home.unavailable">unavailable.</span>`);
+        reapplyTranslations();
         return;
       }
 
       const lat = spot.latitude;
       const lng = spot.longitude;
 
-      weatherEl.textContent = "Weather now: loading…";
-      predEl.textContent    = "Prediction (next 3 days): loading…";
+      // Loading state
+      setWeatherRow(`<span data-i18n="home.loading">loading…</span>`);
+      setPredictionRow(`<span data-i18n="home.loading">loading…</span>`);
+      reapplyTranslations();
 
       try {
         const url =
@@ -361,23 +389,23 @@
         const ct  = cur.temperature_2m;
         const cw  = cur.wind_speed_10m;
         const cc  = cur.weather_code;
+
         const { icon, label } = getWeatherIconAndLabel(cc);
 
+        // Weather parts fully translated (condition label + wind label)
         const weatherParts = [];
         if (label) weatherParts.push(label);
-        if (typeof ct === "number") weatherParts.push(`${ct.toFixed(1)} °C`);
-        if (typeof cw === "number") weatherParts.push(`wind ${cw.toFixed(1)} m/s`);
+        if (typeof ct === "number") weatherParts.push(`${ct.toFixed(1)} ${t("home.unitCelsius")}`);
+        if (typeof cw === "number") weatherParts.push(`${t("home.wind")} ${cw.toFixed(1)} ${t("home.unitMetersPerSecond")}`);
 
-        weatherEl.textContent =
-          "Weather now: " + icon + " " + weatherParts.join(", ");
+        setWeatherRow(`${icon} ${weatherParts.join(", ")}`);
+        reapplyTranslations();
 
         const hourly = data.hourly || {};
         const times  = hourly.time || [];
         const temps  = hourly.temperature_2m || [];
         const winds  = hourly.wind_speed_10m || [];
         const presses = hourly.pressure_msl || [];
-
-        const weekdayShort = ["Sun.","Mon.","Tues.","Wed.","Thurs.","Fri.","Sat"];
 
         function getForecastForOffset(offset) {
           const base = new Date();
@@ -404,10 +432,10 @@
           const base = new Date();
           base.setDate(base.getDate() + offset);
 
-          const wd = weekdayShort[base.getDay()];
+          const wd = getWeekdayShortName(base.getDay());
 
           if (!fc) {
-            pieces.push(`${wd}: n/a`);
+            pieces.push(`${wd}: ${t("home.na")}`);
             continue;
           }
 
@@ -420,7 +448,7 @@
           );
 
           if (score == null) {
-            pieces.push(`${wd}: N/A`);
+            pieces.push(`${wd}: ${t("home.na")}`);
           } else {
             let color = "#f97373"; // poor
             if (score >= 70)      color = "#22c55e"; // good
@@ -433,17 +461,16 @@
         }
 
         if (pieces.length) {
-          predEl.innerHTML =
-            "Prediction (next 3 days): " + pieces.join(" · ");
+          setPredictionRow(pieces.join(" · "));
         } else {
-          predEl.textContent =
-            "Prediction (next 3 days): not enough data yet.";
+          setPredictionRow(`<span data-i18n="home.notEnoughDataYet">not enough data yet.</span>`);
         }
+
+        reapplyTranslations();
       } catch (err) {
-        weatherEl.textContent =
-          "Weather now: failed to load.";
-        predEl.textContent =
-          "Prediction (next 3 days): failed to load.";
+        setWeatherRow(`<span data-i18n="home.failedToLoad">failed to load.</span>`);
+        setPredictionRow(`<span data-i18n="home.failedToLoad">failed to load.</span>`);
+        reapplyTranslations();
       }
     }
 
@@ -513,11 +540,13 @@
           <div class="muted-text">
             ${statsLineHtml}
           </div>
+
           <div class="muted-text" id="spotWeather-${spot.id}">
-            Weather now: loading…
+            <span data-i18n="home.weatherNow">Weather now</span>: <span data-i18n="home.loading">loading…</span>
           </div>
+
           <div class="muted-text" id="spotPred-${spot.id}">
-            Prediction (next 3 days): loading…
+            <span data-i18n="home.predictionNext3Days">Prediction (next 3 days)</span>: <span data-i18n="home.loading">loading…</span>
           </div>
         `;
 
@@ -527,7 +556,7 @@
         /* ---- Open Spot button ---- */
         const openBtn = document.createElement("button");
         openBtn.className = "secondary-btn";
-        openBtn.textContent = "Open spot";              // fallback English
+        openBtn.textContent = "Open spot";
         openBtn.setAttribute("data-i18n", "home.openSpot");
         openBtn.onclick = () => {
           window.location.href = `spot.html?id=${encodeURIComponent(spot.id)}`;
@@ -537,7 +566,7 @@
         /* ---- Add Catch button ---- */
         const addCatchBtn = document.createElement("button");
         addCatchBtn.className = "secondary-btn";
-        addCatchBtn.textContent = "Add catch";          // fallback English
+        addCatchBtn.textContent = "Add catch";
         addCatchBtn.setAttribute("data-i18n", "home.AddCatch");
         addCatchBtn.onclick = () => {
           window.location.href =
@@ -548,7 +577,7 @@
         /* ---- Predictions button ---- */
         const predBtn = document.createElement("button");
         predBtn.className = "secondary-btn";
-        predBtn.textContent = "Predictions";            // fallback English
+        predBtn.textContent = "Predictions";
         predBtn.setAttribute("data-i18n", "home.predictions");
         predBtn.onclick = () => {
           window.location.href =
@@ -563,7 +592,7 @@
           mapsBtn.href = mapsUrl;
           mapsBtn.target = "_blank";
           mapsBtn.rel = "noopener noreferrer";
-          mapsBtn.textContent = "Google Maps";         // fallback English
+          mapsBtn.textContent = "Google Maps";
           mapsBtn.setAttribute("data-i18n", "home.googleMaps");
           actionsDiv.appendChild(mapsBtn);
         }
@@ -574,10 +603,7 @@
         await fetchWeatherAndPredictionForSpot(spot, spotCatches);
       }
 
-      // Re-apply translations for dynamically injected spot content
-      if (window.fishingLogI18n && typeof window.fishingLogI18n.applyTranslations === "function") {
-        window.fishingLogI18n.applyTranslations();
-      }
+      reapplyTranslations();
     }
 
     /* ---------- Auth state ---------- */
