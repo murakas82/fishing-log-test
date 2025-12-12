@@ -21,6 +21,7 @@
       "home.statsTotalCatches": "Total catches",
       "home.statsBiggestFish": "Biggest Fish",
       "home.statsAverageWeight": "Average weight",
+      "home.openSpot": "Open spot",
 
       // Common
       "common.backToMain": "← Back to main",
@@ -138,6 +139,7 @@
       "home.statsTotalCatches": "Kõik kalad",
       "home.statsBiggestFish": "Suurim kala",
       "home.statsAverageWeight": "Keskmine kaal",
+      "home.openSpot": "Ava koht",
 
       // Common
       "common.backToMain": "← Tagasi avalehele",
