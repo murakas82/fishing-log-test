@@ -89,7 +89,7 @@
       "auth.enterEmailPassword": "Enter email & password, then press Sign up.",
 
       // Sdd-spot translations
-      "spotAdd.namePlaceholder": "Paunküla, Pautsaare, etc.",
+      "spotAdd.namePlaceholder": "Paunküla, Peipsi, etc.",
 "spotAdd.searchPlaceholder": "Search place (town, lake, address, etc.)",
 "spotAdd.unnamedPlace": "Unnamed place",
 
@@ -303,7 +303,7 @@
       "auth.googleFailedPrefix": "Google’i sisselogimine ebaõnnestus:",
       "auth.enterEmailPassword": "Sisesta e-post ja parool ning vajuta „Loo konto“.",
  // Add-spot translations
-      "spotAdd.namePlaceholder": "Paunküla, Pautsaare jne.",
+      "spotAdd.namePlaceholder": "Paunküla, Peipsi jne.",
 "spotAdd.searchPlaceholder": "Otsi kohta (linn, järv, aadress jne.)",
 "spotAdd.unnamedPlace": "Nimetu koht",
 "spotAdd.locationSetFromSearch": "Asukoht seatud otsingust:",
