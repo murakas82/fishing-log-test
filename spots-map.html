@@ -11,34 +11,57 @@
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""
   />
+
+  <style>
+    #map {
+      width: 100%;
+      height: 420px;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    /* Move Leaflet zoom controls to top-right like in add-spot */
+    .leaflet-top.leaflet-left {
+      right: 16px !important;
+      left: auto !important;
+      top: 16px !important;
+    }
+  </style>
 </head>
 <body>
   <div class="app fade-in">
     <header class="card">
       <div class="card-header">
         <div>
-          <h1>My fishing spots – map</h1>
-          <p class="muted-text">
-            See all your spots on an interactive map with live weather & predictions.
+          <h1 data-i18n="spotsMap.title">My fishing spots – map</h1>
+          <p class="muted-text" data-i18n="spotsMap.subtitle">
+            See all your spots on an interactive map with live weather &amp; predictions.
           </p>
         </div>
-        <button class="secondary-btn btn-back-main" id="backBtn">
+        <button class="secondary-btn btn-back-main" id="backBtn" data-i18n="common.backToMain">
           ← Back to main
         </button>
       </div>
     </header>
 
     <div class="card">
-      <h2>Spots overview</h2>
+      <h2 data-i18n="spotsMap.overview">Spots overview</h2>
       <div id="map"></div>
+
+      <!-- Legend: keep colored dots; translate labels -->
       <p class="muted-text" style="margin-top:10px;">
-        • Marker color (tomorrow): <span style="color:#22c55e;">●</span> good (≥70%),
-        <span style="color:#facc15;">●</span> medium (40–69%),
-        <span style="color:#ef4444;">●</span> poor (&lt;40%).<br/>
-        • Popup shows live weather now and predictions for the next 3 days.
+        • <span data-i18n="spotsMap.legendMarkerColor">Marker color (tomorrow)</span>:
+        <span style="color:#22c55e;">●</span> <span data-i18n="spotsMap.legendGood">good</span> (≥70%),
+        <span style="color:#facc15;">●</span> <span data-i18n="spotsMap.legendMedium">medium</span> (40–69%),
+        <span style="color:#ef4444;">●</span> <span data-i18n="spotsMap.legendPoor">poor</span> (&lt;40%).<br/>
+        • <span data-i18n="spotsMap.legendPopupShows">Popup shows live weather now and predictions for the next 3 days.</span>
       </p>
     </div>
   </div>
+
+  <!-- i18n (load once, before module script) -->
+  <script src="translations.js"></script>
 
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -73,6 +96,16 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db   = getFirestore(app);
+
+    // i18n helpers
+    const i18n = window.fishingLogI18n;
+    const t = (key) => (i18n && typeof i18n.t === "function") ? i18n.t(key) : key;
+    function reapplyTranslations() {
+      if (i18n && typeof i18n.applyTranslations === "function") i18n.applyTranslations();
+    }
+
+    // Apply static page translations now
+    reapplyTranslations();
 
     const backBtn = document.getElementById("backBtn");
     backBtn.onclick = () => {
@@ -146,6 +179,45 @@
       return scores.reduce((a, b) => a + b, 0) / scores.length;
     }
 
+    function getWeatherIconAndLabel(code) {
+      if (code === 0)  return { icon: "☀️", label: t("home.weatherClear") };
+      if (code === 1)  return { icon: "🌤️", label: t("home.weatherMainlyClear") };
+      if (code === 2)  return { icon: "⛅",  label: t("home.weatherPartlyCloudy") };
+      if (code === 3)  return { icon: "☁️", label: t("home.weatherOvercast") };
+      if (code >= 51 && code <= 57) return { icon: "🌦️", label: t("home.weatherDrizzle") };
+      if (code >= 61 && code <= 67) return { icon: "🌧️", label: t("home.weatherRain") };
+      if (code >= 71 && code <= 77) return { icon: "🌨️", label: t("home.weatherSnow") };
+      if (code >= 80 && code <= 82) return { icon: "🌦️", label: t("home.weatherRainShowers") };
+      if (code >= 85 && code <= 86) return { icon: "🌨️", label: t("home.weatherSnowShowers") };
+      if (code === 95) return { icon: "⛈️", label: t("home.weatherThunderstorm") };
+      if (code === 96 || code === 99) return { icon: "⛈️", label: t("home.weatherThunderstormHail") };
+      return { icon: "❓", label: t("home.weatherUnknown") };
+    }
+
+    function weekdayKeyForDate(d) {
+      const keys = [
+        "home.weekdaySun",
+        "home.weekdayMon",
+        "home.weekdayTue",
+        "home.weekdayWed",
+        "home.weekdayThu",
+        "home.weekdayFri",
+        "home.weekdaySat"
+      ];
+      return keys[d.getDay()] || "home.weekdaySun";
+    }
+
+    function dateLabelForOffset(offset) {
+      const base = new Date();
+      base.setDate(base.getDate() + offset);
+
+      const wd = t(weekdayKeyForDate(base));
+      const day = base.getDate();
+      const month = base.getMonth() + 1;
+      const year = base.getFullYear();
+      return `${wd} ${day}.${month}.${year}`;
+    }
+
     async function loadSpotsAndCatches(user) {
       const spotsSnap = await getDocs(
         query(collection(db, "spots"), where("userId", "==", user.uid))
@@ -158,11 +230,10 @@
       const allCatches = catchesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
       for (const spot of spots) {
-        if (typeof spot.latitude !== "number" ||
-            typeof spot.longitude !== "number") continue;
+        if (typeof spot.latitude !== "number" || typeof spot.longitude !== "number") continue;
 
         const spotCatches = allCatches.filter(c => c.spotId === spot.id);
-        const { weatherNowText, tomorrowScore, next3 } =
+        const { weatherNowHtml, tomorrowScore, next3 } =
           await fetchWeatherAndPrediction(spot, spotCatches);
 
         let color = "red";
@@ -179,7 +250,7 @@
           { radius: 7, color }
         ).addTo(map);
 
-        let total = spotCatches.length;
+        const total = spotCatches.length;
         let biggest = 0;
         let bigSpecies = "-";
         spotCatches.forEach(c => {
@@ -192,21 +263,27 @@
         const mapsUrl =
           `https://www.google.com/maps?q=${spot.latitude},${spot.longitude}`;
 
+        const spotName = spot.name || t("spotAdd.unnamedPlace");
+
         let popupHtml = `
           <div style="min-width:260px;">
-            <strong>${spot.name || "Unnamed spot"}</strong><br/>
-            Total catches: ${total}, biggest: ${biggest.toFixed(2)} kg ${bigSpecies}<br/>
-            ${weatherNowText}<br/>
-            Prediction (next 3 days):<br/>
+            <strong>${spotName}</strong><br/>
+            <span data-i18n="home.statsTotalCatches">Total catches</span>: ${total},
+            <span data-i18n="home.biggestFish">Biggest</span>: ${biggest.toFixed(2)} kg ${bigSpecies}<br/>
+            ${weatherNowHtml}<br/>
+            <span data-i18n="home.predictionNext3Days">Prediction (next 3 days)</span>:<br/>
         `;
+
         next3.forEach(p => {
-          popupHtml += `${p.dateLabel}: ${p.score == null ? "n/a" : p.score.toFixed(0) + "%"}<br/>`;
+          const scoreText = (p.score == null) ? t("home.na") : (p.score.toFixed(0) + "%");
+          popupHtml += `${p.dateLabel}: ${scoreText}<br/>`;
         });
+
         popupHtml += `
             <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">
-              <button class="secondary-btn" data-open-spot="${spot.id}">Open spot</button>
-              <button class="secondary-btn" data-add-catch="${spot.id}">Add catch</button>
-              <a class="secondary-btn" href="${mapsUrl}" target="_blank">Google Maps</a>
+              <button class="secondary-btn" data-open-spot="${spot.id}" data-i18n="home.openSpot">Open spot</button>
+              <button class="secondary-btn" data-add-catch="${spot.id}" data-i18n="home.AddCatch">Add catch</button>
+              <a class="secondary-btn" href="${mapsUrl}" target="_blank" rel="noopener noreferrer" data-i18n="home.googleMaps">Google Maps</a>
             </div>
           </div>
         `;
@@ -214,31 +291,40 @@
         marker.bindPopup(popupHtml);
 
         marker.on("popupopen", (e) => {
+          // Translate content inside popup (added dynamically)
+          reapplyTranslations();
+
           const popupEl = e.popup.getElement();
           if (!popupEl) return;
+
           const openBtn = popupEl.querySelector("button[data-open-spot]");
           const addBtn  = popupEl.querySelector("button[data-add-catch]");
+
           if (openBtn) {
             openBtn.onclick = () => {
-              window.location.href =
-                `spot.html?id=${encodeURIComponent(spot.id)}`;
+              window.location.href = `spot.html?id=${encodeURIComponent(spot.id)}`;
             };
           }
           if (addBtn) {
             addBtn.onclick = () => {
-              window.location.href =
-                `add-catch.html?spotId=${encodeURIComponent(spot.id)}`;
+              window.location.href = `add-catch.html?spotId=${encodeURIComponent(spot.id)}`;
             };
           }
         });
       }
+
+      // Safety: re-apply after markers created
+      reapplyTranslations();
     }
 
     async function fetchWeatherAndPrediction(spot, spotCatches) {
       const lat = spot.latitude;
       const lng = spot.longitude;
 
-      let weatherNowText = "Weather now: failed to load";
+      // Default (translated)
+      let weatherNowHtml =
+        `<span data-i18n="home.weatherNow">Weather now</span>: ${t("home.failedToLoad")}`;
+
       let tomorrowScore = null;
       const next3 = [];
 
@@ -258,28 +344,21 @@
         const ct  = cur.temperature_2m;
         const cw  = cur.wind_speed_10m;
         const cc  = cur.weather_code;
+
         const { icon, label } = getWeatherIconAndLabel(cc);
         const parts = [];
         if (label) parts.push(label);
-        if (typeof ct === "number") parts.push(`${ct.toFixed(1)} °C`);
-        if (typeof cw === "number") parts.push(`wind ${cw.toFixed(1)} m/s`);
-        weatherNowText = "Weather now: " + icon + " " + parts.join(", ");
+        if (typeof ct === "number") parts.push(`${ct.toFixed(1)} ${t("home.unitCelsius")}`);
+        if (typeof cw === "number") parts.push(`${t("home.wind")} ${cw.toFixed(1)} ${t("home.unitMetersPerSecond")}`);
+
+        weatherNowHtml =
+          `<span data-i18n="home.weatherNow">Weather now</span>: ${icon} ${parts.join(", ")}`;
 
         const hourly = data.hourly || {};
         const times  = hourly.time || [];
         const temps  = hourly.temperature_2m || [];
         const winds  = hourly.wind_speed_10m || [];
         const presses = hourly.pressure_msl || [];
-
-        function dateLabelForOffset(offset) {
-          const base = new Date();
-          base.setDate(base.getDate() + offset);
-          const d = base.getDate();
-          const m = base.getMonth() + 1;
-          const y = base.getFullYear();
-          const wd = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][base.getDay()];
-          return `${wd} ${d}.${m}.${y}`;
-        }
 
         function getForecastForOffset(offset) {
           const base = new Date();
@@ -306,6 +385,7 @@
             next3.push({ dateLabel: dateLabelForOffset(offset), score: null });
             continue;
           }
+
           const score = computePredictionScoreForDay(
             spotCatches,
             fc.temp,
@@ -313,6 +393,7 @@
             fc.press,
             fc.moon
           );
+
           if (offset === 1) tomorrowScore = score;
           next3.push({ dateLabel: dateLabelForOffset(offset), score });
         }
@@ -320,25 +401,10 @@
         // keep defaults
       }
 
-      return { weatherNowText, tomorrowScore, next3 };
-    }
-
-    function getWeatherIconAndLabel(code) {
-      if (code === 0) return { icon: "☀️", label: "Clear" };
-      if (code === 1) return { icon: "🌤️", label: "Mainly clear" };
-      if (code === 2) return { icon: "⛅",  label: "Partly cloudy" };
-      if (code === 3) return { icon: "☁️", label: "Overcast" };
-      if (code >= 51 && code <= 57) return { icon: "🌦️", label: "Drizzle" };
-      if (code >= 61 && code <= 67) return { icon: "🌧️", label: "Rain" };
-      if (code >= 71 && code <= 77) return { icon: "🌨️", label: "Snow" };
-      if (code >= 80 && code <= 82) return { icon: "🌦️", label: "Rain showers" };
-      if (code >= 85 && code <= 86) return { icon: "🌨️", label: "Snow showers" };
-      if (code === 95) return { icon: "⛈️", label: "Thunderstorm" };
-      if (code === 96 || code === 99) return { icon: "⛈️", label: "Thunderstorm with hail" };
-      return { icon: "❓", label: "Unknown" };
+      return { weatherNowHtml, tomorrowScore, next3 };
     }
   </script>
-  <script src="translations.js"></script>
 
+  <!-- Add these NEW keys to translations.js (see below) -->
 </body>
 </html>
