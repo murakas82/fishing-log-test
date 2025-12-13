@@ -215,7 +215,7 @@
 
       // Empty states used in index.html
       "home.spotStatsNa": "Püütud kalad puuduvad",
-      "home.noCatchesYet": "Saake veel pole.",
+      "home.noCatchesYet": "Püütud kalad puuduvad",
       "home.noSpotsYet": "Püügikohti veel pole. Lisa oma esimene püügikoht.",
 
       // Weather/pred rows
