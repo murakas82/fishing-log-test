@@ -65,6 +65,7 @@
             Save settings
           </button>
         </div>
+
         <p id="settingsMessage" class="muted-text" style="margin-top:8px;"></p>
       </form>
     </div>
@@ -110,6 +111,10 @@
     const i18n = window.fishingLogI18n;
     const t = i18n?.t ? i18n.t.bind(i18n) : (k) => k;
 
+    function reapplyTranslations() {
+      if (i18n && typeof i18n.applyTranslations === "function") i18n.applyTranslations();
+    }
+
     backBtn.onclick = () => {
       window.location.href = "index.html";
     };
@@ -145,9 +150,18 @@
           { displayName },
           { merge: true }
         );
+
+        // Show translated success message
         const msg = t("settings.saved");
         messageEl.textContent =
           msg !== "settings.saved" ? msg : "Settings saved.";
+
+        // Redirect to main automatically after save
+        // (short delay so the user sees the confirmation)
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 600);
+
       } catch {
         const msg = t("settings.saveFailed");
         messageEl.textContent =
@@ -170,11 +184,12 @@
             msg !== "settings.languageSaved"
               ? msg
               : "Language preference saved.";
+
+          // Ensure any text/placeholder updates are applied immediately
+          reapplyTranslations();
         });
       });
     }
   </script>
-  <script src="translations.js"></script>
-
 </body>
 </html>
