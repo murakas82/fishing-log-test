@@ -524,9 +524,10 @@
             •
             <span data-i18n="home.biggestFish">Biggest</span>: ${biggestWeight.toFixed(2)} kg ${biggestSpecies}
           `;
-        } else {
-          statsLineHtml = "No catches yet.";
-        }
+       } else {
+  statsLineHtml = `<span data-i18n="home.spotStatsNa">No catches yet.</span>`;
+}
+
 
         const mapsUrl =
           typeof spot.latitude === "number" && typeof spot.longitude === "number"
@@ -638,3 +639,4 @@
   </script>
 </body>
 </html>
+
