@@ -88,6 +88,31 @@
       "auth.googleFailedPrefix": "Google sign-in failed:",
       "auth.enterEmailPassword": "Enter email & password, then press Sign up.",
 
+      // Sdd-spot translations
+      "spotAdd.namePlaceholder": "Paunküla, Pautsaare, etc.",
+"spotAdd.searchPlaceholder": "Search place (town, lake, address, etc.)",
+"spotAdd.unnamedPlace": "Unnamed place",
+
+"spotAdd.locationSetFromSearch": "Location set from search:",
+"spotAdd.searchingLocation": "Searching location…",
+"spotAdd.noResultsFound": "No results found for that search.",
+"spotAdd.searchFailed": "Search failed:",
+
+"spotAdd.geoNotAvailable": "Geolocation not available.",
+"spotAdd.gettingLocation": "Getting your current location…",
+"spotAdd.couldNotGetLocation": "Could not get location:",
+
+"spotAdd.mustBeLoggedIn": "You must be logged in.",
+"spotAdd.nameRequired": "Spot name is required.",
+"spotAdd.pleaseSetLocation": "Please set the location.",
+"spotAdd.saving": "Saving…",
+"spotAdd.duplicateName": "You already have a spot with this name (ignoring case & spaces).",
+"spotAdd.savedRedirecting": "Spot saved. Redirecting…",
+"spotAdd.errorSaving": "Error saving spot:",
+"spotAdd.saveButtonLabelFallback": "Save fishing spot",
+"spotAdd.unknownUser": "unknown user",
+
+
       // Common
       "common.backToMain": "← Back to main",
       "common.backToMainPage": "Back to main page",
@@ -270,6 +295,31 @@
       "auth.signUpFailedPrefix": "Konto loomine ebaõnnestus:",
       "auth.googleFailedPrefix": "Google’i sisselogimine ebaõnnestus:",
       "auth.enterEmailPassword": "Sisesta e-post ja parool ning vajuta „Loo konto“.",
+
+      "spotAdd.namePlaceholder": "Paunküla, Pautsaare jne.",
+"spotAdd.searchPlaceholder": "Otsi kohta (linn, järv, aadress jne.)",
+"spotAdd.unnamedPlace": "Nimetu koht",
+
+      // Sdd-spot translations
+"spotAdd.locationSetFromSearch": "Asukoht seatud otsingust:",
+"spotAdd.searchingLocation": "Asukoha otsing…",
+"spotAdd.noResultsFound": "Otsingule ei leitud tulemusi.",
+"spotAdd.searchFailed": "Otsing ebaõnnestus:",
+
+"spotAdd.geoNotAvailable": "Geolokatsioon pole saadaval.",
+"spotAdd.gettingLocation": "Otsin sinu asukohta…",
+"spotAdd.couldNotGetLocation": "Asukohta ei õnnestunud saada:",
+
+"spotAdd.mustBeLoggedIn": "Pead olema sisse logitud.",
+"spotAdd.nameRequired": "Koha nimi on kohustuslik.",
+"spotAdd.pleaseSetLocation": "Palun määra asukoht.",
+"spotAdd.saving": "Salvestan…",
+"spotAdd.duplicateName": "Sul on juba sama nimega koht (tõstutundetu ja tühikuid ignoreerides).",
+"spotAdd.savedRedirecting": "Koht salvestatud. Suunan tagasi…",
+"spotAdd.errorSaving": "Koha salvestamine ebaõnnestus:",
+"spotAdd.saveButtonLabelFallback": "Salvesta püügikoht",
+"spotAdd.unknownUser": "tundmatu kasutaja",
+
 
       // Common
       "common.backToMain": "← Tagasi avalehele",
