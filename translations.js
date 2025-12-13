@@ -26,6 +26,7 @@
       "home.predictions": "Predictions",
       "home.googleMaps": "Google Maps",
       "home.biggestFish": "Biggest:",
+      "home.spotStatsNa": "No catches yet.",
 
             // Weather/pred rows
       "home.weatherNow": "Weather now",
@@ -186,6 +187,7 @@
       "home.predictions": "Ennustused",
       "home.googleMaps": "Google Maps",
       "home.biggestFish": "Suurim:",
+      "home.spotStatsNa": "Siin pole kala.",
 
       // Weather/pred rows
       "home.weatherNow": "Ilm praegu",
