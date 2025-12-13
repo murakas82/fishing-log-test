@@ -17,18 +17,25 @@
       "home.addNewSpot": "Add new spot",
       "home.loadingApp": "Loading app…",
       "home.settings": "Settings",
-      "home.logOut": "Log Out",
-      "home.statsTotalCatches": "Total catches:",
-      "home.statsBiggestFish": "Biggest Fish:",
-      "home.statsAverageWeight": "Average weight:",
+      "home.logOut": "Log out",
+
+      // Stats labels (keep WITHOUT trailing ":" because HTML adds punctuation)
+      "home.statsTotalCatches": "Total catches",
+      "home.biggestFish": "Biggest",
+      "home.statsAverageWeight": "Average weight",
+
+      // Buttons
       "home.openSpot": "Open spot",
       "home.AddCatch": "Add catch",
       "home.predictions": "Predictions",
       "home.googleMaps": "Google Maps",
-      "home.biggestFish": "Biggest:",
-      "home.spotStatsNa": "No catches yet.",
 
-            // Weather/pred rows
+      // Empty states used in index.html
+      "home.spotStatsNa": "No catches yet.",
+      "home.noCatchesYet": "No catches yet.",
+      "home.noSpotsYet": "No spots yet. Add your first fishing spot.",
+
+      // Weather/pred rows
       "home.weatherNow": "Weather now",
       "home.predictionNext3Days": "Prediction (next 3 days)",
       "home.loading": "loading…",
@@ -65,6 +72,21 @@
       "home.weatherThunderstorm": "Thunderstorm",
       "home.weatherThunderstormHail": "Thunderstorm with hail",
       "home.weatherUnknown": "Unknown",
+
+      // Auth (index.html dynamic auth UI)
+      "auth.title": "Log in or sign up",
+      "auth.emailPlaceholder": "Email",
+      "auth.passwordPlaceholder": "Password",
+      "auth.logIn": "Log in",
+      "auth.signUp": "Sign up",
+      "auth.or": "or",
+      "auth.continueWithGoogle": "Continue with Google",
+
+      // Auth error prefixes/messages
+      "auth.loginFailedPrefix": "Login failed:",
+      "auth.signUpFailedPrefix": "Sign up failed:",
+      "auth.googleFailedPrefix": "Google sign-in failed:",
+      "auth.enterEmailPassword": "Enter email & password, then press Sign up.",
 
       // Common
       "common.backToMain": "← Back to main",
@@ -179,15 +201,22 @@
       "home.loadingApp": "Rakendus laadib…",
       "home.settings": "Seaded",
       "home.logOut": "Logi välja",
-      "home.statsTotalCatches": "Kõik kalad:",
-      "home.statsBiggestFish": "Suurim kala:",
-      "home.statsAverageWeight": "Keskmine kaal:",
+
+      // Stats labels (keep WITHOUT trailing ":" because HTML adds punctuation)
+      "home.statsTotalCatches": "Saake kokku",
+      "home.biggestFish": "Suurim",
+      "home.statsAverageWeight": "Keskmine kaal",
+
+      // Buttons
       "home.openSpot": "Ava koht",
       "home.AddCatch": "Lisa kala",
       "home.predictions": "Ennustused",
       "home.googleMaps": "Google Maps",
-      "home.biggestFish": "Suurim:",
-      "home.spotStatsNa": "Siin pole kala.",
+
+      // Empty states used in index.html
+      "home.spotStatsNa": "Saake veel pole.",
+      "home.noCatchesYet": "Saake veel pole.",
+      "home.noSpotsYet": "Püügikohti veel pole. Lisa oma esimene püügikoht.",
 
       // Weather/pred rows
       "home.weatherNow": "Ilm praegu",
@@ -226,6 +255,21 @@
       "home.weatherThunderstorm": "Äike",
       "home.weatherThunderstormHail": "Äike rahega",
       "home.weatherUnknown": "Teadmata",
+
+      // Auth (index.html dynamic auth UI)
+      "auth.title": "Logi sisse või loo konto",
+      "auth.emailPlaceholder": "E-post",
+      "auth.passwordPlaceholder": "Parool",
+      "auth.logIn": "Logi sisse",
+      "auth.signUp": "Loo konto",
+      "auth.or": "või",
+      "auth.continueWithGoogle": "Jätka Google’iga",
+
+      // Auth error prefixes/messages
+      "auth.loginFailedPrefix": "Sisselogimine ebaõnnestus:",
+      "auth.signUpFailedPrefix": "Konto loomine ebaõnnestus:",
+      "auth.googleFailedPrefix": "Google’i sisselogimine ebaõnnestus:",
+      "auth.enterEmailPassword": "Sisesta e-post ja parool ning vajuta „Loo konto“.",
 
       // Common
       "common.backToMain": "← Tagasi avalehele",
@@ -383,6 +427,7 @@
       const key = el.getAttribute("data-i18n");
       const value = dict[key];
       if (!value) return;
+
       // Preserve simple line breaks
       if (value.indexOf("\n") >= 0) {
         el.innerHTML = "";
@@ -396,33 +441,24 @@
     });
 
     // Placeholders: data-i18n-placeholder="key"
-    document
-      .querySelectorAll("[data-i18n-placeholder]")
-      .forEach((el) => {
-        const key = el.getAttribute("data-i18n-placeholder");
-        const value = dict[key];
-        if (value) {
-          el.setAttribute("placeholder", value);
-        }
-      });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+      const key = el.getAttribute("data-i18n-placeholder");
+      const value = dict[key];
+      if (value) el.setAttribute("placeholder", value);
+    });
 
     // Title attribute: data-i18n-title="key"
     document.querySelectorAll("[data-i18n-title]").forEach((el) => {
       const key = el.getAttribute("data-i18n-title");
       const value = dict[key];
-      if (value) {
-        el.setAttribute("title", value);
-      }
+      if (value) el.setAttribute("title", value);
     });
 
     // Language switch buttons UI feedback (used on Settings page)
     document.querySelectorAll("[data-lang]").forEach((btn) => {
       const btnLang = btn.getAttribute("data-lang");
-      if (btnLang === lang) {
-        btn.classList.add("lang-active");
-      } else {
-        btn.classList.remove("lang-active");
-      }
+      if (btnLang === lang) btn.classList.add("lang-active");
+      else btn.classList.remove("lang-active");
     });
   }
 
@@ -432,7 +468,7 @@
     applyTranslations();
   }
 
-  // Expose helpers globally so other scripts (like cookie-consent.js or settings.html) can use them
+  // Expose helpers globally so other scripts can use them
   window.fishingLogI18n = {
     getCurrentLang,
     setLanguage,
