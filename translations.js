@@ -214,7 +214,7 @@
       "home.googleMaps": "Google Maps",
 
       // Empty states used in index.html
-      "home.spotStatsNa": "Saake veel pole.",
+      "home.spotStatsNa": "Püütud kalad puuduvad",
       "home.noCatchesYet": "Saake veel pole.",
       "home.noSpotsYet": "Püügikohti veel pole. Lisa oma esimene püügikoht.",
 
