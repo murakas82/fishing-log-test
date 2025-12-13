@@ -246,7 +246,9 @@
       );
       const snap = await getDocs(q);
       if (snap.empty) {
-        statsContent.innerHTML = `<div class="muted-text">No catches yet.</div>`;
+        statsContent.innerHTML = `<div class="muted-text" data-i18n="home.noCatchesYet">No catches yet.</div>`;
+reapplyTranslations();
+
         return;
       }
 
@@ -507,8 +509,9 @@
       const snap = await getDocs(q);
 
       if (snap.empty) {
-        spotsList.innerHTML =
-          `<p class="muted-text">No spots yet. Add your first fishing spot.</p>`;
+        spotsList.innerHTML = `<p class="muted-text" data-i18n="home.noSpotsYet">No spots yet. Add your first fishing spot.</p>`;
+reapplyTranslations();
+
         return;
       }
 
@@ -662,5 +665,6 @@
   </script>
 </body>
 </html>
+
 
 
