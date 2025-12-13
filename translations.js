@@ -203,7 +203,7 @@
       "home.logOut": "Logi välja",
 
       // Stats labels (keep WITHOUT trailing ":" because HTML adds punctuation)
-      "home.statsTotalCatches": "Saake kokku",
+      "home.statsTotalCatches": "Püütud kalad",
       "home.biggestFish": "Suurim",
       "home.statsAverageWeight": "Keskmine kaal",
 
