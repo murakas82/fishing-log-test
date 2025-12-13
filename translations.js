@@ -112,6 +112,13 @@
 "spotAdd.saveButtonLabelFallback": "Save fishing spot",
 "spotAdd.unknownUser": "unknown user",
 
+      // spots-map translations
+      "spotsMap.legendMarkerColor": "Marker color (tomorrow)",
+"spotsMap.legendGood": "good",
+"spotsMap.legendMedium": "medium",
+"spotsMap.legendPoor": "poor",
+"spotsMap.legendPopupShows": "Popup shows live weather now and predictions for the next 3 days.",
+
 
       // Common
       "common.backToMain": "← Back to main",
@@ -295,12 +302,10 @@
       "auth.signUpFailedPrefix": "Konto loomine ebaõnnestus:",
       "auth.googleFailedPrefix": "Google’i sisselogimine ebaõnnestus:",
       "auth.enterEmailPassword": "Sisesta e-post ja parool ning vajuta „Loo konto“.",
-
+ // Add-spot translations
       "spotAdd.namePlaceholder": "Paunküla, Pautsaare jne.",
 "spotAdd.searchPlaceholder": "Otsi kohta (linn, järv, aadress jne.)",
 "spotAdd.unnamedPlace": "Nimetu koht",
-
-      // Sdd-spot translations
 "spotAdd.locationSetFromSearch": "Asukoht seatud otsingust:",
 "spotAdd.searchingLocation": "Asukoha otsing…",
 "spotAdd.noResultsFound": "Otsingule ei leitud tulemusi.",
@@ -320,7 +325,13 @@
 "spotAdd.saveButtonLabelFallback": "Salvesta püügikoht",
 "spotAdd.unknownUser": "tundmatu kasutaja",
 
-
+      // spots-map transaltions
+      "spotsMap.legendMarkerColor": "Markeri värv (homne päev)",
+"spotsMap.legendGood": "hea",
+"spotsMap.legendMedium": "keskmine",
+"spotsMap.legendPoor": "nõrk",
+"spotsMap.legendPopupShows": "Hüpikaken näitab hetke ilma ja ennustusi järgmiseks 3 päevaks.",
+   
       // Common
       "common.backToMain": "← Tagasi avalehele",
       "common.backToMainPage": "Tagasi avalehele",
