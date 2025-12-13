@@ -113,95 +113,95 @@
 
     /* ---------- Auth form ---------- */
 
-   function renderAuthForm(errorMessage = "") {
-  authArea.innerHTML = `
-    <div>
-      <form id="authForm" style="display:flex;flex-direction:column;gap:6px;min-width:260px;">
-        <div style="font-size:0.85rem;" data-i18n="auth.title">Log in or sign up</div>
+    function renderAuthForm(errorMessage = "") {
+      authArea.innerHTML = `
+        <div>
+          <form id="authForm" style="display:flex;flex-direction:column;gap:6px;min-width:260px;">
+            <div style="font-size:0.85rem;" data-i18n="auth.title">Log in or sign up</div>
 
-        <input
-          type="email"
-          id="authEmail"
-          placeholder="Email"
-          data-i18n-placeholder="auth.emailPlaceholder"
-          required
-        />
+            <input
+              type="email"
+              id="authEmail"
+              placeholder="Email"
+              data-i18n-placeholder="auth.emailPlaceholder"
+              required
+            />
 
-        <input
-          type="password"
-          id="authPassword"
-          placeholder="Password"
-          data-i18n-placeholder="auth.passwordPlaceholder"
-          required
-        />
+            <input
+              type="password"
+              id="authPassword"
+              placeholder="Password"
+              data-i18n-placeholder="auth.passwordPlaceholder"
+              required
+            />
 
-        <div style="display:flex;gap:8px;">
-          <button type="submit" class="primary-btn" data-mode="login" data-i18n="auth.logIn">Log in</button>
-          <button type="button" class="secondary-btn" id="signUpBtn" data-i18n="auth.signUp">Sign up</button>
+            <div style="display:flex;gap:8px;">
+              <button type="submit" class="primary-btn" data-mode="login" data-i18n="auth.logIn">Log in</button>
+              <button type="button" class="secondary-btn" id="signUpBtn" data-i18n="auth.signUp">Sign up</button>
+            </div>
+
+            <div style="margin:6px 0 2px 0;font-size:0.8rem;text-align:center;" class="muted-text">
+              <span data-i18n="auth.or">or</span>
+            </div>
+
+            <button
+              type="button"
+              class="secondary-btn"
+              id="googleLoginBtn"
+              style="width:100%;justify-content:center;"
+              data-i18n="auth.continueWithGoogle"
+            >
+              Continue with Google
+            </button>
+
+            <div id="authError" class="muted-text" style="color:#f97373;margin-top:4px;">
+              ${errorMessage}
+            </div>
+          </form>
         </div>
+      `;
 
-        <div style="margin:6px 0 2px 0;font-size:0.8rem;text-align:center;" class="muted-text">
-          <span data-i18n="auth.or">or</span>
-        </div>
+      reapplyTranslations();
 
-        <button
-          type="button"
-          class="secondary-btn"
-          id="googleLoginBtn"
-          style="width:100%;justify-content:center;"
-          data-i18n="auth.continueWithGoogle"
-        >
-          Continue with Google
-        </button>
+      const form      = document.getElementById("authForm");
+      const signUpBtn = document.getElementById("signUpBtn");
+      const googleBtn = document.getElementById("googleLoginBtn");
 
-        <div id="authError" class="muted-text" style="color:#f97373;margin-top:4px;">
-          ${errorMessage}
-        </div>
-      </form>
-    </div>
-  `;
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        const email = document.getElementById("authEmail").value.trim();
+        const pass  = document.getElementById("authPassword").value.trim();
+        try {
+          await signInWithEmailAndPassword(auth, email, pass);
+        } catch (err) {
+          renderAuthForm(`${t("auth.loginFailedPrefix")} ${(err.code || err.message)}`);
+        }
+      };
 
-  // Translate newly injected markup
-  reapplyTranslations();
+      signUpBtn.onclick = async () => {
+        const email = document.getElementById("authEmail").value.trim();
+        const pass  = document.getElementById("authPassword").value.trim();
+        if (!email || !pass) {
+          renderAuthForm(t("auth.enterEmailPassword"));
+          return;
+        }
+        try {
+          await createUserWithEmailAndPassword(auth, email, pass);
+        } catch (err) {
+          renderAuthForm(`${t("auth.signUpFailedPrefix")} ${(err.code || err.message)}`);
+        }
+      };
 
-  const form      = document.getElementById("authForm");
-  const signUpBtn = document.getElementById("signUpBtn");
-  const googleBtn = document.getElementById("googleLoginBtn");
-
-  form.onsubmit = async (e) => {
-    e.preventDefault();
-    const email = document.getElementById("authEmail").value.trim();
-    const pass  = document.getElementById("authPassword").value.trim();
-    try {
-      await signInWithEmailAndPassword(auth, email, pass);
-    } catch (err) {
-      renderAuthForm(`${t("auth.loginFailedPrefix")} ${(err.code || err.message)}`);
+      googleBtn.onclick = async () => {
+        try {
+          const provider = new GoogleAuthProvider();
+          await signInWithPopup(auth, provider);
+        } catch (err) {
+          renderAuthForm(`${t("auth.googleFailedPrefix")} ${(err.code || err.message)}`);
+        }
+      };
     }
-  };
 
-  signUpBtn.onclick = async () => {
-    const email = document.getElementById("authEmail").value.trim();
-    const pass  = document.getElementById("authPassword").value.trim();
-    if (!email || !pass) {
-      renderAuthForm(t("auth.enterEmailPassword"));
-      return;
-    }
-    try {
-      await createUserWithEmailAndPassword(auth, email, pass);
-    } catch (err) {
-      renderAuthForm(`${t("auth.signUpFailedPrefix")} ${(err.code || err.message)}`);
-    }
-  };
-
-  googleBtn.onclick = async () => {
-    try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-    } catch (err) {
-      renderAuthForm(`${t("auth.googleFailedPrefix")} ${(err.code || err.message)}`);
-    }
-  };
-}
     function renderLoggedInHeader(user, displayName) {
       const nameText = displayName || user.email || "Unknown user";
 
@@ -246,9 +246,9 @@
       );
       const snap = await getDocs(q);
       if (snap.empty) {
-        statsContent.innerHTML = `<div class="muted-text" data-i18n="home.noCatchesYet">No catches yet.</div>`;
-reapplyTranslations();
-
+        statsContent.innerHTML =
+          `<div class="muted-text" data-i18n="home.noCatchesYet">No catches yet.</div>`;
+        reapplyTranslations();
         return;
       }
 
@@ -277,7 +277,7 @@ reapplyTranslations();
           <strong>${total}</strong>
         </span>
         <span class="stat-pill">
-          <span data-i18n="home.biggestFish">Biggest Fish</span>
+          <span data-i18n="home.biggestFish">Biggest</span>
           <strong>${biggestWeight.toFixed(2)} kg ${biggestSpecies}</strong>
         </span>
         <span class="stat-pill">
@@ -339,7 +339,6 @@ reapplyTranslations();
     }
 
     function getWeekdayShortName(dayIndex) {
-      // JS: 0=Sun ... 6=Sat
       const keys = [
         "home.weekdaySun",
         "home.weekdayMon",
@@ -382,7 +381,6 @@ reapplyTranslations();
           `<span data-i18n="home.predictionNext3Days">Prediction (next 3 days)</span>: ` + rhsHtml;
       };
 
-      // Missing coordinates
       if (typeof spot.latitude !== "number" || typeof spot.longitude !== "number") {
         setWeatherRow(`<span data-i18n="home.locationMissing">location missing.</span>`);
         setPredictionRow(`<span data-i18n="home.unavailable">unavailable.</span>`);
@@ -393,7 +391,6 @@ reapplyTranslations();
       const lat = spot.latitude;
       const lng = spot.longitude;
 
-      // Loading state
       setWeatherRow(`<span data-i18n="home.loading">loading…</span>`);
       setPredictionRow(`<span data-i18n="home.loading">loading…</span>`);
       reapplyTranslations();
@@ -417,7 +414,6 @@ reapplyTranslations();
 
         const { icon, label } = getWeatherIconAndLabel(cc);
 
-        // Weather parts fully translated (condition label + wind label)
         const weatherParts = [];
         if (label) weatherParts.push(label);
         if (typeof ct === "number") weatherParts.push(`${ct.toFixed(1)} ${t("home.unitCelsius")}`);
@@ -475,9 +471,9 @@ reapplyTranslations();
           if (score == null) {
             pieces.push(`${wd}: ${t("home.na")}`);
           } else {
-            let color = "#f97373"; // poor
-            if (score >= 70)      color = "#22c55e"; // good
-            else if (score >= 40) color = "#eab308"; // medium
+            let color = "#f97373";
+            if (score >= 70)      color = "#22c55e";
+            else if (score >= 40) color = "#eab308";
 
             pieces.push(
               `${wd} <span style="color:${color};font-weight:600;">${score.toFixed(0)}%</span>`
@@ -509,9 +505,9 @@ reapplyTranslations();
       const snap = await getDocs(q);
 
       if (snap.empty) {
-        spotsList.innerHTML = `<p class="muted-text" data-i18n="home.noSpotsYet">No spots yet. Add your first fishing spot.</p>`;
-reapplyTranslations();
-
+        spotsList.innerHTML =
+          `<p class="muted-text" data-i18n="home.noSpotsYet">No spots yet. Add your first fishing spot.</p>`;
+        reapplyTranslations();
         return;
       }
 
@@ -542,7 +538,6 @@ reapplyTranslations();
           }
         });
 
-        // Use i18n keys inside the stats line per spot
         let statsLineHtml;
         if (total) {
           statsLineHtml = `
@@ -550,10 +545,9 @@ reapplyTranslations();
             •
             <span data-i18n="home.biggestFish">Biggest</span>: ${biggestWeight.toFixed(2)} kg ${biggestSpecies}
           `;
-       } else {
-  statsLineHtml = `<span data-i18n="home.spotStatsNa">No catches yet.</span>`;
-}
-
+        } else {
+          statsLineHtml = `<span data-i18n="home.spotStatsNa">No catches yet.</span>`;
+        }
 
         const mapsUrl =
           typeof spot.latitude === "number" && typeof spot.longitude === "number"
@@ -580,7 +574,6 @@ reapplyTranslations();
         const actionsDiv = document.createElement("div");
         actionsDiv.className = "spot-actions";
 
-        /* ---- Open Spot button ---- */
         const openBtn = document.createElement("button");
         openBtn.className = "secondary-btn";
         openBtn.textContent = "Open spot";
@@ -590,7 +583,6 @@ reapplyTranslations();
         };
         actionsDiv.appendChild(openBtn);
 
-        /* ---- Add Catch button ---- */
         const addCatchBtn = document.createElement("button");
         addCatchBtn.className = "secondary-btn";
         addCatchBtn.textContent = "Add catch";
@@ -601,7 +593,6 @@ reapplyTranslations();
         };
         actionsDiv.appendChild(addCatchBtn);
 
-        /* ---- Predictions button ---- */
         const predBtn = document.createElement("button");
         predBtn.className = "secondary-btn";
         predBtn.textContent = "Predictions";
@@ -612,7 +603,6 @@ reapplyTranslations();
         };
         actionsDiv.appendChild(predBtn);
 
-        /* ---- Google Maps button ---- */
         if (mapsUrl) {
           const mapsBtn = document.createElement("a");
           mapsBtn.className = "secondary-btn";
@@ -665,6 +655,3 @@ reapplyTranslations();
   </script>
 </body>
 </html>
-
-
-
