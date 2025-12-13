@@ -113,72 +113,95 @@
 
     /* ---------- Auth form ---------- */
 
-    function renderAuthForm(errorMessage = "") {
-      authArea.innerHTML = `
-        <div>
-          <form id="authForm" style="display:flex;flex-direction:column;gap:6px;min-width:260px;">
-            <div style="font-size:0.85rem;">Log in or sign up</div>
-            <input type="email" id="authEmail" placeholder="Email" required />
-            <input type="password" id="authPassword" placeholder="Password" required />
-            <div style="display:flex;gap:8px;">
-              <button type="submit" class="primary-btn" data-mode="login">Log in</button>
-              <button type="button" class="secondary-btn" id="signUpBtn">Sign up</button>
-            </div>
-            <div style="margin:6px 0 2px 0;font-size:0.8rem;text-align:center;" class="muted-text">
-              or
-            </div>
-            <button type="button"
-                    class="secondary-btn"
-                    id="googleLoginBtn"
-                    style="width:100%;justify-content:center;">
-              Continue with Google
-            </button>
-            <div id="authError" class="muted-text" style="color:#f97373;margin-top:4px;">
-              ${errorMessage}
-            </div>
-          </form>
+   function renderAuthForm(errorMessage = "") {
+  authArea.innerHTML = `
+    <div>
+      <form id="authForm" style="display:flex;flex-direction:column;gap:6px;min-width:260px;">
+        <div style="font-size:0.85rem;" data-i18n="auth.title">Log in or sign up</div>
+
+        <input
+          type="email"
+          id="authEmail"
+          placeholder="Email"
+          data-i18n-placeholder="auth.emailPlaceholder"
+          required
+        />
+
+        <input
+          type="password"
+          id="authPassword"
+          placeholder="Password"
+          data-i18n-placeholder="auth.passwordPlaceholder"
+          required
+        />
+
+        <div style="display:flex;gap:8px;">
+          <button type="submit" class="primary-btn" data-mode="login" data-i18n="auth.logIn">Log in</button>
+          <button type="button" class="secondary-btn" id="signUpBtn" data-i18n="auth.signUp">Sign up</button>
         </div>
-      `;
 
-      const form      = document.getElementById("authForm");
-      const signUpBtn = document.getElementById("signUpBtn");
-      const googleBtn = document.getElementById("googleLoginBtn");
+        <div style="margin:6px 0 2px 0;font-size:0.8rem;text-align:center;" class="muted-text">
+          <span data-i18n="auth.or">or</span>
+        </div>
 
-      form.onsubmit = async (e) => {
-        e.preventDefault();
-        const email = document.getElementById("authEmail").value.trim();
-        const pass  = document.getElementById("authPassword").value.trim();
-        try {
-          await signInWithEmailAndPassword(auth, email, pass);
-        } catch (err) {
-          renderAuthForm("Login failed: " + (err.code || err.message));
-        }
-      };
+        <button
+          type="button"
+          class="secondary-btn"
+          id="googleLoginBtn"
+          style="width:100%;justify-content:center;"
+          data-i18n="auth.continueWithGoogle"
+        >
+          Continue with Google
+        </button>
 
-      signUpBtn.onclick = async () => {
-        const email = document.getElementById("authEmail").value.trim();
-        const pass  = document.getElementById("authPassword").value.trim();
-        if (!email || !pass) {
-          renderAuthForm("Enter email & password, then press Sign up.");
-          return;
-        }
-        try {
-          await createUserWithEmailAndPassword(auth, email, pass);
-        } catch (err) {
-          renderAuthForm("Sign up failed: " + (err.code || err.message));
-        }
-      };
+        <div id="authError" class="muted-text" style="color:#f97373;margin-top:4px;">
+          ${errorMessage}
+        </div>
+      </form>
+    </div>
+  `;
 
-      googleBtn.onclick = async () => {
-        try {
-          const provider = new GoogleAuthProvider();
-          await signInWithPopup(auth, provider);
-        } catch (err) {
-          renderAuthForm("Google sign-in failed: " + (err.code || err.message));
-        }
-      };
+  // Translate newly injected markup
+  reapplyTranslations();
+
+  const form      = document.getElementById("authForm");
+  const signUpBtn = document.getElementById("signUpBtn");
+  const googleBtn = document.getElementById("googleLoginBtn");
+
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("authEmail").value.trim();
+    const pass  = document.getElementById("authPassword").value.trim();
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch (err) {
+      renderAuthForm(`${t("auth.loginFailedPrefix")} ${(err.code || err.message)}`);
     }
+  };
 
+  signUpBtn.onclick = async () => {
+    const email = document.getElementById("authEmail").value.trim();
+    const pass  = document.getElementById("authPassword").value.trim();
+    if (!email || !pass) {
+      renderAuthForm(t("auth.enterEmailPassword"));
+      return;
+    }
+    try {
+      await createUserWithEmailAndPassword(auth, email, pass);
+    } catch (err) {
+      renderAuthForm(`${t("auth.signUpFailedPrefix")} ${(err.code || err.message)}`);
+    }
+  };
+
+  googleBtn.onclick = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (err) {
+      renderAuthForm(`${t("auth.googleFailedPrefix")} ${(err.code || err.message)}`);
+    }
+  };
+}
     function renderLoggedInHeader(user, displayName) {
       const nameText = displayName || user.email || "Unknown user";
 
@@ -639,4 +662,5 @@
   </script>
 </body>
 </html>
+
 
