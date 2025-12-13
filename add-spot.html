@@ -140,13 +140,13 @@
     <header class="card">
       <div class="card-header">
         <div>
-          <h1>Add a fishing spot</h1>
-          <p class="muted-text">
+          <h1 data-i18n="spotAdd.title">Add a fishing spot</h1>
+          <p class="muted-text" data-i18n="spotAdd.subtitle">
             Save a named spot with GPS coordinates.
           </p>
         </div>
         <div>
-          <button class="secondary-btn btn-back-main" id="backBtn">
+          <button class="secondary-btn btn-back-main" id="backBtn" data-i18n="common.backToMain">
             ← Back to main
           </button>
         </div>
@@ -157,35 +157,39 @@
     <div class="card">
       <div class="card-header">
         <div class="muted-text">
-          Logged in as <span id="loggedInAs">…</span>
+          <span data-i18n="common.loggedInAs">Logged in as …</span>
+          <span id="loggedInAs">…</span>
         </div>
       </div>
 
       <!-- Spot fields -->
       <div class="form-grid">
         <div class="form-field">
-          <label for="spotName">Spot name</label>
+          <label for="spotName" data-i18n="spotAdd.nameLabel">Spot name</label>
           <input
             id="spotName"
             type="text"
             placeholder="Paunküla, Pautsaare, etc."
+            data-i18n-placeholder="spotAdd.namePlaceholder"
             autocomplete="off"
           />
         </div>
 
         <div class="form-field">
-          <label for="latitude">Latitude</label>
+          <label for="latitude" data-i18n="spotAdd.latLabel">Latitude</label>
           <input id="latitude" type="number" step="0.000001" />
         </div>
 
         <div class="form-field">
-          <label for="longitude">Longitude</label>
+          <label for="longitude" data-i18n="spotAdd.lonLabel">Longitude</label>
           <input id="longitude" type="number" step="0.000001" />
         </div>
       </div>
 
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-        <button class="secondary-btn" id="useLocationBtn">Use my location</button>
+        <button class="secondary-btn" id="useLocationBtn" data-i18n="common.useMyLocation">
+          Use my location
+        </button>
       </div>
 
       <!-- Search bar (no button) -->
@@ -197,8 +201,9 @@
             class="map-search-input"
             type="text"
             placeholder="Search place (town, lake, address, etc.)"
+            data-i18n-placeholder="spotAdd.searchPlaceholder"
           />
-          <button type="button" class="map-search-clear" id="mapSearchClearBtn">
+          <button type="button" class="map-search-clear" id="mapSearchClearBtn" aria-label="Clear search">
             ✕
           </button>
           <ul id="mapSearchSuggestions" class="map-search-suggestions"></ul>
@@ -208,12 +213,17 @@
       <div id="map"></div>
 
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;">
-        <button class="primary-btn" id="saveSpotBtn">Save fishing spot</button>
+        <button class="primary-btn" id="saveSpotBtn" data-i18n="spotAdd.saveButton">
+          Save fishing spot
+        </button>
       </div>
 
       <p id="statusMsg" class="muted-text" style="margin-top:10px;"></p>
     </div>
   </div>
+
+  <!-- i18n -->
+  <script src="translations.js"></script>
 
   <!-- Leaflet JS -->
   <script
@@ -262,6 +272,14 @@
     const mapSearchInput   = document.getElementById("mapSearchInput");
     const mapSearchClear   = document.getElementById("mapSearchClearBtn");
     const suggestionsEl    = document.getElementById("mapSearchSuggestions");
+
+    // i18n helpers
+    const i18n = window.fishingLogI18n;
+    const t = (key) => (i18n && typeof i18n.t === "function") ? i18n.t(key) : key;
+    function reapplyTranslations() {
+      if (i18n && typeof i18n.applyTranslations === "function") i18n.applyTranslations();
+    }
+    const currentLang = () => (i18n && typeof i18n.getCurrentLang === "function") ? i18n.getCurrentLang() : "en";
 
     let currentUser = null;
     let map, marker;
@@ -331,7 +349,7 @@
         const [main, ...rest] = (item.display_name || "").split(",");
         const sub = rest.join(",").trim();
         li.innerHTML = `
-          <div class="suggestion-main">${main || "Unnamed place"}</div>
+          <div class="suggestion-main">${main || t("spotAdd.unnamedPlace")}</div>
           ${sub ? `<div class="suggestion-sub">${sub}</div>` : ""}
         `;
         li.onclick = () => {
@@ -352,7 +370,9 @@
         const url =
           "https://nominatim.openstreetmap.org/search" +
           `?format=json&q=${encodeURIComponent(qText)}&limit=5`;
-        const res = await fetch(url, { headers: { "Accept-Language": "en" } });
+        const res = await fetch(url, {
+          headers: { "Accept-Language": currentLang() }
+        });
         if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
         showSuggestions(data);
@@ -374,27 +394,32 @@
 
       mapSearchInput.value = result.display_name || "";
       mapSearchClear.style.display = mapSearchInput.value ? "block" : "none";
-      statusMsg.textContent = `Location set from search: ${result.display_name}`;
+
+      statusMsg.textContent =
+        `${t("spotAdd.locationSetFromSearch")} ${result.display_name}`;
     }
 
     async function searchLocation() {
       const qText = mapSearchInput.value.trim();
       if (!qText) return;
-      statusMsg.textContent = "Searching location…";
+
+      statusMsg.textContent = t("spotAdd.searchingLocation");
       try {
         const url =
           "https://nominatim.openstreetmap.org/search" +
           `?format=json&q=${encodeURIComponent(qText)}&limit=1`;
-        const res = await fetch(url, { headers: { "Accept-Language": "en" } });
+        const res = await fetch(url, {
+          headers: { "Accept-Language": currentLang() }
+        });
         if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
         if (!data.length) {
-          statusMsg.textContent = "No results found for that search.";
+          statusMsg.textContent = t("spotAdd.noResultsFound");
           return;
         }
         applySearchResult(data[0]);
       } catch (err) {
-        statusMsg.textContent = "Search failed: " + (err.message || err);
+        statusMsg.textContent = `${t("spotAdd.searchFailed")} ${(err.message || err)}`;
       }
     }
 
@@ -402,6 +427,7 @@
       const v = mapSearchInput.value;
       mapSearchClear.style.display = v ? "block" : "none";
       if (searchDebounceId) clearTimeout(searchDebounceId);
+
       const trimmed = v.trim();
       if (!trimmed) {
         hideSuggestions();
@@ -436,10 +462,10 @@
     // ---------- Geolocation ----------
     useLocationBtn.onclick = () => {
       if (!navigator.geolocation) {
-        statusMsg.textContent = "Geolocation not available.";
+        statusMsg.textContent = t("spotAdd.geoNotAvailable");
         return;
       }
-      statusMsg.textContent = "Getting your current location…";
+      statusMsg.textContent = t("spotAdd.gettingLocation");
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const { latitude, longitude } = pos.coords;
@@ -452,7 +478,7 @@
           statusMsg.textContent = "";
         },
         (err) => {
-          statusMsg.textContent = "Could not get location: " + err.message;
+          statusMsg.textContent = `${t("spotAdd.couldNotGetLocation")} ${err.message}`;
         }
       );
     };
@@ -461,7 +487,7 @@
     async function saveSpot() {
       statusMsg.textContent = "";
       if (!currentUser) {
-        statusMsg.textContent = "You must be logged in.";
+        statusMsg.textContent = t("spotAdd.mustBeLoggedIn");
         return;
       }
 
@@ -471,19 +497,19 @@
       const normalized = normalizeSpotName(rawName);
 
       if (!normalized) {
-        statusMsg.textContent = "Spot name is required.";
+        statusMsg.textContent = t("spotAdd.nameRequired");
         return;
       }
 
       const lat = parseFloat(latEl.value);
       const lng = parseFloat(lngEl.value);
       if (isNaN(lat) || isNaN(lng)) {
-        statusMsg.textContent = "Please set the location.";
+        statusMsg.textContent = t("spotAdd.pleaseSetLocation");
         return;
       }
 
       saveSpotBtn.disabled = true;
-      saveSpotBtn.textContent = "Saving…";
+      saveSpotBtn.textContent = t("spotAdd.saving");
 
       try {
         const q = query(
@@ -502,10 +528,10 @@
         });
 
         if (exists) {
-          statusMsg.textContent =
-            "You already have a spot with this name (ignoring case & spaces).";
+          statusMsg.textContent = t("spotAdd.duplicateName");
           saveSpotBtn.disabled = false;
-          saveSpotBtn.textContent = "Save fishing spot";
+          saveSpotBtn.textContent = t("spotAdd.saveButtonLabelFallback");
+          reapplyTranslations();
           return;
         }
 
@@ -518,14 +544,14 @@
           createdAt: Date.now()
         });
 
-        statusMsg.textContent = "Spot saved. Redirecting…";
+        statusMsg.textContent = t("spotAdd.savedRedirecting");
         setTimeout(() => {
           window.location.href = "index.html";
         }, 800);
       } catch (err) {
-        statusMsg.textContent = "Error saving spot: " + (err.message || err);
+        statusMsg.textContent = `${t("spotAdd.errorSaving")} ${(err.message || err)}`;
         saveSpotBtn.disabled = false;
-        saveSpotBtn.textContent = "Save fishing spot";
+        saveSpotBtn.textContent = t("spotAdd.saveButtonLabelFallback");
       }
     }
 
@@ -538,11 +564,13 @@
         return;
       }
       currentUser = user;
-      loggedInAsEl.textContent = user.email || "unknown user";
+      loggedInAsEl.textContent = user.email || t("spotAdd.unknownUser");
       initMap();
+      reapplyTranslations();
     });
-  </script>
-  <script src="translations.js"></script>
 
+    // Ensure placeholders/labels translate on load
+    reapplyTranslations();
+  </script>
 </body>
 </html>
