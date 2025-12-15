@@ -81,6 +81,8 @@
       where
     } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
+    import { computeNext3DayScores } from "./predictions-core.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyCXIdT74cNDSVIoMs3NZ86tPf2kzFm8Iug",
       authDomain: "fishing-log-app-murx.firebaseapp.com",
@@ -289,54 +291,7 @@
       reapplyTranslations();
     }
 
-    /* ---------- Prediction helpers ---------- */
-
-    function getApproxMoonPhase(date) {
-      const lp = 2551443;
-      const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14);
-      const diff = date.getTime() - knownNewMoon;
-      const phase = (diff / 1000) % lp;
-      let frac = phase / lp;
-      if (frac < 0) frac += 1;
-      return frac;
-    }
-
-    function computePredictionScoreForDay(catches, temp, windMs, press, moon) {
-      const usable = catches.filter(c =>
-        typeof c.weatherTemp === "number" &&
-        typeof c.weatherWindMs === "number" &&
-        typeof c.weatherPressure === "number"
-      );
-      if (!usable.length) return null;
-
-      const scores = usable.map(c => {
-        let penalty = 0;
-
-        const tempDiff = Math.abs(c.weatherTemp - temp);
-        if (tempDiff > 5) penalty += (tempDiff - 5) * 2;
-
-        const windDiff = Math.abs(c.weatherWindMs - windMs);
-        if (windDiff > 4) penalty += (windDiff - 4) * 3;
-
-        if (press < 1000) {
-          if (c.weatherPressure >= 1000) penalty += 10;
-        } else {
-          if (c.weatherPressure < 1000) penalty += 10;
-        }
-
-        if (typeof c.moonPhase === "number") {
-          const moonDiff = Math.abs(c.moonPhase - moon);
-          penalty += moonDiff * 40;
-        }
-
-        let score = 100 - penalty;
-        if (score < 0) score = 0;
-        if (score > 100) score = 100;
-        return score;
-      });
-
-      return scores.reduce((a, b) => a + b, 0) / scores.length;
-    }
+    /* ---------- Prediction helpers (shared module) ---------- */
 
     function getWeekdayShortName(dayIndex) {
       const keys = [
@@ -401,6 +356,7 @@
           `?latitude=${lat}&longitude=${lng}` +
           `&current=temperature_2m,wind_speed_10m,weather_code` +
           `&hourly=temperature_2m,wind_speed_10m,pressure_msl` +
+          `&daily=sunrise,sunset` +
           `&forecast_days=4&wind_speed_unit=ms&timezone=auto`;
 
         const res = await fetch(url);
@@ -422,51 +378,24 @@
         setWeatherRow(`${icon} ${weatherParts.join(", ")}`);
         reapplyTranslations();
 
-        const hourly = data.hourly || {};
-        const times  = hourly.time || [];
-        const temps  = hourly.temperature_2m || [];
-        const winds  = hourly.wind_speed_10m || [];
-        const presses = hourly.pressure_msl || [];
-
-        function getForecastForOffset(offset) {
-          const base = new Date();
-          base.setDate(base.getDate() + offset);
-          const yyyy = base.getFullYear();
-          const mm = String(base.getMonth() + 1).padStart(2, "0");
-          const dd = String(base.getDate()).padStart(2, "0");
-          const dateStr = `${yyyy}-${mm}-${dd}`;
-
-          let idx = times.findIndex(t => t.startsWith(`${dateStr}T12`));
-          if (idx === -1) idx = times.findIndex(t => t.startsWith(dateStr));
-          if (idx === -1) return null;
-
-          const fTemp  = temps[idx];
-          const fWind  = winds[idx];
-          const fPress = presses[idx];
-          const fMoon  = getApproxMoonPhase(base);
-          return { temp: fTemp, wind: fWind, press: fPress, moon: fMoon, dateObj: base };
-        }
+        const scoresNext3 = computeNext3DayScores(data, spotCatches, {
+          mode: "avgTopN",
+          topN: 8,
+          daylightPadHours: 1,
+          scoreOptions: {
+            pressTolHpa: 8,
+            pressPenaltyPerHpa: 1.2
+          }
+        });
 
         const pieces = [];
         for (let offset = 1; offset <= 3; offset++) {
-          const fc = getForecastForOffset(offset);
           const base = new Date();
           base.setDate(base.getDate() + offset);
 
           const wd = getWeekdayShortName(base.getDay());
-
-          if (!fc) {
-            pieces.push(`${wd}: ${t("home.na")}`);
-            continue;
-          }
-
-          const score = computePredictionScoreForDay(
-            spotCatches,
-            fc.temp,
-            fc.wind,
-            fc.press,
-            fc.moon
-          );
+          const entry = scoresNext3.find(x => x.offset === offset);
+          const score = entry ? entry.score : null;
 
           if (score == null) {
             pieces.push(`${wd}: ${t("home.na")}`);
