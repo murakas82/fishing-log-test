@@ -513,13 +513,13 @@
       // Predictions (existing)
       "pred.title": "Ennustused",
       "pred.subtitle":
-        "Ilmaprognoosi sobivus sinu varasemate selle koha saakidega.",
+        "Ilmaprognoosi sobivus sinu varasemate selle koha püütud kaladega.",
       "pred.loadingSpot": "Koha laadimine…",
       "pred.fetchingData": "Andmete toomine…",
       "pred.next3Days": "Järgmised 3 päeva",
       "pred.hotTimesTomorrow": "Parimad ajad homseks",
       "pred.hotTimesExplain":
-        "Ajad on vahemikus tund enne päikesetõusu kuni tund pärast päikeseloojangut, põhinedes sinu ilmaandmetega saakidel.",
+        "Ajad on vahemikus tund enne päikesetõusu kuni tund pärast päikeseloojangut, põhinedes sinu ilmaandmetega kaladel.",
       "pred.debugTitle": "Silumisvaade (miks sellised skoorid?)",
 
       // Predictions (NEW)
@@ -528,7 +528,7 @@
       "pred.spotNotFound": "Püügikohta ei leitud",
       "pred.unableToLoadSpot": "Seda püügikohta ei õnnestunud laadida.",
       "pred.loadingCatchesAndForecast": "Laen saake ja prognoosi…",
-      "pred.spotCatchSummary": "Selles kohas kokku {total} saaki, neist {withWeather} salvestatud ilmaandmetega.",
+      "pred.spotCatchSummary": "Selles kohas kokku {total} kala, neist {withWeather} salvestatud ilmaandmetega.",
       "pred.noGpsNoPrediction": "Sellel püügikohal puuduvad GPS-koordinaadid, seega prognoosipõhine ennustus pole saadaval.",
       "pred.failedToCompute": "Ennustuse arvutamine ebaõnnestus.",
       "pred.noForecastData": "Prognoosiandmed pole saadaval.",
