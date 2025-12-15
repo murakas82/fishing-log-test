@@ -11,13 +11,13 @@
     <header class="card">
       <div class="card-header">
         <div>
-          <h1>Add catch</h1>
-          <p class="muted-text">
-            Log a new catch with spot, weight, weather & notes.
+          <h1 data-i18n="catch.title">Add catch</h1>
+          <p class="muted-text" data-i18n="catch.subtitle">
+            Log a new catch with spot, weight, weather &amp; notes.
           </p>
         </div>
         <div>
-          <button class="secondary-btn btn-back-main" id="backBtn">
+          <button class="secondary-btn btn-back-main" id="backBtn" data-i18n="common.backToMain">
             ← Back to main
           </button>
         </div>
@@ -27,75 +27,94 @@
     <div class="card">
       <div class="card-header">
         <div class="muted-text">
-          Logged in as <span id="loggedInAs">…</span>
+          <span data-i18n="common.loggedInAs">Logged in as …</span>
+          <span id="loggedInAs">…</span>
         </div>
       </div>
 
       <div class="form-grid">
         <div class="form-field">
-          <label for="species">Species</label>
-          <input id="species" type="text" placeholder="pike, perch, etc." />
+          <label for="species" data-i18n="catch.speciesLabel">Species</label>
+          <input
+            id="species"
+            type="text"
+            placeholder="pike, perch, etc."
+            data-i18n-placeholder="catch.speciesPlaceholder"
+          />
         </div>
 
         <div class="form-field">
-          <label for="weightKg">Weight (kg)</label>
+          <label for="weightKg" data-i18n="catch.weightLabel">Weight (kg)</label>
           <input id="weightKg" type="number" step="0.01" />
         </div>
 
         <div class="form-field">
-          <label for="spotSelect">Fishing spot (required)</label>
+          <label for="spotSelect" data-i18n="catch.spotLabel">Fishing spot (required)</label>
           <select id="spotSelect"></select>
         </div>
 
         <div class="form-field">
-          <label for="lure">Lure</label>
-          <input id="lure" type="text" placeholder="Spinner, jig, worm…" />
+          <label for="lure" data-i18n="catch.lureLabel">Lure</label>
+          <input
+            id="lure"
+            type="text"
+            placeholder="Spinner, jig, worm…"
+            data-i18n-placeholder="catch.lurePlaceholder"
+          />
         </div>
 
         <div class="form-field">
-          <label for="depth">Water depth (m)</label>
+          <label for="depth" data-i18n="catch.depthLabel">Water depth (m)</label>
           <input id="depth" type="number" step="0.1" />
         </div>
 
         <div class="form-field">
-          <label for="waterTemp">Water temperature (°C)</label>
+          <label for="waterTemp" data-i18n="catch.waterTempLabel">Water temperature (°C)</label>
           <input id="waterTemp" type="number" step="0.1" />
         </div>
 
         <div class="form-field">
-          <label for="latitude">Latitude (auto from spot or GPS)</label>
+          <label for="latitude" data-i18n="catch.latLabel">Latitude (auto from spot or GPS)</label>
           <input id="latitude" type="number" step="0.000001" />
         </div>
 
         <div class="form-field">
-          <label for="longitude">Longitude (auto from spot or GPS)</label>
+          <label for="longitude" data-i18n="catch.lonLabel">Longitude (auto from spot or GPS)</label>
           <input id="longitude" type="number" step="0.000001" />
         </div>
       </div>
 
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-        <button class="secondary-btn" id="useLocationBtn">
+        <button class="secondary-btn" id="useLocationBtn" data-i18n="common.useMyLocation">
           Use my location
         </button>
       </div>
 
       <p id="weatherNow" class="muted-text" style="margin-top:8px;">
-        Weather now: (not loaded yet)
+        <span data-i18n="home.weatherNow">Weather now</span>:
+        <span data-i18n="catch.weatherNotLoadedInline">(not loaded yet)</span>
       </p>
 
       <div class="form-field" style="margin-top:12px;">
-        <label for="notes">Notes</label>
-        <textarea id="notes" rows="3"
-          placeholder="Weather, behavior, etc."></textarea>
+        <label for="notes" data-i18n="catch.notesLabel">Notes</label>
+        <textarea
+          id="notes"
+          rows="3"
+          placeholder="Weather, behavior, etc."
+          data-i18n-placeholder="catch.notesPlaceholder"
+        ></textarea>
       </div>
 
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;">
-        <button class="primary-btn" id="saveCatchBtn">Save catch</button>
+        <button class="primary-btn" id="saveCatchBtn" data-i18n="catch.saveButton">Save catch</button>
       </div>
 
       <p id="statusMsg" class="muted-text" style="margin-top:10px;"></p>
     </div>
   </div>
+
+  <!-- i18n (load once) -->
+  <script src="translations.js"></script>
 
   <script type="module">
     import { initializeApp }
@@ -109,8 +128,6 @@
       collection,
       addDoc,
       getDocs,
-      doc,
-      getDoc,
       query,
       where
     } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
@@ -128,6 +145,13 @@
     const auth = getAuth(app);
     const db   = getFirestore(app);
 
+    // i18n helpers
+    const i18n = window.fishingLogI18n;
+    const t = (key) => (i18n && typeof i18n.t === "function") ? i18n.t(key) : key;
+    function reapplyTranslations() {
+      if (i18n && typeof i18n.applyTranslations === "function") i18n.applyTranslations();
+    }
+
     const backBtn        = document.getElementById("backBtn");
     const loggedInAsEl   = document.getElementById("loggedInAs");
     const speciesEl      = document.getElementById("species");
@@ -142,10 +166,11 @@
     const saveCatchBtn   = document.getElementById("saveCatchBtn");
     const weatherNowEl   = document.getElementById("weatherNow");
     const statusMsg      = document.getElementById("statusMsg");
+    const notesEl        = document.getElementById("notes");
 
-    const params        = new URLSearchParams(window.location.search);
-    const urlSpotId     = params.get("spotId");
-    const fromParam     = params.get("from") || "main"; // "spot" or "main"
+    const params    = new URLSearchParams(window.location.search);
+    const urlSpotId = params.get("spotId");
+    const fromParam = params.get("from") || "main"; // "spot" or "main"
 
     let currentUser = null;
     let spots = [];
@@ -165,24 +190,32 @@
       return frac;
     }
 
+    // Use the same weather translation keys as index.html (home.weather*)
     function getWeatherIconAndLabel(code) {
-      if (code === 0) return { icon: "☀️", label: "Clear" };
-      if (code === 1) return { icon: "🌤️", label: "Mainly clear" };
-      if (code === 2) return { icon: "⛅",  label: "Partly cloudy" };
-      if (code === 3) return { icon: "☁️", label: "Overcast" };
-      if (code >= 51 && code <= 57) return { icon: "🌦️", label: "Drizzle" };
-      if (code >= 61 && code <= 67) return { icon: "🌧️", label: "Rain" };
-      if (code >= 71 && code <= 77) return { icon: "🌨️", label: "Snow" };
-      if (code >= 80 && code <= 82) return { icon: "🌦️", label: "Rain showers" };
-      if (code >= 85 && code <= 86) return { icon: "🌨️", label: "Snow showers" };
-      if (code === 95) return { icon: "⛈️", label: "Thunderstorm" };
-      if (code === 96 || code === 99) return { icon: "⛈️", label: "Thunderstorm with hail" };
-      return { icon: "❓", label: "Unknown" };
+      if (code === 0)  return { icon: "☀️", label: t("home.weatherClear") };
+      if (code === 1)  return { icon: "🌤️", label: t("home.weatherMainlyClear") };
+      if (code === 2)  return { icon: "⛅",  label: t("home.weatherPartlyCloudy") };
+      if (code === 3)  return { icon: "☁️", label: t("home.weatherOvercast") };
+      if (code >= 51 && code <= 57) return { icon: "🌦️", label: t("home.weatherDrizzle") };
+      if (code >= 61 && code <= 67) return { icon: "🌧️", label: t("home.weatherRain") };
+      if (code >= 71 && code <= 77) return { icon: "🌨️", label: t("home.weatherSnow") };
+      if (code >= 80 && code <= 82) return { icon: "🌦️", label: t("home.weatherRainShowers") };
+      if (code >= 85 && code <= 86) return { icon: "🌨️", label: t("home.weatherSnowShowers") };
+      if (code === 95) return { icon: "⛈️", label: t("home.weatherThunderstorm") };
+      if (code === 96 || code === 99) return { icon: "⛈️", label: t("home.weatherThunderstormHail") };
+      return { icon: "❓", label: t("home.weatherUnknown") };
+    }
+
+    function setWeatherInlineStatus(i18nKey, fallbackText) {
+      weatherNowEl.innerHTML =
+        `<span data-i18n="home.weatherNow">Weather now</span>: ` +
+        `<span data-i18n="${i18nKey}">${fallbackText}</span>`;
+      reapplyTranslations();
     }
 
     async function fetchCurrentWeather(lat, lng) {
       try {
-        weatherNowEl.textContent = "Weather now: loading…";
+        setWeatherInlineStatus("home.loading", "loading…");
 
         const url =
           `https://api.open-meteo.com/v1/forecast` +
@@ -204,11 +237,13 @@
 
         const parts = [];
         if (label) parts.push(label);
-        if (typeof temp === "number") parts.push(`${temp.toFixed(1)} °C`);
-        if (typeof windMs === "number") parts.push(`wind ${windMs.toFixed(1)} m/s`);
+        if (typeof temp === "number") parts.push(`${temp.toFixed(1)} ${t("home.unitCelsius")}`);
+        if (typeof windMs === "number") parts.push(`${t("home.wind")} ${windMs.toFixed(1)} ${t("home.unitMetersPerSecond")}`);
 
-        weatherNowEl.textContent =
-          "Weather now: " + icon + " " + parts.join(", ");
+        weatherNowEl.innerHTML =
+          `<span data-i18n="home.weatherNow">Weather now</span>: ` +
+          `${icon} ${parts.join(", ")}`;
+        reapplyTranslations();
 
         latestWeather = {
           weatherTemp: temp,
@@ -216,53 +251,62 @@
           weatherPressure: press,
           weatherCode: code,
           weatherCondition: label,
-          weatherDescription: `${label || "Weather"}, ${typeof temp === "number" ? temp.toFixed(1) + " °C" : "n/a"}, wind ${typeof windMs === "number" ? windMs.toFixed(1) : "n/a"} m/s`,
+          weatherDescription: `${label || t("home.weatherUnknown")}, ` +
+            `${typeof temp === "number" ? temp.toFixed(1) + " " + t("home.unitCelsius") : t("home.na")}, ` +
+            `${t("home.wind")} ${typeof windMs === "number" ? windMs.toFixed(1) : t("home.na")} ${t("home.unitMetersPerSecond")}`,
           moonPhase: getApproxMoonPhase(new Date())
         };
       } catch (err) {
-        weatherNowEl.textContent = "Weather now: failed to load.";
+        setWeatherInlineStatus("home.failedToLoad", "failed to load.");
         latestWeather = null;
       }
     }
 
-    async function loadSpotsForUser(user) {
-      const q = query(
-        collection(db, "spots"),
-        where("userId", "==", user.uid)
-      );
-      const snap = await getDocs(q);
-      spots = [];
-      snap.forEach(d => spots.push({ id: d.id, ...d.data() }));
-      spots.sort((a,b) => (a.name || "").localeCompare(b.name || ""));
-
+    function renderSpotOptions() {
       if (!spots.length) {
-        spotSelectEl.innerHTML =
-          `<option value="">No spots yet – create one first.</option>`;
+        spotSelectEl.innerHTML = `<option value="">${t("catch.noSpotsYetOption")}</option>`;
         spotSelectEl.disabled = true;
         return;
       }
 
       spotSelectEl.disabled = false;
+
+      const chooseText = t("catch.chooseSpotOption");
+      const unnamedText = t("catch.unnamedSpotOption");
+
       spotSelectEl.innerHTML =
-        `<option value="">Choose a fishing spot…</option>` +
+        `<option value="">${chooseText}</option>` +
         spots.map(s =>
-          `<option value="${s.id}">${s.name || "Unnamed spot"}</option>`
+          `<option value="${s.id}">${(s.name || unnamedText)}</option>`
         ).join("");
 
-      if (urlSpotId) {
-        spotSelectEl.value = urlSpotId;
-      }
+      if (urlSpotId) spotSelectEl.value = urlSpotId;
       handleSpotChange();
+    }
+
+    async function loadSpotsForUser(user) {
+      const q = query(collection(db, "spots"), where("userId", "==", user.uid));
+      const snap = await getDocs(q);
+      spots = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      spots.sort((a,b) => (a.name || "").localeCompare(b.name || ""));
+      renderSpotOptions();
     }
 
     function handleSpotChange() {
       const spotId = spotSelectEl.value;
       const spot = spots.find(s => s.id === spotId);
-      if (spot && typeof spot.latitude === "number" &&
-          typeof spot.longitude === "number") {
+
+      if (spot && typeof spot.latitude === "number" && typeof spot.longitude === "number") {
         latEl.value = spot.latitude.toFixed(6);
         lngEl.value = spot.longitude.toFixed(6);
         fetchCurrentWeather(spot.latitude, spot.longitude);
+      } else {
+        // spot changed to empty or missing coords
+        weatherNowEl.innerHTML =
+          `<span data-i18n="home.weatherNow">Weather now</span>: ` +
+          `<span data-i18n="catch.weatherNotLoadedInline">(not loaded yet)</span>`;
+        latestWeather = null;
+        reapplyTranslations();
       }
     }
 
@@ -270,10 +314,10 @@
 
     useLocationBtn.onclick = () => {
       if (!navigator.geolocation) {
-        statusMsg.textContent = "Geolocation not available.";
+        statusMsg.textContent = t("catch.geoNotAvailable");
         return;
       }
-      statusMsg.textContent = "Getting your location…";
+      statusMsg.textContent = t("catch.gettingLocation");
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const { latitude, longitude } = pos.coords;
@@ -283,7 +327,7 @@
           fetchCurrentWeather(latitude, longitude);
         },
         (err) => {
-          statusMsg.textContent = "Could not get location: " + err.message;
+          statusMsg.textContent = `${t("catch.couldNotGetLocation")} ${err.message}`;
         }
       );
     };
@@ -292,20 +336,20 @@
       statusMsg.textContent = "";
 
       if (!currentUser) {
-        statusMsg.textContent = "You must be logged in.";
+        statusMsg.textContent = t("catch.mustBeLoggedIn");
         return;
       }
 
-      const species = (speciesEl.value || "").trim() || "fish";
+      const species = (speciesEl.value || "").trim() || t("catch.defaultSpecies");
       const weight  = parseFloat(weightEl.value);
       const spotId  = spotSelectEl.value;
 
       if (!spotId) {
-        statusMsg.textContent = "Please choose a fishing spot.";
+        statusMsg.textContent = t("catch.chooseSpotRequired");
         return;
       }
       if (isNaN(weight) || weight <= 0) {
-        statusMsg.textContent = "Please enter a valid weight.";
+        statusMsg.textContent = t("catch.enterValidWeight");
         return;
       }
 
@@ -314,7 +358,7 @@
       const waterTemp = parseFloat(waterTempEl.value);
       const lat = parseFloat(latEl.value);
       const lng = parseFloat(lngEl.value);
-      const notes = (document.getElementById("notes").value || "").trim();
+      const notes = (notesEl.value || "").trim();
 
       const catchDoc = {
         userId: currentUser.uid,
@@ -344,23 +388,22 @@
       }
 
       saveCatchBtn.disabled = true;
-      saveCatchBtn.textContent = "Saving…";
+      saveCatchBtn.textContent = t("catch.saving");
 
       try {
         await addDoc(collection(db, "catches"), catchDoc);
-        statusMsg.textContent = "Catch saved. Redirecting…";
+        statusMsg.textContent = t("catch.savedRedirecting");
 
-        // 🔁 NEW REDIRECT LOGIC
         if (fromParam === "spot" && spotId) {
-          window.location.href =
-            `spot.html?id=${encodeURIComponent(spotId)}`;
+          window.location.href = `spot.html?id=${encodeURIComponent(spotId)}`;
         } else {
           window.location.href = "index.html";
         }
       } catch (err) {
-        statusMsg.textContent = "Error saving catch: " + (err.message || err);
+        statusMsg.textContent = `${t("catch.errorSaving")} ${(err.message || err)}`;
         saveCatchBtn.disabled = false;
-        saveCatchBtn.textContent = "Save catch";
+        saveCatchBtn.textContent = t("catch.saveButton");
+        reapplyTranslations();
       }
     }
 
@@ -372,11 +415,13 @@
         return;
       }
       currentUser = user;
-      loggedInAsEl.textContent = user.email || "unknown user";
+      loggedInAsEl.textContent = user.email || t("spotAdd.unknownUser");
       await loadSpotsForUser(user);
+      reapplyTranslations();
     });
-  </script>
-  <script src="translations.js"></script>
 
+    // initial translate
+    reapplyTranslations();
+  </script>
 </body>
 </html>
