@@ -88,37 +88,33 @@
       "auth.googleFailedPrefix": "Google sign-in failed:",
       "auth.enterEmailPassword": "Enter email & password, then press Sign up.",
 
-      // Sdd-spot translations
+      // Add-spot translations
       "spotAdd.namePlaceholder": "Paunküla, Peipsi, etc.",
-"spotAdd.searchPlaceholder": "Search place (town, lake, address, etc.)",
-"spotAdd.unnamedPlace": "Unnamed place",
-
-"spotAdd.locationSetFromSearch": "Location set from search:",
-"spotAdd.searchingLocation": "Searching location…",
-"spotAdd.noResultsFound": "No results found for that search.",
-"spotAdd.searchFailed": "Search failed:",
-
-"spotAdd.geoNotAvailable": "Geolocation not available.",
-"spotAdd.gettingLocation": "Getting your current location…",
-"spotAdd.couldNotGetLocation": "Could not get location:",
-
-"spotAdd.mustBeLoggedIn": "You must be logged in.",
-"spotAdd.nameRequired": "Spot name is required.",
-"spotAdd.pleaseSetLocation": "Please set the location.",
-"spotAdd.saving": "Saving…",
-"spotAdd.duplicateName": "You already have a spot with this name (ignoring case & spaces).",
-"spotAdd.savedRedirecting": "Spot saved. Redirecting…",
-"spotAdd.errorSaving": "Error saving spot:",
-"spotAdd.saveButtonLabelFallback": "Save fishing spot",
-"spotAdd.unknownUser": "unknown user",
+      "spotAdd.searchPlaceholder": "Search place (town, lake, address, etc.)",
+      "spotAdd.unnamedPlace": "Unnamed place",
+      "spotAdd.locationSetFromSearch": "Location set from search:",
+      "spotAdd.searchingLocation": "Searching location…",
+      "spotAdd.noResultsFound": "No results found for that search.",
+      "spotAdd.searchFailed": "Search failed:",
+      "spotAdd.geoNotAvailable": "Geolocation not available.",
+      "spotAdd.gettingLocation": "Getting your current location…",
+      "spotAdd.couldNotGetLocation": "Could not get location:",
+      "spotAdd.mustBeLoggedIn": "You must be logged in.",
+      "spotAdd.nameRequired": "Spot name is required.",
+      "spotAdd.pleaseSetLocation": "Please set the location.",
+      "spotAdd.saving": "Saving…",
+      "spotAdd.duplicateName": "You already have a spot with this name (ignoring case & spaces).",
+      "spotAdd.savedRedirecting": "Spot saved. Redirecting…",
+      "spotAdd.errorSaving": "Error saving spot:",
+      "spotAdd.saveButtonLabelFallback": "Save fishing spot",
+      "spotAdd.unknownUser": "unknown user",
 
       // spots-map translations
       "spotsMap.legendMarkerColor": "Marker color (tomorrow)",
-"spotsMap.legendGood": "good",
-"spotsMap.legendMedium": "medium",
-"spotsMap.legendPoor": "poor",
-"spotsMap.legendPopupShows": "Popup shows live weather now and predictions for the next 3 days.",
-
+      "spotsMap.legendGood": "good",
+      "spotsMap.legendMedium": "medium",
+      "spotsMap.legendPoor": "poor",
+      "spotsMap.legendPopupShows": "Popup shows live weather now and predictions for the next 3 days.",
 
       // Common
       "common.backToMain": "← Back to main",
@@ -128,7 +124,7 @@
       "common.loading": "Loading…",
       "common.loadingSpot": "Loading spot…",
 
-      // Add catch
+      // Add catch (existing)
       "catch.title": "Add catch",
       "catch.subtitle": "Log a new catch with spot, weight, weather & notes.",
       "catch.speciesLabel": "Species",
@@ -144,6 +140,27 @@
       "catch.notesLabel": "Notes",
       "catch.saveButton": "Save catch",
 
+      // Add catch (NEW for i18n in add-catch.html)
+      "catch.speciesPlaceholder": "pike, perch, etc.",
+      "catch.lurePlaceholder": "Spinner, jig, worm…",
+      "catch.notesPlaceholder": "Weather, behavior, etc.",
+      "catch.weatherNotLoadedInline": "(not loaded yet)",
+
+      "catch.noSpotsYetOption": "No spots yet – create one first.",
+      "catch.chooseSpotOption": "Choose a fishing spot…",
+      "catch.unnamedSpotOption": "Unnamed spot",
+
+      "catch.geoNotAvailable": "Geolocation not available.",
+      "catch.gettingLocation": "Getting your location…",
+      "catch.couldNotGetLocation": "Could not get location:",
+      "catch.mustBeLoggedIn": "You must be logged in.",
+      "catch.chooseSpotRequired": "Please choose a fishing spot.",
+      "catch.enterValidWeight": "Please enter a valid weight.",
+      "catch.defaultSpecies": "fish",
+      "catch.saving": "Saving…",
+      "catch.savedRedirecting": "Catch saved. Redirecting…",
+      "catch.errorSaving": "Error saving catch:",
+
       // Catches list
       "catches.title": "Your Catches",
       "catches.subtitle": "All catches for your account.",
@@ -151,7 +168,7 @@
       "catches.back": "Back to main page",
       "catches.loading": "Loading catches…",
 
-      // Add spot
+      // Add spot (base)
       "spotAdd.title": "Add a fishing spot",
       "spotAdd.subtitle": "Save a named spot with GPS coordinates.",
       "spotAdd.nameLabel": "Spot name",
@@ -174,36 +191,31 @@
       "spotPage.catchesTitle": "Catches at this spot",
       "spotPage.loading": "Loading…",
 
-       // spot.html extra strings
-"spotPage.locationLabel": "Location:",
-"spotPage.locationNotSet": "not set",
+      // spot.html extra strings
+      "spotPage.locationLabel": "Location:",
+      "spotPage.locationNotSet": "not set",
+      "spotPage.noSpotSelected": "No spot selected",
+      "spotPage.missingSpotId": "Missing spot id in URL.",
+      "spotPage.spotNotFound": "Spot not found",
+      "spotPage.spotDoesNotExist": "This spot does not exist.",
+      "spotPage.accessDenied": "Access denied",
+      "spotPage.belongsToAnotherUser": "This spot belongs to another user.",
+      "spotPage.unnamedSpot": "Unnamed spot",
+      "spotPage.noCatchesYet": "No catches at this spot yet.",
+      "spotPage.lureLabel": "Lure",
+      "spotPage.depthLabel": "Depth",
+      "spotPage.waterTempLabel": "Water temp",
+      "spotPage.weatherAtCatchLabel": "Weather at time of catch",
+      "spotPage.noWeatherData": "no weather data",
+      "spotPage.deleteCatch": "Delete catch",
+      "spotPage.confirmDeleteCatch": "Delete this catch permanently?",
+      "spotPage.errorDeletingCatch": "Error deleting catch:",
+      "spotPage.confirmDeleteSpot": "Delete this spot and all catches at this spot? This cannot be undone.",
+      "spotPage.deleting": "Deleting…",
+      "spotPage.spotDeleted": "Spot and its catches deleted.",
+      "spotPage.errorDeletingSpot": "Error deleting spot:",
+      "spotPage.deleteButtonFallback": "Delete spot",
 
-"spotPage.noSpotSelected": "No spot selected",
-"spotPage.missingSpotId": "Missing spot id in URL.",
-"spotPage.spotNotFound": "Spot not found",
-"spotPage.spotDoesNotExist": "This spot does not exist.",
-"spotPage.accessDenied": "Access denied",
-"spotPage.belongsToAnotherUser": "This spot belongs to another user.",
-"spotPage.unnamedSpot": "Unnamed spot",
-
-"spotPage.noCatchesYet": "No catches at this spot yet.",
-"spotPage.lureLabel": "Lure",
-"spotPage.depthLabel": "Depth",
-"spotPage.waterTempLabel": "Water temp",
-"spotPage.weatherAtCatchLabel": "Weather at time of catch",
-"spotPage.noWeatherData": "no weather data",
-
-"spotPage.deleteCatch": "Delete catch",
-"spotPage.confirmDeleteCatch": "Delete this catch permanently?",
-"spotPage.errorDeletingCatch": "Error deleting catch:",
-
-"spotPage.confirmDeleteSpot": "Delete this spot and all catches at this spot? This cannot be undone.",
-"spotPage.deleting": "Deleting…",
-"spotPage.spotDeleted": "Spot and its catches deleted.",
-"spotPage.errorDeletingSpot": "Error deleting spot:",
-"spotPage.deleteButtonFallback": "Delete spot",
- 
-      
       // Spots map
       "spotsMap.title": "My fishing spots – map",
       "spotsMap.subtitle":
@@ -264,7 +276,7 @@
       "home.settings": "Seaded",
       "home.logOut": "Logi välja",
 
-      // Stats labels (keep WITHOUT trailing ":" because HTML adds punctuation)
+      // Stats labels
       "home.statsTotalCatches": "Püütud kalad",
       "home.biggestFish": "Suurim",
       "home.statsAverageWeight": "Keskmine kaal",
@@ -275,7 +287,7 @@
       "home.predictions": "Ennustused",
       "home.googleMaps": "Google Maps",
 
-      // Empty states used in index.html
+      // Empty states
       "home.spotStatsNa": "Püütud kalad puuduvad",
       "home.noCatchesYet": "Püütud kalad puuduvad",
       "home.noSpotsYet": "Püügikohti veel pole. Lisa oma esimene püügikoht.",
@@ -318,7 +330,7 @@
       "home.weatherThunderstormHail": "Äike rahega",
       "home.weatherUnknown": "Teadmata",
 
-      // Auth (index.html dynamic auth UI)
+      // Auth
       "auth.title": "Logi sisse või loo konto",
       "auth.emailPlaceholder": "E-post",
       "auth.passwordPlaceholder": "Parool",
@@ -327,41 +339,40 @@
       "auth.or": "või",
       "auth.continueWithGoogle": "Jätka Google’iga",
 
-      // Auth error prefixes/messages
+      // Auth errors
       "auth.loginFailedPrefix": "Sisselogimine ebaõnnestus:",
       "auth.signUpFailedPrefix": "Konto loomine ebaõnnestus:",
       "auth.googleFailedPrefix": "Google’i sisselogimine ebaõnnestus:",
       "auth.enterEmailPassword": "Sisesta e-post ja parool ning vajuta „Loo konto“.",
- // Add-spot translations
+
+      // Add-spot translations
       "spotAdd.namePlaceholder": "Paunküla, Peipsi jne.",
-"spotAdd.searchPlaceholder": "Otsi kohta (linn, järv, aadress jne.)",
-"spotAdd.unnamedPlace": "Nimetu koht",
-"spotAdd.locationSetFromSearch": "Asukoht seatud otsingust:",
-"spotAdd.searchingLocation": "Asukoha otsing…",
-"spotAdd.noResultsFound": "Otsingule ei leitud tulemusi.",
-"spotAdd.searchFailed": "Otsing ebaõnnestus:",
+      "spotAdd.searchPlaceholder": "Otsi kohta (linn, järv, aadress jne.)",
+      "spotAdd.unnamedPlace": "Nimetu koht",
+      "spotAdd.locationSetFromSearch": "Asukoht seatud otsingust:",
+      "spotAdd.searchingLocation": "Asukoha otsing…",
+      "spotAdd.noResultsFound": "Otsingule ei leitud tulemusi.",
+      "spotAdd.searchFailed": "Otsing ebaõnnestus:",
+      "spotAdd.geoNotAvailable": "Geolokatsioon pole saadaval.",
+      "spotAdd.gettingLocation": "Otsin sinu asukohta…",
+      "spotAdd.couldNotGetLocation": "Asukohta ei õnnestunud saada:",
+      "spotAdd.mustBeLoggedIn": "Pead olema sisse logitud.",
+      "spotAdd.nameRequired": "Koha nimi on kohustuslik.",
+      "spotAdd.pleaseSetLocation": "Palun määra asukoht.",
+      "spotAdd.saving": "Salvestan…",
+      "spotAdd.duplicateName": "Sul on juba sama nimega koht (tõstutundetu ja tühikuid ignoreerides).",
+      "spotAdd.savedRedirecting": "Koht salvestatud. Suunan tagasi…",
+      "spotAdd.errorSaving": "Koha salvestamine ebaõnnestus:",
+      "spotAdd.saveButtonLabelFallback": "Salvesta püügikoht",
+      "spotAdd.unknownUser": "tundmatu kasutaja",
 
-"spotAdd.geoNotAvailable": "Geolokatsioon pole saadaval.",
-"spotAdd.gettingLocation": "Otsin sinu asukohta…",
-"spotAdd.couldNotGetLocation": "Asukohta ei õnnestunud saada:",
-
-"spotAdd.mustBeLoggedIn": "Pead olema sisse logitud.",
-"spotAdd.nameRequired": "Koha nimi on kohustuslik.",
-"spotAdd.pleaseSetLocation": "Palun määra asukoht.",
-"spotAdd.saving": "Salvestan…",
-"spotAdd.duplicateName": "Sul on juba sama nimega koht (tõstutundetu ja tühikuid ignoreerides).",
-"spotAdd.savedRedirecting": "Koht salvestatud. Suunan tagasi…",
-"spotAdd.errorSaving": "Koha salvestamine ebaõnnestus:",
-"spotAdd.saveButtonLabelFallback": "Salvesta püügikoht",
-"spotAdd.unknownUser": "tundmatu kasutaja",
-
-      // spots-map transaltions
+      // spots-map translations
       "spotsMap.legendMarkerColor": "Markeri värv (homne päev)",
-"spotsMap.legendGood": "hea",
-"spotsMap.legendMedium": "keskmine",
-"spotsMap.legendPoor": "nõrk",
-"spotsMap.legendPopupShows": "Hüpikaken näitab hetke ilma ja ennustusi järgmiseks 3 päevaks.",
-   
+      "spotsMap.legendGood": "hea",
+      "spotsMap.legendMedium": "keskmine",
+      "spotsMap.legendPoor": "nõrk",
+      "spotsMap.legendPopupShows": "Hüpikaken näitab hetke ilma ja ennustusi järgmiseks 3 päevaks.",
+
       // Common
       "common.backToMain": "← Tagasi avalehele",
       "common.backToMainPage": "Tagasi avalehele",
@@ -370,7 +381,7 @@
       "common.loading": "Laadimine…",
       "common.loadingSpot": "Koha laadimine…",
 
-      // Add catch
+      // Add catch (existing)
       "catch.title": "Lisa kala",
       "catch.subtitle":
         "Salvesta uus saak koos püügikoha, kaalu, ilma ja märkmetega.",
@@ -387,6 +398,27 @@
       "catch.notesLabel": "Märkmed",
       "catch.saveButton": "Salvesta saak",
 
+      // Add catch (NEW for i18n in add-catch.html)
+      "catch.speciesPlaceholder": "haug, ahven jne.",
+      "catch.lurePlaceholder": "Spinner, jig, uss…",
+      "catch.notesPlaceholder": "Ilm, käitumine jne.",
+      "catch.weatherNotLoadedInline": "(pole veel laaditud)",
+
+      "catch.noSpotsYetOption": "Püügikohti pole – loo enne üks.",
+      "catch.chooseSpotOption": "Vali püügikoht…",
+      "catch.unnamedSpotOption": "Nimetu püügikoht",
+
+      "catch.geoNotAvailable": "Geolokatsioon pole saadaval.",
+      "catch.gettingLocation": "Otsin sinu asukohta…",
+      "catch.couldNotGetLocation": "Asukohta ei õnnestunud saada:",
+      "catch.mustBeLoggedIn": "Pead olema sisse logitud.",
+      "catch.chooseSpotRequired": "Palun vali püügikoht.",
+      "catch.enterValidWeight": "Palun sisesta korrektne kaal.",
+      "catch.defaultSpecies": "kala",
+      "catch.saving": "Salvestan…",
+      "catch.savedRedirecting": "Saak salvestatud. Suunan tagasi…",
+      "catch.errorSaving": "Saagi salvestamine ebaõnnestus:",
+
       // Catches list
       "catches.title": "Sinu saagid",
       "catches.subtitle": "Kõik sinu konto saagid.",
@@ -394,7 +426,7 @@
       "catches.back": "Tagasi avalehele",
       "catches.loading": "Saakide laadimine…",
 
-      // Add spot
+      // Add spot (base)
       "spotAdd.title": "Lisa püügikoht",
       "spotAdd.subtitle": "Salvesta nimega püügikoht koos GPS-koordinaatidega.",
       "spotAdd.nameLabel": "Koha nimi",
@@ -417,36 +449,31 @@
       "spotPage.catchesTitle": "Selle koha kalad",
       "spotPage.loading": "Laadimine…",
 
-// spot.html extra strings
-"spotPage.locationLabel": "Asukoht:",
-"spotPage.locationNotSet": "määramata",
+      // spot.html extra strings
+      "spotPage.locationLabel": "Asukoht:",
+      "spotPage.locationNotSet": "määramata",
+      "spotPage.noSpotSelected": "Püügikohta pole valitud",
+      "spotPage.missingSpotId": "URL-is puudub koha ID.",
+      "spotPage.spotNotFound": "Püügikohta ei leitud",
+      "spotPage.spotDoesNotExist": "Seda püügikohta ei eksisteeri.",
+      "spotPage.accessDenied": "Ligipääs keelatud",
+      "spotPage.belongsToAnotherUser": "See püügikoht kuulub teisele kasutajale.",
+      "spotPage.unnamedSpot": "Nimetu püügikoht",
+      "spotPage.noCatchesYet": "Selles kohas pole kala.",
+      "spotPage.lureLabel": "Lant",
+      "spotPage.depthLabel": "Sügavus",
+      "spotPage.waterTempLabel": "Vee temp",
+      "spotPage.weatherAtCatchLabel": "Ilm saagi ajal",
+      "spotPage.noWeatherData": "ilmaandmed puuduvad",
+      "spotPage.deleteCatch": "Kustuta saak",
+      "spotPage.confirmDeleteCatch": "Kas kustutada see saak jäädavalt?",
+      "spotPage.errorDeletingCatch": "Saagi kustutamine ebaõnnestus:",
+      "spotPage.confirmDeleteSpot": "Kas kustutada see püügikoht ja kõik selle koha saagid? Seda ei saa tagasi võtta.",
+      "spotPage.deleting": "Kustutan…",
+      "spotPage.spotDeleted": "Püügikoht ja selle saagid kustutati.",
+      "spotPage.errorDeletingSpot": "Püügikoha kustutamine ebaõnnestus:",
+      "spotPage.deleteButtonFallback": "Kustuta koht",
 
-"spotPage.noSpotSelected": "Püügikohta pole valitud",
-"spotPage.missingSpotId": "URL-is puudub koha ID.",
-"spotPage.spotNotFound": "Püügikohta ei leitud",
-"spotPage.spotDoesNotExist": "Seda püügikohta ei eksisteeri.",
-"spotPage.accessDenied": "Ligipääs keelatud",
-"spotPage.belongsToAnotherUser": "See püügikoht kuulub teisele kasutajale.",
-"spotPage.unnamedSpot": "Nimetu püügikoht",
-
-"spotPage.noCatchesYet": "Selles kohas pole kala.",
-"spotPage.lureLabel": "Lant",
-"spotPage.depthLabel": "Sügavus",
-"spotPage.waterTempLabel": "Vee temp",
-"spotPage.weatherAtCatchLabel": "Ilm saagi ajal",
-"spotPage.noWeatherData": "ilmaandmed puuduvad",
-
-"spotPage.deleteCatch": "Kustuta saak",
-"spotPage.confirmDeleteCatch": "Kas kustutada see saak jäädavalt?",
-"spotPage.errorDeletingCatch": "Saagi kustutamine ebaõnnestus:",
-
-"spotPage.confirmDeleteSpot": "Kas kustutada see püügikoht ja kõik selle koha saagid? Seda ei saa tagasi võtta.",
-"spotPage.deleting": "Kustutan…",
-"spotPage.spotDeleted": "Püügikoht ja selle saagid kustutati.",
-"spotPage.errorDeletingSpot": "Püügikoha kustutamine ebaõnnestus:",
-"spotPage.deleteButtonFallback": "Kustuta koht",
-
-      
       // Spots map
       "spotsMap.title": "Minu püügikohad – kaart",
       "spotsMap.subtitle":
@@ -500,21 +527,16 @@
   };
 
   function detectInitialLang() {
-    // 1) Stored choice
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored && TRANSLATIONS[stored]) return stored;
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
 
-    // 2) Browser language
     const navLang = (navigator.language || navigator.userLanguage || "en")
       .slice(0, 2)
       .toLowerCase();
     if (TRANSLATIONS[navLang]) return navLang;
 
-    // 3) Fallback
     return "en";
   }
 
@@ -522,34 +544,27 @@
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored && TRANSLATIONS[stored]) return stored;
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
     return detectInitialLang();
   }
 
   function saveLang(lang) {
     try {
       localStorage.setItem(STORAGE_KEY, lang);
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
   }
 
   function applyTranslations() {
     const lang = getCurrentLang();
     const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
 
-    // Set <html lang="">
     document.documentElement.setAttribute("lang", lang);
 
-    // Basic text nodes: data-i18n="key"
     document.querySelectorAll("[data-i18n]").forEach((el) => {
       const key = el.getAttribute("data-i18n");
       const value = dict[key];
       if (!value) return;
 
-      // Preserve simple line breaks
       if (value.indexOf("\n") >= 0) {
         el.innerHTML = "";
         value.split("\n").forEach((line, idx) => {
@@ -561,21 +576,18 @@
       }
     });
 
-    // Placeholders: data-i18n-placeholder="key"
     document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
       const key = el.getAttribute("data-i18n-placeholder");
       const value = dict[key];
       if (value) el.setAttribute("placeholder", value);
     });
 
-    // Title attribute: data-i18n-title="key"
     document.querySelectorAll("[data-i18n-title]").forEach((el) => {
       const key = el.getAttribute("data-i18n-title");
       const value = dict[key];
       if (value) el.setAttribute("title", value);
     });
 
-    // Language switch buttons UI feedback (used on Settings page)
     document.querySelectorAll("[data-lang]").forEach((btn) => {
       const btnLang = btn.getAttribute("data-lang");
       if (btnLang === lang) btn.classList.add("lang-active");
@@ -589,7 +601,6 @@
     applyTranslations();
   }
 
-  // Expose helpers globally so other scripts can use them
   window.fishingLogI18n = {
     getCurrentLang,
     setLanguage,
