@@ -291,7 +291,7 @@
       // Home / index.html
       "home.title": "Minu kalapüügipäevik",
       "home.subtitle":
-        "Jälgi oma saake igal pool – koos sisselogimise, püügikohtade, ilma ja ennustustega.",
+        "Jälgi oma püütud kalu igal pool – koos sisselogimise, püügikohtade, ilma ja ennustustega.",
       "home.statsTitle": "Statistika",
       "home.spotsTitle": "Minu püügikohad",
       "home.mapView": "Kaardivaade",
@@ -408,7 +408,7 @@
       // Add catch
       "catch.title": "Lisa kala",
       "catch.subtitle":
-        "Salvesta uus saak koos püügikoha, kaalu, ilma ja märkmetega.",
+        "Salvesta püütud kala koos püügikoha, kaalu, ilma ja märkmetega.",
       "catch.speciesLabel": "Kalaliik",
       "catch.weightLabel": "Kaal (kg)",
       "catch.spotLabel": "Püügikoht (kohustuslik)",
@@ -469,7 +469,7 @@
 
       // Single spot page
       "spotPage.title": "Püügikoht",
-      "spotPage.subtitle": "Vaata selle koha andmeid ja saake.",
+      "spotPage.subtitle": "Vaata selle koha andmeid ja püütud kalu.",
       "spotPage.addCatch": "Lisa kala",
       "spotPage.predictions": "Ennustused",
       "spotPage.edit": "Muuda",
@@ -493,8 +493,8 @@
       "spotPage.waterTempLabel": "Vee temp",
       "spotPage.weatherAtCatchLabel": "Ilm saagi ajal",
       "spotPage.noWeatherData": "ilmaandmed puuduvad",
-      "spotPage.deleteCatch": "Kustuta saak",
-      "spotPage.confirmDeleteCatch": "Kas kustutada see saak jäädavalt?",
+      "spotPage.deleteCatch": "Kustuta kala",
+      "spotPage.confirmDeleteCatch": "Kas kustutada see kala jäädavalt?",
       "spotPage.errorDeletingCatch": "Saagi kustutamine ebaõnnestus:",
       "spotPage.confirmDeleteSpot": "Kas kustutada see püügikoht ja kõik selle koha saagid? Seda ei saa tagasi võtta.",
       "spotPage.deleting": "Kustutan…",
@@ -533,7 +533,7 @@
       "pred.failedToCompute": "Ennustuse arvutamine ebaõnnestus.",
       "pred.noForecastData": "Prognoosiandmed pole saadaval.",
       "pred.avgScoreSummary": "Järgmise 3 päeva keskmine skoor: {avg}% (põhineb {usable} ilmaandmetega saagil).",
-      "pred.noUsableCatchesYet": "Ilmaandmetega saake pole veel piisavalt – ennustus pole saadaval.",
+      "pred.noUsableCatchesYet": "Ilmaandmetega kalu pole veel piisavalt – ennustus pole saadaval.",
       "pred.tagGood": "Hea",
       "pred.tagMedium": "Keskmine",
       "pred.tagPoor": "Nõrk",
