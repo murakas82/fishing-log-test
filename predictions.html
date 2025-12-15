@@ -1,668 +1,594 @@
-// translations.js
-// Simple EN/ET translation helper for My Fishing Log
-
-(function () {
-  const STORAGE_KEY = "fishinglog_lang";
-
-  // Translation dictionary
-  const TRANSLATIONS = {
-    en: {
-      // Home / index.html
-      "home.title": "My Fishing Log",
-      "home.subtitle":
-        "Track your catches anywhere – with login, spots, weather & predictions.",
-      "home.statsTitle": "Stats",
-      "home.spotsTitle": "My fishing spots",
-      "home.mapView": "Map view",
-      "home.addNewSpot": "Add new spot",
-      "home.loadingApp": "Loading app…",
-      "home.settings": "Settings",
-      "home.logOut": "Log out",
-
-      // Stats labels (keep WITHOUT trailing ":" because HTML adds punctuation)
-      "home.statsTotalCatches": "Total catches",
-      "home.biggestFish": "Biggest",
-      "home.statsAverageWeight": "Average weight",
-
-      // Buttons
-      "home.openSpot": "Open spot",
-      "home.AddCatch": "Add catch",
-      "home.predictions": "Predictions",
-      "home.googleMaps": "Google Maps",
-
-      // Empty states used in index.html
-      "home.spotStatsNa": "No catches yet.",
-      "home.noCatchesYet": "No catches yet.",
-      "home.noSpotsYet": "No spots yet. Add your first fishing spot.",
-
-      // Weather/pred rows
-      "home.weatherNow": "Weather now",
-      "home.predictionNext3Days": "Prediction (next 3 days)",
-      "home.loading": "loading…",
-      "home.failedToLoad": "failed to load.",
-      "home.locationMissing": "location missing.",
-      "home.unavailable": "unavailable.",
-      "home.notEnoughDataYet": "not enough data yet.",
-      "home.na": "n/a",
-
-      // Units + wind label
-      "home.wind": "wind",
-      "home.unitCelsius": "°C",
-      "home.unitMetersPerSecond": "m/s",
-
-      // Weekdays (short)
-      "home.weekdaySun": "Sun.",
-      "home.weekdayMon": "Mon.",
-      "home.weekdayTue": "Tue.",
-      "home.weekdayWed": "Wed.",
-      "home.weekdayThu": "Thu.",
-      "home.weekdayFri": "Fri.",
-      "home.weekdaySat": "Sat.",
-
-      // Weather conditions
-      "home.weatherClear": "Clear",
-      "home.weatherMainlyClear": "Mainly clear",
-      "home.weatherPartlyCloudy": "Partly cloudy",
-      "home.weatherOvercast": "Overcast",
-      "home.weatherDrizzle": "Drizzle",
-      "home.weatherRain": "Rain",
-      "home.weatherSnow": "Snow",
-      "home.weatherRainShowers": "Rain showers",
-      "home.weatherSnowShowers": "Snow showers",
-      "home.weatherThunderstorm": "Thunderstorm",
-      "home.weatherThunderstormHail": "Thunderstorm with hail",
-      "home.weatherUnknown": "Unknown",
-
-      // Auth (index.html dynamic auth UI)
-      "auth.title": "Log in or sign up",
-      "auth.emailPlaceholder": "Email",
-      "auth.passwordPlaceholder": "Password",
-      "auth.logIn": "Log in",
-      "auth.signUp": "Sign up",
-      "auth.or": "or",
-      "auth.continueWithGoogle": "Continue with Google",
-
-      // Auth error prefixes/messages
-      "auth.loginFailedPrefix": "Login failed:",
-      "auth.signUpFailedPrefix": "Sign up failed:",
-      "auth.googleFailedPrefix": "Google sign-in failed:",
-      "auth.enterEmailPassword": "Enter email & password, then press Sign up.",
-
-      // Add-spot translations
-      "spotAdd.namePlaceholder": "Paunküla, Peipsi, etc.",
-      "spotAdd.searchPlaceholder": "Search place (town, lake, address, etc.)",
-      "spotAdd.unnamedPlace": "Unnamed place",
-      "spotAdd.locationSetFromSearch": "Location set from search:",
-      "spotAdd.searchingLocation": "Searching location…",
-      "spotAdd.noResultsFound": "No results found for that search.",
-      "spotAdd.searchFailed": "Search failed:",
-      "spotAdd.geoNotAvailable": "Geolocation not available.",
-      "spotAdd.gettingLocation": "Getting your current location…",
-      "spotAdd.couldNotGetLocation": "Could not get location:",
-      "spotAdd.mustBeLoggedIn": "You must be logged in.",
-      "spotAdd.nameRequired": "Spot name is required.",
-      "spotAdd.pleaseSetLocation": "Please set the location.",
-      "spotAdd.saving": "Saving…",
-      "spotAdd.duplicateName": "You already have a spot with this name (ignoring case & spaces).",
-      "spotAdd.savedRedirecting": "Spot saved. Redirecting…",
-      "spotAdd.errorSaving": "Error saving spot:",
-      "spotAdd.saveButtonLabelFallback": "Save fishing spot",
-      "spotAdd.unknownUser": "unknown user",
-
-      // spots-map translations
-      "spotsMap.legendMarkerColor": "Marker color (tomorrow)",
-      "spotsMap.legendGood": "good",
-      "spotsMap.legendMedium": "medium",
-      "spotsMap.legendPoor": "poor",
-      "spotsMap.legendPopupShows": "Popup shows live weather now and predictions for the next 3 days.",
-
-      // Common
-      "common.backToMain": "← Back to main",
-      "common.backToMainPage": "Back to main page",
-      "common.loggedInAs": "Logged in as …",
-      "common.useMyLocation": "Use my location",
-      "common.loading": "Loading…",
-      "common.loadingSpot": "Loading spot…",
-
-      // Add catch
-      "catch.title": "Add catch",
-      "catch.subtitle": "Log a new catch with spot, weight, weather & notes.",
-      "catch.speciesLabel": "Species",
-      "catch.weightLabel": "Weight (kg)",
-      "catch.spotLabel": "Fishing spot (required)",
-      "catch.lureLabel": "Lure",
-      "catch.depthLabel": "Water depth (m)",
-      "catch.waterTempLabel": "Water temperature (°C)",
-      "catch.latLabel": "Latitude (auto from spot or GPS)",
-      "catch.lonLabel": "Longitude (auto from spot or GPS)",
-      "catch.weatherNowLabel": "Weather now:",
-      "catch.weatherNotLoaded": "(not loaded yet)",
-      "catch.notesLabel": "Notes",
-      "catch.saveButton": "Save catch",
-
-      "catch.speciesPlaceholder": "pike, perch, etc.",
-      "catch.lurePlaceholder": "Spinner, jig, worm…",
-      "catch.notesPlaceholder": "Weather, behavior, etc.",
-      "catch.weatherNotLoadedInline": "(not loaded yet)",
-
-      "catch.noSpotsYetOption": "No spots yet – create one first.",
-      "catch.chooseSpotOption": "Choose a fishing spot…",
-      "catch.unnamedSpotOption": "Unnamed spot",
-
-      "catch.geoNotAvailable": "Geolocation not available.",
-      "catch.gettingLocation": "Getting your location…",
-      "catch.couldNotGetLocation": "Could not get location:",
-      "catch.mustBeLoggedIn": "You must be logged in.",
-      "catch.chooseSpotRequired": "Please choose a fishing spot.",
-      "catch.enterValidWeight": "Please enter a valid weight.",
-      "catch.defaultSpecies": "fish",
-      "catch.saving": "Saving…",
-      "catch.savedRedirecting": "Catch saved. Redirecting…",
-      "catch.errorSaving": "Error saving catch:",
-
-      "catch.confirmDuplicateSave":
-        "This looks like a duplicate catch (same spot, same day, same species/weight/lure). Save anyway?",
-      "catch.duplicateBlocked":
-        "Duplicate catch was not saved.",
-
-      // Catches list
-      "catches.title": "Your Catches",
-      "catches.subtitle": "All catches for your account.",
-      "catches.needLogin": "You need to be logged in to see your catches.",
-      "catches.back": "Back to main page",
-      "catches.loading": "Loading catches…",
-
-      // Add spot (base)
-      "spotAdd.title": "Add a fishing spot",
-      "spotAdd.subtitle": "Save a named spot with GPS coordinates.",
-      "spotAdd.nameLabel": "Spot name",
-      "spotAdd.latLabel": "Latitude",
-      "spotAdd.lonLabel": "Longitude",
-      "spotAdd.saveButton": "Save fishing spot",
-
-      // Edit spot
-      "spotEdit.title": "Edit fishing spot",
-      "spotEdit.subtitle": "Change the name and GPS coordinates of this spot.",
-      "spotEdit.saveButton": "Save changes",
-
-      // Single spot page
-      "spotPage.title": "Fishing spot",
-      "spotPage.subtitle": "See details and catches for this spot.",
-      "spotPage.addCatch": "Add catch",
-      "spotPage.predictions": "Predictions",
-      "spotPage.edit": "Edit",
-      "spotPage.delete": "Delete spot",
-      "spotPage.catchesTitle": "Catches at this spot",
-      "spotPage.loading": "Loading…",
-
-      // spot.html extra strings
-      "spotPage.locationLabel": "Location:",
-      "spotPage.locationNotSet": "not set",
-      "spotPage.noSpotSelected": "No spot selected",
-      "spotPage.missingSpotId": "Missing spot id in URL.",
-      "spotPage.spotNotFound": "Spot not found",
-      "spotPage.spotDoesNotExist": "This spot does not exist.",
-      "spotPage.accessDenied": "Access denied",
-      "spotPage.belongsToAnotherUser": "This spot belongs to another user.",
-      "spotPage.unnamedSpot": "Unnamed spot",
-      "spotPage.noCatchesYet": "No catches at this spot yet.",
-      "spotPage.lureLabel": "Lure",
-      "spotPage.depthLabel": "Depth",
-      "spotPage.waterTempLabel": "Water temp",
-      "spotPage.weatherAtCatchLabel": "Weather at time of catch",
-      "spotPage.noWeatherData": "no weather data",
-      "spotPage.deleteCatch": "Delete catch",
-      "spotPage.confirmDeleteCatch": "Delete this catch permanently?",
-      "spotPage.errorDeletingCatch": "Error deleting catch:",
-      "spotPage.confirmDeleteSpot": "Delete this spot and all catches at this spot? This cannot be undone.",
-      "spotPage.deleting": "Deleting…",
-      "spotPage.spotDeleted": "Spot and its catches deleted.",
-      "spotPage.errorDeletingSpot": "Error deleting spot:",
-      "spotPage.deleteButtonFallback": "Delete spot",
-
-      // Spots map
-      "spotsMap.title": "My fishing spots – map",
-      "spotsMap.subtitle":
-        "See all your spots on an interactive map with live weather & predictions.",
-      "spotsMap.overview": "Spots overview",
-      "spotsMap.legendDescription":
-        "• Marker color (tomorrow): ● good (≥70%), ● medium (40–69%), ● poor (<40%).\n• Popup shows live weather now and predictions for the next 3 days.",
-
-      // Predictions (existing)
-      "pred.title": "Predictions",
-      "pred.subtitle": "Forecast match vs your past catches at this spot.",
-      "pred.loadingSpot": "Loading spot…",
-      "pred.fetchingData": "Fetching data…",
-      "pred.next3Days": "Next 3 days",
-      "pred.hotTimesTomorrow": "Hot times tomorrow",
-      "pred.hotTimesExplain":
-        "Times are between 1 hour before sunrise and 1 hour after sunset, based on your catches with weather data.",
-      "pred.debugTitle": "Debug view (why these scores?)",
-
-      // Predictions (NEW)
-      "pred.noSpotSelected": "No spot selected",
-      "pred.missingSpotId": "Missing spotId in URL.",
-      "pred.spotNotFound": "Spot not found",
-      "pred.unableToLoadSpot": "Unable to load this spot.",
-      "pred.loadingCatchesAndForecast": "Loading catches and forecast…",
-      "pred.spotCatchSummary": "{total} total catches at this spot, {withWeather} with weather data saved.",
-      "pred.noGpsNoPrediction": "This spot has no GPS coordinates, so forecast-based prediction is not available.",
-      "pred.failedToCompute": "Failed to compute predictions.",
-      "pred.noForecastData": "No forecast data available.",
-      "pred.avgScoreSummary": "Average score for the next 3 days: {avg}% (based on {usable} catches with weather data).",
-      "pred.noUsableCatchesYet": "No usable catches with weather data yet – predictions are not available.",
-      "pred.tagGood": "Good",
-      "pred.tagMedium": "Medium",
-      "pred.tagPoor": "Poor",
-      "pred.tagNoData": "No data",
-      "pred.weatherFog": "Fog",
-      "pred.weatherFailedToLoad": "Weather: failed to load",
-      "pred.weatherNotAvailable": "Weather now: not available",
-
-      // Settings
-      "settings.title": "Settings",
-      "settings.subtitle": "Personalize how your name appears in the app.",
-      "settings.displayNameLabel": "Display name",
-      "settings.displayNamePlaceholder": "What should the app call you?",
-      "settings.saveButton": "Save settings",
-      "settings.saved": "Settings saved.",
-      "settings.saveFailed": "Failed to save settings.",
-      "settings.languageLabel": "Language",
-      "settings.languageDescription":
-        "Choose the language for the app. This setting is saved on this device.",
-      "settings.languageEnglish": "English",
-      "settings.languageEstonian": "Estonian",
-      "settings.languageSaved": "Language preference saved.",
-
-      // Privacy
-      "privacy.title": "Privacy Policy",
-      "privacy.subtitle": "How this fishing log app handles your data.",
-
-      // Cookie banner
-      "cookie.text":
-        "This app uses essential cookies and local storage for secure login and basic functionality.",
-      "cookie.noAds": "No advertising or tracking cookies are used.",
-      "cookie.policyLinkText": "privacy policy",
-      "cookie.ok": "OK",
-      "cookie.later": "Later",
-    },
-
-    et: {
-      // Home / index.html
-      "home.title": "Minu kalapüügipäevik",
-      "home.subtitle":
-        "Jälgi oma saake igal pool – koos sisselogimise, püügikohtade, ilma ja ennustustega.",
-      "home.statsTitle": "Statistika",
-      "home.spotsTitle": "Minu püügikohad",
-      "home.mapView": "Kaardivaade",
-      "home.addNewSpot": "Lisa uus püügikoht",
-      "home.loadingApp": "Rakendus laadib…",
-      "home.settings": "Seaded",
-      "home.logOut": "Logi välja",
-
-      // Stats labels
-      "home.statsTotalCatches": "Püütud kalad",
-      "home.biggestFish": "Suurim",
-      "home.statsAverageWeight": "Keskmine kaal",
-
-      // Buttons
-      "home.openSpot": "Ava koht",
-      "home.AddCatch": "Lisa kala",
-      "home.predictions": "Ennustused",
-      "home.googleMaps": "Google Maps",
-
-      // Empty states
-      "home.spotStatsNa": "Püütud kalad puuduvad",
-      "home.noCatchesYet": "Püütud kalad puuduvad",
-      "home.noSpotsYet": "Püügikohti veel pole. Lisa oma esimene püügikoht.",
-
-      // Weather/pred rows
-      "home.weatherNow": "Ilm praegu",
-      "home.predictionNext3Days": "Prognoos (järgmised 3 päeva)",
-      "home.loading": "laadimine…",
-      "home.failedToLoad": "laadimine ebaõnnestus.",
-      "home.locationMissing": "asukoht puudub.",
-      "home.unavailable": "pole saadaval.",
-      "home.notEnoughDataYet": "andmeid pole veel piisavalt.",
-      "home.na": "puudub",
-
-      // Units + wind label
-      "home.wind": "tuul",
-      "home.unitCelsius": "°C",
-      "home.unitMetersPerSecond": "m/s",
-
-      // Weekdays (short)
-      "home.weekdaySun": "P",
-      "home.weekdayMon": "E",
-      "home.weekdayTue": "T",
-      "home.weekdayWed": "K",
-      "home.weekdayThu": "N",
-      "home.weekdayFri": "R",
-      "home.weekdaySat": "L",
-
-      // Weather conditions
-      "home.weatherClear": "Selge",
-      "home.weatherMainlyClear": "Peamiselt selge",
-      "home.weatherPartlyCloudy": "Vahelduv pilvisus",
-      "home.weatherOvercast": "Pilves",
-      "home.weatherDrizzle": "Uduvihm",
-      "home.weatherRain": "Vihm",
-      "home.weatherSnow": "Lumi",
-      "home.weatherRainShowers": "Vihmahood",
-      "home.weatherSnowShowers": "Lumehood",
-      "home.weatherThunderstorm": "Äike",
-      "home.weatherThunderstormHail": "Äike rahega",
-      "home.weatherUnknown": "Teadmata",
-
-      // Auth
-      "auth.title": "Logi sisse või loo konto",
-      "auth.emailPlaceholder": "E-post",
-      "auth.passwordPlaceholder": "Parool",
-      "auth.logIn": "Logi sisse",
-      "auth.signUp": "Loo konto",
-      "auth.or": "või",
-      "auth.continueWithGoogle": "Jätka Google’iga",
-
-      // Auth errors
-      "auth.loginFailedPrefix": "Sisselogimine ebaõnnestus:",
-      "auth.signUpFailedPrefix": "Konto loomine ebaõnnestus:",
-      "auth.googleFailedPrefix": "Google’i sisselogimine ebaõnnestus:",
-      "auth.enterEmailPassword": "Sisesta e-post ja parool ning vajuta „Loo konto“.",
-
-      // Add-spot translations
-      "spotAdd.namePlaceholder": "Paunküla, Peipsi jne.",
-      "spotAdd.searchPlaceholder": "Otsi kohta (linn, järv, aadress jne.)",
-      "spotAdd.unnamedPlace": "Nimetu koht",
-      "spotAdd.locationSetFromSearch": "Asukoht seatud otsingust:",
-      "spotAdd.searchingLocation": "Asukoha otsing…",
-      "spotAdd.noResultsFound": "Otsingule ei leitud tulemusi.",
-      "spotAdd.searchFailed": "Otsing ebaõnnestus:",
-      "spotAdd.geoNotAvailable": "Geolokatsioon pole saadaval.",
-      "spotAdd.gettingLocation": "Otsin sinu asukohta…",
-      "spotAdd.couldNotGetLocation": "Asukohta ei õnnestunud saada:",
-      "spotAdd.mustBeLoggedIn": "Pead olema sisse logitud.",
-      "spotAdd.nameRequired": "Koha nimi on kohustuslik.",
-      "spotAdd.pleaseSetLocation": "Palun määra asukoht.",
-      "spotAdd.saving": "Salvestan…",
-      "spotAdd.duplicateName": "Sul on juba sama nimega koht (tõstutundetu ja tühikuid ignoreerides).",
-      "spotAdd.savedRedirecting": "Koht salvestatud. Suunan tagasi…",
-      "spotAdd.errorSaving": "Koha salvestamine ebaõnnestus:",
-      "spotAdd.saveButtonLabelFallback": "Salvesta püügikoht",
-      "spotAdd.unknownUser": "tundmatu kasutaja",
-
-      // spots-map translations
-      "spotsMap.legendMarkerColor": "Markeri värv (homne päev)",
-      "spotsMap.legendGood": "hea",
-      "spotsMap.legendMedium": "keskmine",
-      "spotsMap.legendPoor": "nõrk",
-      "spotsMap.legendPopupShows": "Hüpikaken näitab hetke ilma ja ennustusi järgmiseks 3 päevaks.",
-
-      // Common
-      "common.backToMain": "← Tagasi avalehele",
-      "common.backToMainPage": "Tagasi avalehele",
-      "common.loggedInAs": "Sisse logitud kui …",
-      "common.useMyLocation": "Kasuta minu asukohta",
-      "common.loading": "Laadimine…",
-      "common.loadingSpot": "Koha laadimine…",
-
-      // Add catch
-      "catch.title": "Lisa kala",
-      "catch.subtitle":
-        "Salvesta uus saak koos püügikoha, kaalu, ilma ja märkmetega.",
-      "catch.speciesLabel": "Kalaliik",
-      "catch.weightLabel": "Kaal (kg)",
-      "catch.spotLabel": "Püügikoht (kohustuslik)",
-      "catch.lureLabel": "Lant",
-      "catch.depthLabel": "Sügavus (m)",
-      "catch.waterTempLabel": "Veetemperatuur (°C)",
-      "catch.latLabel": "Laiuskraad (automaatselt kohast või GPS-ist)",
-      "catch.lonLabel": "Pikkuskraad (automaatselt kohast või GPS-ist)",
-      "catch.weatherNowLabel": "Praegune ilm:",
-      "catch.weatherNotLoaded": "(pole veel laaditud)",
-      "catch.notesLabel": "Märkmed",
-      "catch.saveButton": "Salvesta saak",
-
-      "catch.speciesPlaceholder": "haug, ahven jne.",
-      "catch.lurePlaceholder": "Spinner, jig, uss…",
-      "catch.notesPlaceholder": "Ilm, käitumine jne.",
-      "catch.weatherNotLoadedInline": "(pole veel laaditud)",
-
-      "catch.noSpotsYetOption": "Püügikohti pole – loo enne üks.",
-      "catch.chooseSpotOption": "Vali püügikoht…",
-      "catch.unnamedSpotOption": "Nimetu püügikoht",
-
-      "catch.geoNotAvailable": "Geolokatsioon pole saadaval.",
-      "catch.gettingLocation": "Otsin sinu asukohta…",
-      "catch.couldNotGetLocation": "Asukohta ei õnnestunud saada:",
-      "catch.mustBeLoggedIn": "Pead olema sisse logitud.",
-      "catch.chooseSpotRequired": "Palun vali püügikoht.",
-      "catch.enterValidWeight": "Palun sisesta korrektne kaal.",
-      "catch.defaultSpecies": "kala",
-      "catch.saving": "Salvestan…",
-      "catch.savedRedirecting": "Saak salvestatud. Suunan tagasi…",
-      "catch.errorSaving": "Saagi salvestamine ebaõnnestus:",
-
-      "catch.confirmDuplicateSave":
-        "See tundub olevat duplikaatsaak (sama koht, sama päev, sama liik/kaal/lant). Kas salvestan ikkagi?",
-      "catch.duplicateBlocked":
-        "Duplikaatsaaki ei salvestatud.",
-
-      // Catches list
-      "catches.title": "Sinu saagid",
-      "catches.subtitle": "Kõik sinu konto saagid.",
-      "catches.needLogin": "Saagide nägemiseks pead olema sisse loginud.",
-      "catches.back": "Tagasi avalehele",
-      "catches.loading": "Saakide laadimine…",
-
-      // Add spot (base)
-      "spotAdd.title": "Lisa püügikoht",
-      "spotAdd.subtitle": "Salvesta nimega püügikoht koos GPS-koordinaatidega.",
-      "spotAdd.nameLabel": "Koha nimi",
-      "spotAdd.latLabel": "Laiuskraad",
-      "spotAdd.lonLabel": "Pikkuskraad",
-      "spotAdd.saveButton": "Salvesta püügikoht",
-
-      // Edit spot
-      "spotEdit.title": "Muuda püügikohta",
-      "spotEdit.subtitle": "Muuda selle koha nime ja GPS-koordinaate.",
-      "spotEdit.saveButton": "Salvesta muudatused",
-
-      // Single spot page
-      "spotPage.title": "Püügikoht",
-      "spotPage.subtitle": "Vaata selle koha andmeid ja saake.",
-      "spotPage.addCatch": "Lisa kala",
-      "spotPage.predictions": "Ennustused",
-      "spotPage.edit": "Muuda",
-      "spotPage.delete": "Kustuta koht",
-      "spotPage.catchesTitle": "Selle koha kalad",
-      "spotPage.loading": "Laadimine…",
-
-      // spot.html extra strings
-      "spotPage.locationLabel": "Asukoht:",
-      "spotPage.locationNotSet": "määramata",
-      "spotPage.noSpotSelected": "Püügikohta pole valitud",
-      "spotPage.missingSpotId": "URL-is puudub koha ID.",
-      "spotPage.spotNotFound": "Püügikohta ei leitud",
-      "spotPage.spotDoesNotExist": "Seda püügikohta ei eksisteeri.",
-      "spotPage.accessDenied": "Ligipääs keelatud",
-      "spotPage.belongsToAnotherUser": "See püügikoht kuulub teisele kasutajale.",
-      "spotPage.unnamedSpot": "Nimetu püügikoht",
-      "spotPage.noCatchesYet": "Selles kohas pole kala.",
-      "spotPage.lureLabel": "Lant",
-      "spotPage.depthLabel": "Sügavus",
-      "spotPage.waterTempLabel": "Vee temp",
-      "spotPage.weatherAtCatchLabel": "Ilm saagi ajal",
-      "spotPage.noWeatherData": "ilmaandmed puuduvad",
-      "spotPage.deleteCatch": "Kustuta saak",
-      "spotPage.confirmDeleteCatch": "Kas kustutada see saak jäädavalt?",
-      "spotPage.errorDeletingCatch": "Saagi kustutamine ebaõnnestus:",
-      "spotPage.confirmDeleteSpot": "Kas kustutada see püügikoht ja kõik selle koha saagid? Seda ei saa tagasi võtta.",
-      "spotPage.deleting": "Kustutan…",
-      "spotPage.spotDeleted": "Püügikoht ja selle saagid kustutati.",
-      "spotPage.errorDeletingSpot": "Püügikoha kustutamine ebaõnnestus:",
-      "spotPage.deleteButtonFallback": "Kustuta koht",
-
-      // Spots map
-      "spotsMap.title": "Minu püügikohad – kaart",
-      "spotsMap.subtitle":
-        "Vaata kõiki oma püügikohti interaktiivsel kaardil koos ilma ja ennustustega.",
-      "spotsMap.overview": "Kohtade ülevaade",
-      "spotsMap.legendDescription":
-        "• Markeri värv (homne päev): ● hea (≥70%), ● keskmine (40–69%), ● nõrk (<40%).\n• Hüpikaken näitab hetke ilma ja ennustusi järgmiseks 3 päevaks.",
-
-      // Predictions (existing)
-      "pred.title": "Ennustused",
-      "pred.subtitle":
-        "Ilmaprognoosi sobivus sinu varasemate selle koha saakidega.",
-      "pred.loadingSpot": "Koha laadimine…",
-      "pred.fetchingData": "Andmete toomine…",
-      "pred.next3Days": "Järgmised 3 päeva",
-      "pred.hotTimesTomorrow": "Parimad ajad homseks",
-      "pred.hotTimesExplain":
-        "Ajad on vahemikus tund enne päikesetõusu kuni tund pärast päikeseloojangut, põhinedes sinu ilmaandmetega saakidel.",
-      "pred.debugTitle": "Silumisvaade (miks sellised skoorid?)",
-
-      // Predictions (NEW)
-      "pred.noSpotSelected": "Püügikohta pole valitud",
-      "pred.missingSpotId": "URL-is puudub spotId.",
-      "pred.spotNotFound": "Püügikohta ei leitud",
-      "pred.unableToLoadSpot": "Seda püügikohta ei õnnestunud laadida.",
-      "pred.loadingCatchesAndForecast": "Laen saake ja prognoosi…",
-      "pred.spotCatchSummary": "Selles kohas kokku {total} saaki, neist {withWeather} salvestatud ilmaandmetega.",
-      "pred.noGpsNoPrediction": "Sellel püügikohal puuduvad GPS-koordinaadid, seega prognoosipõhine ennustus pole saadaval.",
-      "pred.failedToCompute": "Ennustuse arvutamine ebaõnnestus.",
-      "pred.noForecastData": "Prognoosiandmed pole saadaval.",
-      "pred.avgScoreSummary": "Järgmise 3 päeva keskmine skoor: {avg}% (põhineb {usable} ilmaandmetega saagil).",
-      "pred.noUsableCatchesYet": "Ilmaandmetega saake pole veel piisavalt – ennustus pole saadaval.",
-      "pred.tagGood": "Hea",
-      "pred.tagMedium": "Keskmine",
-      "pred.tagPoor": "Nõrk",
-      "pred.tagNoData": "Andmeid pole",
-      "pred.weatherFog": "Udu",
-      "pred.weatherFailedToLoad": "Ilm: laadimine ebaõnnestus",
-      "pred.weatherNotAvailable": "Ilm praegu: pole saadaval",
-
-      // Settings
-      "settings.title": "Seaded",
-      "settings.subtitle":
-        "Kohanda, kuidas sinu nimi rakenduses kuvatakse.",
-      "settings.displayNameLabel": "Kuvatav nimi",
-      "settings.displayNamePlaceholder":
-        "Kuidas rakendus peaks sind kutsuma?",
-      "settings.saveButton": "Salvesta seaded",
-      "settings.saved": "Seaded on salvestatud.",
-      "settings.saveFailed": "Seadete salvestamine ebaõnnestus.",
-      "settings.languageLabel": "Keel",
-      "settings.languageDescription":
-        "Vali rakenduse keel. See eelistus salvestatakse sellesse seadmesse.",
-      "settings.languageEnglish": "Inglise keel",
-      "settings.languageEstonian": "Eesti keel",
-      "settings.languageSaved": "Keele-eelistus on salvestatud.",
-
-      // Privacy
-      "privacy.title": "Privaatsuspoliitika",
-      "privacy.subtitle":
-        "Kuidas see kalapüügipäeviku rakendus sinu andmeid käitleb.",
-
-      // Cookie banner
-      "cookie.text":
-        "See rakendus kasutab olulisi küpsiseid ja kohaliku salvestuse andmeid turvaliseks sisselogimiseks ja põhiliseks toimimiseks.",
-      "cookie.noAds": "Reklaami- ega jälgimisküpsiseid ei kasutata.",
-      "cookie.policyLinkText": "privaatsuspoliitika",
-      "cookie.ok": "Olgu",
-      "cookie.later": "Hiljem",
-    },
-  };
-
-  function detectInitialLang() {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored && TRANSLATIONS[stored]) return stored;
-    } catch (e) {}
-
-    const navLang = (navigator.language || navigator.userLanguage || "en")
-      .slice(0, 2)
-      .toLowerCase();
-    if (TRANSLATIONS[navLang]) return navLang;
-
-    return "en";
-  }
-
-  function getCurrentLang() {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored && TRANSLATIONS[stored]) return stored;
-    } catch (e) {}
-    return detectInitialLang();
-  }
-
-  function saveLang(lang) {
-    try {
-      localStorage.setItem(STORAGE_KEY, lang);
-    } catch (e) {}
-  }
-
-  function applyTranslations() {
-    const lang = getCurrentLang();
-    const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
-
-    document.documentElement.setAttribute("lang", lang);
-
-    document.querySelectorAll("[data-i18n]").forEach((el) => {
-      const key = el.getAttribute("data-i18n");
-      const value = dict[key];
-      if (!value) return;
-
-      if (value.indexOf("\n") >= 0) {
-        el.innerHTML = "";
-        value.split("\n").forEach((line, idx) => {
-          if (idx > 0) el.appendChild(document.createElement("br"));
-          el.appendChild(document.createTextNode(line));
-        });
-      } else {
-        el.textContent = value;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Predictions – Fishing Spot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    .pred-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(148,163,184,0.25);
+      font-size: 0.9rem;
+    }
+    .pred-row:last-child { border-bottom: none; }
+    .pred-label { font-weight: 500; }
+    .pred-score { font-weight: 600; }
+    .pred-tag {
+      font-size: 0.8rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.5);
+      margin-left: 6px;
+    }
+    .pred-tag-good { border-color: #22c55e; color: #22c55e; }
+    .pred-tag-medium { border-color: #eab308; color: #eab308; }
+    .pred-tag-poor { border-color: #ef4444; color: #ef4444; }
+    .pred-info {
+      font-size: 0.82rem;
+      opacity: 0.85;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app fade-in">
+    <header class="card">
+      <div class="card-header">
+        <div>
+          <h1 data-i18n="pred.title">Predictions</h1>
+          <p class="muted-text" data-i18n="pred.subtitle">
+            Forecast match vs your past catches at this spot.
+          </p>
+        </div>
+        <button class="secondary-btn btn-back-main" id="backToSpotBtn" data-i18n="common.backToMain">
+          ← Back to main
+        </button>
+      </div>
+    </header>
+
+    <div class="card" id="spotHeaderCard">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+        <div>
+          <h2 id="spotNameHeading" style="margin:0 0 4px;" data-i18n="pred.loadingSpot">Loading spot…</h2>
+          <p id="spotDesc" class="pred-info" style="margin:0;" data-i18n="pred.fetchingData">Fetching data…</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="predictionsCard" style="display:none;">
+      <h2 data-i18n="pred.next3Days">Next 3 days</h2>
+      <div id="predictionsList"></div>
+      <p class="pred-info" id="predSummary"></p>
+    </div>
+
+    <div class="card" id="hotTimesCard" style="display:none;">
+      <h2 data-i18n="pred.hotTimesTomorrow">Hot times tomorrow</h2>
+      <div id="hotTimesList"></div>
+      <p class="pred-info" id="hotTimesNote" data-i18n="pred.hotTimesExplain">
+        Times are between 1 hour before sunrise and 1 hour after sunset, based on your catches with weather data.
+      </p>
+    </div>
+
+    <div class="card" id="debugCard" style="display:none;">
+      <h2 data-i18n="pred.debugTitle">Debug view (why these scores?)</h2>
+      <p class="pred-info" id="debugInfo"></p>
+      <p class="pred-info" id="weatherNowInfo"></p>
+    </div>
+  </div>
+
+  <!-- i18n (load once) -->
+  <script src="translations.js"></script>
+
+  <script type="module">
+    import { initializeApp }
+      from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+    import {
+      getFirestore,
+      doc, getDoc,
+      collection, getDocs,
+      query, where
+    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXIdT74cNDSVIoMs3NZ86tPf2kzFm8Iug",
+      authDomain: "fishing-log-app-murx.firebaseapp.com",
+      projectId: "fishing-log-app-murx",
+      storageBucket: "fishing-log-app-murx.firebasestorage.app",
+      messagingSenderId: "1056807867882",
+      appId: "1:1056807867882:web:e59ddd8f6353d190080e93"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    // i18n helpers
+    const i18n = window.fishingLogI18n;
+    const t = (key) => (i18n && typeof i18n.t === "function") ? i18n.t(key) : key;
+    function reapplyTranslations() {
+      if (i18n && typeof i18n.applyTranslations === "function") i18n.applyTranslations();
+    }
+
+    const spotNameHeading = document.getElementById("spotNameHeading");
+    const spotDesc        = document.getElementById("spotDesc");
+    const backToSpotBtn   = document.getElementById("backToSpotBtn");
+
+    const predictionsCard = document.getElementById("predictionsCard");
+    const predictionsList = document.getElementById("predictionsList");
+    const predSummary     = document.getElementById("predSummary");
+
+    const hotTimesCard    = document.getElementById("hotTimesCard");
+    const hotTimesList    = document.getElementById("hotTimesList");
+
+    const debugCard       = document.getElementById("debugCard");
+    const debugInfo       = document.getElementById("debugInfo");
+    const weatherNowInfo  = document.getElementById("weatherNowInfo");
+
+    let currentUser   = null;
+    let currentSpotId = null;
+    let currentSpot   = null;
+
+    function getSpotIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("spotId");
+    }
+
+    function weekdayKeyForDate(d) {
+      const keys = [
+        "home.weekdaySun",
+        "home.weekdayMon",
+        "home.weekdayTue",
+        "home.weekdayWed",
+        "home.weekdayThu",
+        "home.weekdayFri",
+        "home.weekdaySat"
+      ];
+      return keys[d.getDay()] || "home.weekdaySun";
+    }
+
+    function formatDateLabel(dateObj) {
+      const d = dateObj.getDate();
+      const m = dateObj.getMonth() + 1;
+      const y = dateObj.getFullYear();
+      const weekday = t(weekdayKeyForDate(dateObj));
+      return `${weekday} ${d}.${m}.${y}`;
+    }
+
+    // Reuse same condition keys as index/spots-map
+    function getWeatherIconAndLabel(code) {
+      if (code === 0)  return { icon: "☀️", label: t("home.weatherClear") };
+      if (code === 1)  return { icon: "🌤️", label: t("home.weatherMainlyClear") };
+      if (code === 2)  return { icon: "⛅",  label: t("home.weatherPartlyCloudy") };
+      if (code === 3)  return { icon: "☁️", label: t("home.weatherOvercast") };
+      if (code === 45 || code === 48) return { icon: "🌫️", label: t("pred.weatherFog") };
+      if (code >= 51 && code <= 57) return { icon: "🌦️", label: t("home.weatherDrizzle") };
+      if (code >= 61 && code <= 67) return { icon: "🌧️", label: t("home.weatherRain") };
+      if (code >= 71 && code <= 77) return { icon: "🌨️", label: t("home.weatherSnow") };
+      if (code >= 80 && code <= 82) return { icon: "🌦️", label: t("home.weatherRainShowers") };
+      if (code >= 85 && code <= 86) return { icon: "🌨️", label: t("home.weatherSnowShowers") };
+      if (code === 95) return { icon: "⛈️", label: t("home.weatherThunderstorm") };
+      if (code === 96 || code === 99) return { icon: "⛈️", label: t("home.weatherThunderstormHail") };
+      return { icon: "❓", label: t("home.weatherUnknown") };
+    }
+
+    // Approximate moon phase (0..1)
+    function getApproxMoonPhase(date) {
+      const lp = 2551443;
+      const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14);
+      const diff = date.getTime() - knownNewMoon;
+      const phase = (diff / 1000) % lp;
+      let frac = phase / lp;
+      if (frac < 0) frac += 1;
+      return frac;
+    }
+
+    function computePredictionScoreForDay(
+      spotCatches,
+      forecastTemp,
+      forecastWindMs,
+      forecastPress,
+      forecastMoonPhase
+    ) {
+      const usable = spotCatches.filter(c =>
+        typeof c.weatherTemp     === "number" &&
+        typeof c.weatherWindMs   === "number" &&
+        typeof c.weatherPressure === "number"
+      );
+
+      if (!usable.length) return null;
+
+      const scores = usable.map(c => {
+        let penalty = 0;
+
+        const tempDiff = Math.abs(c.weatherTemp - forecastTemp);
+        if (tempDiff > 5) penalty += (tempDiff - 5) * 2;
+
+        const windDiff = Math.abs(c.weatherWindMs - forecastWindMs);
+        if (windDiff > 4) penalty += (windDiff - 4) * 3;
+
+        if (forecastPress < 1000) {
+          if (c.weatherPressure >= 1000) penalty += 10;
+        } else {
+          if (c.weatherPressure < 1000)  penalty += 10;
+        }
+
+        const catchMoon =
+          typeof c.moonPhase === "number" ? c.moonPhase : null;
+
+        if (catchMoon != null && typeof forecastMoonPhase === "number") {
+          const moonDiff = Math.abs(c.moonPhase - forecastMoonPhase);
+          penalty += moonDiff * 40;
+        }
+
+        let score = 100 - penalty;
+        if (score < 0) score = 0;
+        if (score > 100) score = 100;
+        return score;
+      });
+
+      return scores.reduce((a, b) => a + b, 0) / scores.length;
+    }
+
+    async function computeSpotWeatherAndPredictions(lat, lng, spotCatches) {
+      let weatherNowText = t("pred.weatherFailedToLoad");
+      const predictions = [];
+      let hotHoursTomorrow = [];
+
+      const url =
+        `https://api.open-meteo.com/v1/forecast` +
+        `?latitude=${lat}&longitude=${lng}` +
+        `&current=temperature_2m,wind_speed_10m,weather_code` +
+        `&hourly=temperature_2m,wind_speed_10m,pressure_msl` +
+        `&forecast_days=4` +
+        `&wind_speed_unit=ms` +
+        `&timezone=auto`;
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Open-Meteo HTTP " + res.status);
+      const data = await res.json();
+
+      // ---- Current weather ----
+      const cur = data.current || {};
+      const tempNow =
+        typeof cur.temperature_2m === "number" ? cur.temperature_2m : null;
+      const windMsNow =
+        typeof cur.wind_speed_10m === "number" ? cur.wind_speed_10m : null;
+      const codeNow = cur.weather_code;
+
+      const { icon, label } = getWeatherIconAndLabel(codeNow);
+      const wParts = [];
+      if (label) wParts.push(label);
+      if (tempNow != null) wParts.push(`${tempNow.toFixed(1)} ${t("home.unitCelsius")}`);
+      if (windMsNow != null) wParts.push(`${t("home.wind")} ${windMsNow.toFixed(1)} ${t("home.unitMetersPerSecond")}`);
+
+      weatherNowText = wParts.length
+        ? `${t("home.weatherNow")}: ${icon} ${wParts.join(", ")}`
+        : t("pred.weatherNotAvailable");
+
+      // ---- Hourly forecast ----
+      const hourly = data.hourly || {};
+      const times   = hourly.time || [];
+      const temps   = hourly.temperature_2m || [];
+      const windsMs = hourly.wind_speed_10m || [];
+      const presses = hourly.pressure_msl || [];
+
+      if (!times.length || !temps.length || !windsMs.length || !presses.length) {
+        return { weatherNowText, predictions, hotHoursTomorrow };
       }
+
+      function getForecastForDayOffset(dayOffset) {
+        const base = new Date();
+        base.setDate(base.getDate() + dayOffset);
+        const yyyy = base.getFullYear();
+        const mm = String(base.getMonth() + 1).padStart(2, "0");
+        const dd = String(base.getDate()).padStart(2, "0");
+        const dateStr = `${yyyy}-${mm}-${dd}`;
+
+        let idx = times.findIndex(t => t.startsWith(`${dateStr}T12`));
+        if (idx === -1) idx = times.findIndex(t => t.startsWith(dateStr));
+        if (idx === -1) return null;
+
+        const fTemp  = temps[idx];
+        const fWind  = windsMs[idx];
+        const fPress = presses[idx];
+        const fMoon  = getApproxMoonPhase(base);
+
+        return { dateObj: base, temp: fTemp, windMs: fWind, press: fPress, moon: fMoon };
+      }
+
+      for (let offset = 1; offset <= 3; offset++) {
+        const fc = getForecastForDayOffset(offset);
+        if (!fc) {
+          const d = new Date();
+          d.setDate(d.getDate() + offset);
+          predictions.push({
+            score: null,
+            dateLabel: formatDateLabel(d),
+            forecast: null
+          });
+          continue;
+        }
+
+        const score = computePredictionScoreForDay(
+          spotCatches,
+          fc.temp,
+          fc.windMs,
+          fc.press,
+          fc.moon
+        );
+
+        predictions.push({
+          score,
+          dateLabel: formatDateLabel(fc.dateObj),
+          forecast: fc
+        });
+      }
+
+      // ---- Hot times tomorrow (daylight only) ----
+      async function getHotHoursForDayOffset(dayOffset) {
+        const base = new Date();
+        base.setDate(base.getDate() + dayOffset);
+        const yyyy = base.getFullYear();
+        const mm = String(base.getMonth() + 1).padStart(2, "0");
+        const dd = String(base.getDate()).padStart(2, "0");
+        const dateStr = `${yyyy}-${mm}-${dd}`;
+
+        const sunUrl =
+          `https://api.open-meteo.com/v1/forecast` +
+          `?latitude=${lat}&longitude=${lng}` +
+          `&daily=sunrise,sunset&timezone=auto` +
+          `&start_date=${dateStr}&end_date=${dateStr}`;
+
+        let sunrise, sunset;
+        try {
+          const sunRes = await fetch(sunUrl);
+          const sunData = await sunRes.json();
+          sunrise = new Date(sunData.daily.sunrise[0]);
+          sunset  = new Date(sunData.daily.sunset[0]);
+        } catch (e) {
+          return [];
+        }
+
+        const allowedStart = new Date(sunrise.getTime() - 60 * 60 * 1000);
+        const allowedEnd   = new Date(sunset.getTime() + 60 * 60 * 1000);
+
+        const results = [];
+
+        for (let i = 0; i < times.length; i++) {
+          if (!times[i].startsWith(dateStr)) continue;
+
+          const dt = new Date(times[i]);
+          if (dt < allowedStart || dt > allowedEnd) continue;
+
+          const fTemp  = temps[i];
+          const fWind  = windsMs[i];
+          const fPress = presses[i];
+          const fMoon  = getApproxMoonPhase(dt);
+
+          const score = computePredictionScoreForDay(
+            spotCatches,
+            fTemp,
+            fWind,
+            fPress,
+            fMoon
+          );
+
+          if (score == null) continue;
+          results.push({ dateObj: dt, score });
+        }
+
+        results.sort((a, b) => b.score - a.score);
+
+        return results.slice(0, 5).map(r => ({
+          label: r.dateObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          score: r.score
+        }));
+      }
+
+      hotHoursTomorrow = await getHotHoursForDayOffset(1);
+
+      return { weatherNowText, predictions, hotHoursTomorrow };
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+      currentUser   = user;
+      currentSpotId = getSpotIdFromUrl();
+
+      if (!currentSpotId) {
+        spotNameHeading.removeAttribute("data-i18n");
+        spotNameHeading.textContent = t("pred.noSpotSelected");
+        spotDesc.removeAttribute("data-i18n");
+        spotDesc.textContent = t("pred.missingSpotId");
+        return;
+      }
+
+      await initPredictionsPage();
     });
 
-    document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
-      const key = el.getAttribute("data-i18n-placeholder");
-      const value = dict[key];
-      if (value) el.setAttribute("placeholder", value);
-    });
+    async function initPredictionsPage() {
+      const spotRef  = doc(db, "spots", currentSpotId);
+      const spotSnap = await getDoc(spotRef);
 
-    document.querySelectorAll("[data-i18n-title]").forEach((el) => {
-      const key = el.getAttribute("data-i18n-title");
-      const value = dict[key];
-      if (value) el.setAttribute("title", value);
-    });
+      if (!spotSnap.exists()) {
+        spotNameHeading.removeAttribute("data-i18n");
+        spotNameHeading.textContent = t("pred.spotNotFound");
+        spotDesc.removeAttribute("data-i18n");
+        spotDesc.textContent = t("pred.unableToLoadSpot");
+        return;
+      }
 
-    document.querySelectorAll("[data-lang]").forEach((btn) => {
-      const btnLang = btn.getAttribute("data-lang");
-      if (btnLang === lang) btn.classList.add("lang-active");
-      else btn.classList.remove("lang-active");
-    });
-  }
+      currentSpot = { id: spotSnap.id, ...spotSnap.data() };
 
-  function setLanguage(lang) {
-    if (!TRANSLATIONS[lang]) return;
-    saveLang(lang);
-    applyTranslations();
-  }
+      spotNameHeading.removeAttribute("data-i18n");
+      spotNameHeading.textContent = currentSpot.name || t("spotPage.unnamedSpot");
 
-  window.fishingLogI18n = {
-    getCurrentLang,
-    setLanguage,
-    applyTranslations,
-    t(key) {
-      const lang = getCurrentLang();
-      const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
-      return dict[key] || key;
-    },
-  };
+      spotDesc.removeAttribute("data-i18n");
+      spotDesc.textContent = t("pred.loadingCatchesAndForecast");
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", applyTranslations);
-  } else {
-    applyTranslations();
-  }
-})();
+      const q = query(
+        collection(db, "catches"),
+        where("userId", "==", currentUser.uid),
+        where("spotId", "==", currentSpot.id)
+      );
+      const snap = await getDocs(q);
+      const spotCatches = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const withWeather = spotCatches.filter(c =>
+        typeof c.weatherTemp     === "number" &&
+        typeof c.weatherWindMs   === "number" &&
+        typeof c.weatherPressure === "number"
+      );
+
+      spotDesc.textContent = t("pred.spotCatchSummary")
+        .replace("{total}", String(spotCatches.length))
+        .replace("{withWeather}", String(withWeather.length));
+
+      if (typeof currentSpot.latitude !== "number" ||
+          typeof currentSpot.longitude !== "number") {
+        predictionsCard.style.display = "none";
+        hotTimesCard.style.display    = "none";
+        debugCard.style.display       = "block";
+        debugInfo.textContent         = t("pred.noGpsNoPrediction");
+        weatherNowInfo.textContent    = "";
+        return;
+      }
+
+      try {
+        const { weatherNowText, predictions, hotHoursTomorrow } =
+          await computeSpotWeatherAndPredictions(
+            currentSpot.latitude,
+            currentSpot.longitude,
+            spotCatches
+          );
+
+        predictionsCard.style.display = "block";
+        debugCard.style.display       = "block";
+
+        weatherNowInfo.textContent = weatherNowText;
+        renderPredictions(predictions, withWeather.length);
+        renderHotHours(hotHoursTomorrow);
+
+      } catch (err) {
+        console.error(err);
+        predictionsCard.style.display = "none";
+        hotTimesCard.style.display    = "none";
+        debugCard.style.display       = "block";
+        debugInfo.textContent         = t("pred.failedToCompute");
+      }
+    }
+
+    function renderPredictions(predictions, usableCount) {
+      predictionsList.innerHTML = "";
+
+      if (!predictions.length) {
+        predictionsList.innerHTML = `<p class="pred-info">${t("pred.noForecastData")}</p>`;
+        predSummary.textContent = "";
+        return;
+      }
+
+      let sumScores = 0;
+      let countScores = 0;
+
+      predictions.forEach(p => {
+        const row = document.createElement("div");
+        row.className = "pred-row";
+
+        const left = document.createElement("div");
+        left.className = "pred-label";
+        left.textContent = p.dateLabel;
+
+        const right = document.createElement("div");
+
+        const scoreSpan = document.createElement("span");
+        scoreSpan.className = "pred-score";
+
+        const tag = document.createElement("span");
+        tag.className = "pred-tag";
+
+        if (typeof p.score === "number") {
+          scoreSpan.textContent = `${p.score.toFixed(0)}%`;
+
+          if (p.score >= 70) {
+            tag.textContent = t("pred.tagGood");
+            tag.classList.add("pred-tag-good");
+          } else if (p.score >= 40) {
+            tag.textContent = t("pred.tagMedium");
+            tag.classList.add("pred-tag-medium");
+          } else {
+            tag.textContent = t("pred.tagPoor");
+            tag.classList.add("pred-tag-poor");
+          }
+
+          sumScores   += p.score;
+          countScores += 1;
+        } else {
+          scoreSpan.textContent = t("home.na");
+          tag.textContent = t("pred.tagNoData");
+        }
+
+        right.appendChild(scoreSpan);
+        right.appendChild(tag);
+        row.appendChild(left);
+        row.appendChild(right);
+        predictionsList.appendChild(row);
+      });
+
+      if (countScores > 0) {
+        const avg = sumScores / countScores;
+        predSummary.textContent = t("pred.avgScoreSummary")
+          .replace("{avg}", avg.toFixed(0))
+          .replace("{usable}", String(usableCount));
+      } else {
+        predSummary.textContent = t("pred.noUsableCatchesYet");
+      }
+    }
+
+    function renderHotHours(hotHours) {
+      if (!hotHours || !hotHours.length) {
+        hotTimesCard.style.display = "none";
+        return;
+      }
+
+      hotTimesCard.style.display = "block";
+      hotTimesList.innerHTML = "";
+
+      hotHours.forEach(h => {
+        const row = document.createElement("div");
+        row.className = "pred-row";
+
+        const left = document.createElement("div");
+        left.className = "pred-label";
+        left.textContent = h.label;
+
+        const right = document.createElement("div");
+        right.className = "pred-score";
+        right.textContent = `${h.score.toFixed(0)}%`;
+
+        row.appendChild(left);
+        row.appendChild(right);
+        hotTimesList.appendChild(row);
+      });
+    }
+
+    backToSpotBtn.onclick = () => {
+      window.location.href = "index.html";
+    };
+
+    reapplyTranslations();
+  </script>
+</body>
+</html>
