@@ -40,7 +40,10 @@
             type="text"
             placeholder="pike, perch, etc."
             data-i18n-placeholder="catch.speciesPlaceholder"
+            list="speciesDatalist"
+            autocomplete="off"
           />
+          <datalist id="speciesDatalist"></datalist>
         </div>
 
         <div class="form-field">
@@ -60,6 +63,7 @@
             type="text"
             placeholder="Spinner, jig, worm…"
             data-i18n-placeholder="catch.lurePlaceholder"
+            autocomplete="off"
           />
         </div>
 
@@ -155,6 +159,7 @@
     const backBtn        = document.getElementById("backBtn");
     const loggedInAsEl   = document.getElementById("loggedInAs");
     const speciesEl      = document.getElementById("species");
+    const speciesDatalist= document.getElementById("speciesDatalist");
     const weightEl       = document.getElementById("weightKg");
     const spotSelectEl   = document.getElementById("spotSelect");
     const lureEl         = document.getElementById("lure");
@@ -180,6 +185,39 @@
       window.location.href = "index.html";
     };
 
+    /* ---------------- Normalization helpers ---------------- */
+
+    // Title Case per-word, trims, collapses spaces.
+    function normalizeTitleCase(input) {
+      if (!input) return "";
+      return input
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+    }
+
+    function normalizeSpeciesName(input) {
+      return normalizeTitleCase(input);
+    }
+
+    function normalizeLureName(input) {
+      return normalizeTitleCase(input);
+    }
+
+    // Create a deterministic key for "probable duplicates"
+    // Same user + same spot + same date + same species + same weight(2dp) + same lure
+    function buildDuplicateKey(uid, spotId, speciesNorm, weightFixed2, lureNorm, timestampMs) {
+      const d = new Date(timestampMs);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      const dateStr = `${yyyy}-${mm}-${dd}`;
+      return `${uid}|${spotId}|${dateStr}|${speciesNorm}|${weightFixed2}|${lureNorm || "-"}`;
+    }
+
+    /* ---------------- Weather helpers ---------------- */
+
     function getApproxMoonPhase(date) {
       const lp = 2551443;
       const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14);
@@ -190,7 +228,6 @@
       return frac;
     }
 
-    // Use the same weather translation keys as index.html (home.weather*)
     function getWeatherIconAndLabel(code) {
       if (code === 0)  return { icon: "☀️", label: t("home.weatherClear") };
       if (code === 1)  return { icon: "🌤️", label: t("home.weatherMainlyClear") };
@@ -262,6 +299,46 @@
       }
     }
 
+    /* ---------------- Auto-suggest species from past catches ---------------- */
+
+    async function loadSpeciesSuggestions(uid) {
+      // query only by userId; small dataset per user; avoids composite-index issues
+      const snap = await getDocs(query(collection(db, "catches"), where("userId", "==", uid)));
+
+      const counts = new Map();
+      snap.forEach(d => {
+        const data = d.data() || {};
+        const s = normalizeSpeciesName(data.species || "");
+        if (!s) return;
+        counts.set(s, (counts.get(s) || 0) + 1);
+      });
+
+      const list = Array.from(counts.entries())
+        .sort((a, b) => {
+          // sort by usage desc, then alpha
+          if (b[1] !== a[1]) return b[1] - a[1];
+          return a[0].localeCompare(b[0]);
+        })
+        .slice(0, 30)
+        .map(([name]) => name);
+
+      speciesDatalist.innerHTML = list.map(v => `<option value="${v}"></option>`).join("");
+    }
+
+    // Normalize species on blur (so it becomes “Haug” immediately in the input)
+    speciesEl.addEventListener("blur", () => {
+      const norm = normalizeSpeciesName(speciesEl.value);
+      if (norm) speciesEl.value = norm;
+    });
+
+    // Normalize lure on blur
+    lureEl.addEventListener("blur", () => {
+      const norm = normalizeLureName(lureEl.value);
+      if (norm) lureEl.value = norm;
+    });
+
+    /* ---------------- Spots ---------------- */
+
     function renderSpotOptions() {
       if (!spots.length) {
         spotSelectEl.innerHTML = `<option value="">${t("catch.noSpotsYetOption")}</option>`;
@@ -301,7 +378,6 @@
         lngEl.value = spot.longitude.toFixed(6);
         fetchCurrentWeather(spot.latitude, spot.longitude);
       } else {
-        // spot changed to empty or missing coords
         weatherNowEl.innerHTML =
           `<span data-i18n="home.weatherNow">Weather now</span>: ` +
           `<span data-i18n="catch.weatherNotLoadedInline">(not loaded yet)</span>`;
@@ -311,6 +387,8 @@
     }
 
     spotSelectEl.addEventListener("change", handleSpotChange);
+
+    /* ---------------- Geolocation ---------------- */
 
     useLocationBtn.onclick = () => {
       if (!navigator.geolocation) {
@@ -332,6 +410,16 @@
       );
     };
 
+    /* ---------------- Duplicate prevention ---------------- */
+
+    async function catchExistsByKey(dupKey) {
+      // Single-field equality query (no composite index needed)
+      const snap = await getDocs(query(collection(db, "catches"), where("duplicateKey", "==", dupKey)));
+      return !snap.empty;
+    }
+
+    /* ---------------- Save catch ---------------- */
+
     async function saveCatch() {
       statusMsg.textContent = "";
 
@@ -340,9 +428,17 @@
         return;
       }
 
-      const species = (speciesEl.value || "").trim() || t("catch.defaultSpecies");
-      const weight  = parseFloat(weightEl.value);
-      const spotId  = spotSelectEl.value;
+      // Normalize species/lure
+      const speciesNorm = normalizeSpeciesName(speciesEl.value || "");
+      const lureNorm    = normalizeLureName(lureEl.value || "");
+
+      if (speciesNorm) speciesEl.value = speciesNorm;
+      if (lureNorm) lureEl.value = lureNorm;
+
+      const species = speciesNorm || t("catch.defaultSpecies");
+
+      const weight = parseFloat(weightEl.value);
+      const spotId = spotSelectEl.value;
 
       if (!spotId) {
         statusMsg.textContent = t("catch.chooseSpotRequired");
@@ -353,26 +449,59 @@
         return;
       }
 
-      const lure = (lureEl.value || "").trim();
       const depth = parseFloat(depthEl.value);
       const waterTemp = parseFloat(waterTempEl.value);
       const lat = parseFloat(latEl.value);
       const lng = parseFloat(lngEl.value);
       const notes = (notesEl.value || "").trim();
 
+      const ts = Date.now();
+      const weightFixed2 = weight.toFixed(2);
+
+      const duplicateKey = buildDuplicateKey(
+        currentUser.uid,
+        spotId,
+        species,
+        weightFixed2,
+        lureNorm,
+        ts
+      );
+
+      // Duplicate check
+      try {
+        const exists = await catchExistsByKey(duplicateKey);
+        if (exists) {
+          // Ask user if they really want to save a duplicate
+          const msg = t("catch.confirmDuplicateSave");
+          const ok = confirm(msg !== "catch.confirmDuplicateSave"
+            ? msg
+            : "This looks like a duplicate catch (same spot, same day, same species/weight/lure). Save anyway?"
+          );
+          if (!ok) {
+            statusMsg.textContent = t("catch.duplicateBlocked");
+            return;
+          }
+        }
+      } catch (err) {
+        // If duplicate check fails, we still allow saving (safer than blocking),
+        // but show an informational status.
+        console.warn("Duplicate check failed:", err);
+      }
+
       const catchDoc = {
         userId: currentUser.uid,
         species,
-        weightKg: weight,
+        weightKg: parseFloat(weightFixed2),
         spotId,
         spotName: (spots.find(s => s.id === spotId)?.name) || "",
-        lure,
+        lure: lureNorm,
         depth: isNaN(depth) ? null : depth,
         temperature: isNaN(waterTemp) ? null : waterTemp,
         latitude: isNaN(lat) ? null : lat,
         longitude: isNaN(lng) ? null : lng,
         notes,
-        timestamp: Date.now()
+        timestamp: ts,
+        duplicateKey
       };
 
       if (latestWeather) {
@@ -392,6 +521,7 @@
 
       try {
         await addDoc(collection(db, "catches"), catchDoc);
+
         statusMsg.textContent = t("catch.savedRedirecting");
 
         if (fromParam === "spot" && spotId) {
@@ -409,6 +539,8 @@
 
     saveCatchBtn.onclick = saveCatch;
 
+    /* ---------------- Auth ---------------- */
+
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         window.location.href = "index.html";
@@ -416,7 +548,10 @@
       }
       currentUser = user;
       loggedInAsEl.textContent = user.email || t("spotAdd.unknownUser");
+
       await loadSpotsForUser(user);
+      await loadSpeciesSuggestions(user.uid);
+
       reapplyTranslations();
     });
 
