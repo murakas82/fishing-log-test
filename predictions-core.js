@@ -1,47 +1,68 @@
 // predictions-core.js
-// Shared prediction logic used by index.html, predictions.html, and spots-map.html.
-// Pure functions only (no DOM, no i18n).
+// Shared prediction logic for all pages.
+// Focus: personal catch matching + pressure trend + wind direction + cloud cover.
 
-/**
- * Approximate moon phase fraction [0..1).
- * 0 = new moon, 0.5 = full moon (approx).
- */
+//
+// ---------- Utilities ----------
+//
+
 export function getApproxMoonPhase(date) {
   const lp = 2551443; // lunar period (seconds)
   const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14);
   const diff = date.getTime() - knownNewMoon;
-  const phase = (diff / 1000) % lp;
-  let frac = phase / lp;
+  let frac = ((diff / 1000) % lp) / lp;
   if (frac < 0) frac += 1;
   return frac;
 }
 
-/**
- * Score forecast conditions against the user's historic catches (with saved weather).
- * Returns average score across usable catches, or null if none are usable.
- *
- * Pressure logic: tolerance + linear scaling 
- */
+export function dateStrForOffset(offset) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+// Smallest angle between two directions (degrees)
+function angularDiffDeg(a, b) {
+  const diff = Math.abs(a - b) % 360;
+  return diff > 180 ? 360 - diff : diff;
+}
+
+//
+// ---------- Core scoring ----------
+//
+
 export function computePredictionScoreForDay(
   catches,
-  forecastTemp,
-  forecastWindMs,
-  forecastPressHpa,
-  forecastMoonPhase,
+  forecast,
   options = {}
 ) {
   const opts = {
     tempTolC: 5,
     tempPenaltyPerC: 2,
+
     windTolMs: 4,
     windPenaltyPerMs: 3,
-    pressTolHpa: 6,              // 6–8 recommended
-    pressPenaltyPerHpa: 1.8,     // tune 0.8–2.0
-    moonPenaltyFactor: 40,       // legacy behavior
+
+    pressTolHpa: 8,
+    pressPenaltyPerHpa: 1.2,
+
+    pressTrendTolHpa: 3,
+    pressTrendPenaltyPerHpa: 2.0,
+
+    windDirTolDeg: 45,
+    windDirPenaltyPerDeg: 0.25,
+
+    cloudPrefWeight: 12, // how strongly cloud cover affects score
+
+    moonPenaltyFactor: 40,
+
     ...options
   };
 
-  const usable = (catches || []).filter(c =>
+  const usable = catches.filter(c =>
     typeof c.weatherTemp === "number" &&
     typeof c.weatherWindMs === "number" &&
     typeof c.weatherPressure === "number"
@@ -51,28 +72,66 @@ export function computePredictionScoreForDay(
   const scores = usable.map(c => {
     let penalty = 0;
 
-    // Temperature
-    if (typeof forecastTemp === "number") {
-      const tempDiff = Math.abs(c.weatherTemp - forecastTemp);
-      if (tempDiff > opts.tempTolC) penalty += (tempDiff - opts.tempTolC) * opts.tempPenaltyPerC;
+    // --- Temperature ---
+    if (typeof forecast.temp === "number") {
+      const diff = Math.abs(c.weatherTemp - forecast.temp);
+      if (diff > opts.tempTolC) penalty += (diff - opts.tempTolC) * opts.tempPenaltyPerC;
     }
 
-    // Wind
-    if (typeof forecastWindMs === "number") {
-      const windDiff = Math.abs(c.weatherWindMs - forecastWindMs);
-      if (windDiff > opts.windTolMs) penalty += (windDiff - opts.windTolMs) * opts.windPenaltyPerMs;
+    // --- Wind speed ---
+    if (typeof forecast.windMs === "number") {
+      const diff = Math.abs(c.weatherWindMs - forecast.windMs);
+      if (diff > opts.windTolMs) penalty += (diff - opts.windTolMs) * opts.windPenaltyPerMs;
     }
 
-    // Pressure (tolerance + scaling)
-    if (typeof forecastPressHpa === "number") {
-      const pressDiff = Math.abs(c.weatherPressure - forecastPressHpa);
-      if (pressDiff > opts.pressTolHpa) penalty += (pressDiff - opts.pressTolHpa) * opts.pressPenaltyPerHpa;
+    // --- Pressure absolute ---
+    if (typeof forecast.pressure === "number") {
+      const diff = Math.abs(c.weatherPressure - forecast.pressure);
+      if (diff > opts.pressTolHpa) {
+        penalty += (diff - opts.pressTolHpa) * opts.pressPenaltyPerHpa;
+      }
     }
 
-    // Moon phase (if catch has moon saved)
-    if (typeof c.moonPhase === "number" && typeof forecastMoonPhase === "number") {
-      const moonDiff = Math.abs(c.moonPhase - forecastMoonPhase);
-      penalty += moonDiff * opts.moonPenaltyFactor;
+    // --- Pressure trend (NEW) ---
+    if (
+      typeof c.weatherPressure === "number" &&
+      typeof forecast.pressureTrend === "number"
+    ) {
+      const diff = Math.abs(forecast.pressureTrend);
+      if (diff > opts.pressTrendTolHpa) {
+        penalty += (diff - opts.pressTrendTolHpa) * opts.pressTrendPenaltyPerHpa;
+      }
+    }
+
+    // --- Wind direction relative to spot (NEW) ---
+    if (
+      typeof forecast.windDir === "number" &&
+      typeof forecast.spotBearing === "number"
+    ) {
+      const relDiff = angularDiffDeg(
+        forecast.windDir,
+        forecast.spotBearing
+      );
+      if (relDiff > opts.windDirTolDeg) {
+        penalty += (relDiff - opts.windDirTolDeg) * opts.windDirPenaltyPerDeg;
+      }
+    }
+
+    // --- Cloud cover / light conditions (NEW) ---
+    if (typeof forecast.cloudCover === "number") {
+      // Mid–high cloud is often good; extremes less so
+      const cloud = forecast.cloudCover;
+      if (cloud < 15) penalty += (15 - cloud) * 0.3;
+      if (cloud > 85) penalty += (cloud - 85) * 0.3;
+    }
+
+    // --- Moon ---
+    if (
+      typeof c.moonPhase === "number" &&
+      typeof forecast.moonPhase === "number"
+    ) {
+      const diff = Math.abs(c.moonPhase - forecast.moonPhase);
+      penalty += diff * opts.moonPenaltyFactor;
     }
 
     let score = 100 - penalty;
@@ -84,28 +143,10 @@ export function computePredictionScoreForDay(
   return scores.reduce((a, b) => a + b, 0) / scores.length;
 }
 
-/**
- * Internal: build date string YYYY-MM-DD for offset (local timezone).
- */
-export function dateStrForOffset(offset) {
-  const base = new Date();
-  base.setDate(base.getDate() + offset);
-  const yyyy = base.getFullYear();
-  const mm = String(base.getMonth() + 1).padStart(2, "0");
-  const dd = String(base.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-}
+//
+// ---------- Daylight window aggregation ----------
+//
 
-/**
- * Compute a day score using ALL hours between sunrise-pad and sunset+pad.
- * Requires Open-Meteo response containing:
- *   data.hourly.time, data.hourly.temperature_2m, data.hourly.wind_speed_10m, data.hourly.pressure_msl
- *   data.daily.time, data.daily.sunrise, data.daily.sunset
- *
- * mode:
- *  - "avgTopN": average of the best N hourly scores
- *  - "max": best hourly score
- */
 export function computeDayScoreFromForecast(
   data,
   catches,
@@ -114,82 +155,68 @@ export function computeDayScoreFromForecast(
     mode = "avgTopN",
     topN = 8,
     daylightPadHours = 1,
+    spotBearing = null,
     scoreOptions = {}
   } = {}
 ) {
-  const hourly = data?.hourly || {};
-  const times = hourly.time || [];
-  const temps = hourly.temperature_2m || [];
-  const winds = hourly.wind_speed_10m || [];
-  const presses = hourly.pressure_msl || [];
-
-  const daily = data?.daily || {};
-  const dailyTimes = daily.time || [];
-  const sunriseArr = daily.sunrise || [];
-  const sunsetArr = daily.sunset || [];
-
-  if (!times.length || !temps.length || !winds.length || !presses.length) return null;
+  const hourly = data.hourly;
+  const daily = data.daily;
+  if (!hourly || !daily) return null;
 
   const dateStr = dateStrForOffset(dayOffset);
-  const dayIdx = dailyTimes.findIndex(d => d === dateStr);
+  const dayIdx = daily.time.findIndex(d => d === dateStr);
   if (dayIdx === -1) return null;
 
-  const sunriseRaw = sunriseArr[dayIdx];
-  const sunsetRaw = sunsetArr[dayIdx];
-  if (!sunriseRaw || !sunsetRaw) return null;
+  const sunrise = new Date(daily.sunrise[dayIdx]);
+  const sunset = new Date(daily.sunset[dayIdx]);
+  const padMs = daylightPadHours * 3600000;
 
-  const sunrise = new Date(sunriseRaw);
-  const sunset  = new Date(sunsetRaw);
-
-  const padMs = daylightPadHours * 60 * 60 * 1000;
-  const allowedStart = new Date(sunrise.getTime() - padMs);
-  const allowedEnd   = new Date(sunset.getTime() + padMs);
+  const start = new Date(sunrise.getTime() - padMs);
+  const end = new Date(sunset.getTime() + padMs);
 
   const scores = [];
-  for (let i = 0; i < times.length; i++) {
-    if (!times[i].startsWith(dateStr)) continue;
 
-    const dt = new Date(times[i]);
-    if (dt < allowedStart || dt > allowedEnd) continue;
+  for (let i = 0; i < hourly.time.length; i++) {
+    if (!hourly.time[i].startsWith(dateStr)) continue;
 
-    const score = computePredictionScoreForDay(
-      catches,
-      temps[i],
-      winds[i],
-      presses[i],
-      getApproxMoonPhase(dt),
-      scoreOptions
-    );
+    const t = new Date(hourly.time[i]);
+    if (t < start || t > end) continue;
 
-    if (typeof score === "number") scores.push(score);
+    const forecast = {
+      temp: hourly.temperature_2m[i],
+      windMs: hourly.wind_speed_10m[i],
+      windDir: hourly.wind_direction_10m?.[i],
+      pressure: hourly.pressure_msl[i],
+      pressureTrend:
+        i >= 3
+          ? hourly.pressure_msl[i] - hourly.pressure_msl[i - 3]
+          : 0,
+      cloudCover: hourly.cloudcover?.[i],
+      moonPhase: getApproxMoonPhase(t),
+      spotBearing
+    };
+
+    const s = computePredictionScoreForDay(catches, forecast, scoreOptions);
+    if (typeof s === "number") scores.push(s);
   }
 
   if (!scores.length) return null;
 
   scores.sort((a, b) => b - a);
+
   if (mode === "max") return scores[0];
 
-  const n = Math.max(1, Math.min(topN, scores.length));
-  const top = scores.slice(0, n);
-  return top.reduce((s, v) => s + v, 0) / n;
+  const n = Math.min(topN, scores.length);
+  return scores.slice(0, n).reduce((a, b) => a + b, 0) / n;
 }
 
-/**
- * Convenience: compute next 3 days (offsets 1..3) using computeDayScoreFromForecast.
- * Returns array of { offset, score }.
- */
 export function computeNext3DayScores(data, catches, opts = {}) {
-  const out = [];
-  for (let offset = 1; offset <= 3; offset++) {
-    out.push({ offset, score: computeDayScoreFromForecast(data, catches, offset, opts) });
-  }
-  return out;
+  return [1, 2, 3].map(offset => ({
+    offset,
+    score: computeDayScoreFromForecast(data, catches, offset, opts)
+  }));
 }
 
-/**
- * Compute top hourly "hot times" for a given dayOffset, within sunrise-pad..sunset+pad.
- * Returns array of { dateObj, score } sorted desc, limited.
- */
 export function computeHotHoursFromForecast(
   data,
   catches,
@@ -197,53 +224,49 @@ export function computeHotHoursFromForecast(
   {
     limit = 5,
     daylightPadHours = 1,
+    spotBearing = null,
     scoreOptions = {}
   } = {}
 ) {
-  const hourly = data?.hourly || {};
-  const times = hourly.time || [];
-  const temps = hourly.temperature_2m || [];
-  const winds = hourly.wind_speed_10m || [];
-  const presses = hourly.pressure_msl || [];
-
-  const daily = data?.daily || {};
-  const dailyTimes = daily.time || [];
-  const sunriseArr = daily.sunrise || [];
-  const sunsetArr = daily.sunset || [];
-
-  if (!times.length || !temps.length || !winds.length || !presses.length) return [];
+  const hourly = data.hourly;
+  const daily = data.daily;
+  if (!hourly || !daily) return [];
 
   const dateStr = dateStrForOffset(dayOffset);
-  const dayIdx = dailyTimes.findIndex(d => d === dateStr);
+  const dayIdx = daily.time.findIndex(d => d === dateStr);
   if (dayIdx === -1) return [];
 
-  const sunriseRaw = sunriseArr[dayIdx];
-  const sunsetRaw = sunsetArr[dayIdx];
-  if (!sunriseRaw || !sunsetRaw) return [];
+  const sunrise = new Date(daily.sunrise[dayIdx]);
+  const sunset = new Date(daily.sunset[dayIdx]);
+  const padMs = daylightPadHours * 3600000;
 
-  const sunrise = new Date(sunriseRaw);
-  const sunset  = new Date(sunsetRaw);
-
-  const padMs = daylightPadHours * 60 * 60 * 1000;
-  const allowedStart = new Date(sunrise.getTime() - padMs);
-  const allowedEnd   = new Date(sunset.getTime() + padMs);
+  const start = new Date(sunrise.getTime() - padMs);
+  const end = new Date(sunset.getTime() + padMs);
 
   const results = [];
-  for (let i = 0; i < times.length; i++) {
-    if (!times[i].startsWith(dateStr)) continue;
 
-    const dt = new Date(times[i]);
-    if (dt < allowedStart || dt > allowedEnd) continue;
+  for (let i = 0; i < hourly.time.length; i++) {
+    if (!hourly.time[i].startsWith(dateStr)) continue;
 
-    const score = computePredictionScoreForDay(
-      catches,
-      temps[i],
-      winds[i],
-      presses[i],
-      getApproxMoonPhase(dt),
-      scoreOptions
-    );
-    if (typeof score === "number") results.push({ dateObj: dt, score });
+    const t = new Date(hourly.time[i]);
+    if (t < start || t > end) continue;
+
+    const forecast = {
+      temp: hourly.temperature_2m[i],
+      windMs: hourly.wind_speed_10m[i],
+      windDir: hourly.wind_direction_10m?.[i],
+      pressure: hourly.pressure_msl[i],
+      pressureTrend:
+        i >= 3
+          ? hourly.pressure_msl[i] - hourly.pressure_msl[i - 3]
+          : 0,
+      cloudCover: hourly.cloudcover?.[i],
+      moonPhase: getApproxMoonPhase(t),
+      spotBearing
+    };
+
+    const s = computePredictionScoreForDay(catches, forecast, scoreOptions);
+    if (typeof s === "number") results.push({ dateObj: t, score: s });
   }
 
   results.sort((a, b) => b.score - a.score);
