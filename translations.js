@@ -124,7 +124,7 @@
       "common.loading": "Loading…",
       "common.loadingSpot": "Loading spot…",
 
-      // Add catch (existing)
+      // Add catch
       "catch.title": "Add catch",
       "catch.subtitle": "Log a new catch with spot, weight, weather & notes.",
       "catch.speciesLabel": "Species",
@@ -140,7 +140,6 @@
       "catch.notesLabel": "Notes",
       "catch.saveButton": "Save catch",
 
-      // Add catch (NEW for i18n in add-catch.html)
       "catch.speciesPlaceholder": "pike, perch, etc.",
       "catch.lurePlaceholder": "Spinner, jig, worm…",
       "catch.notesPlaceholder": "Weather, behavior, etc.",
@@ -160,11 +159,11 @@
       "catch.saving": "Saving…",
       "catch.savedRedirecting": "Catch saved. Redirecting…",
       "catch.errorSaving": "Error saving catch:",
-      "catch.confirmDuplicateSave":
-  "This looks like a duplicate catch (same spot, same day, same species/weight/lure). Save anyway?",
-"catch.duplicateBlocked":
-  "Duplicate catch was not saved.",
 
+      "catch.confirmDuplicateSave":
+        "This looks like a duplicate catch (same spot, same day, same species/weight/lure). Save anyway?",
+      "catch.duplicateBlocked":
+        "Duplicate catch was not saved.",
 
       // Catches list
       "catches.title": "Your Catches",
@@ -229,7 +228,7 @@
       "spotsMap.legendDescription":
         "• Marker color (tomorrow): ● good (≥70%), ● medium (40–69%), ● poor (<40%).\n• Popup shows live weather now and predictions for the next 3 days.",
 
-      // Predictions
+      // Predictions (existing)
       "pred.title": "Predictions",
       "pred.subtitle": "Forecast match vs your past catches at this spot.",
       "pred.loadingSpot": "Loading spot…",
@@ -239,6 +238,26 @@
       "pred.hotTimesExplain":
         "Times are between 1 hour before sunrise and 1 hour after sunset, based on your catches with weather data.",
       "pred.debugTitle": "Debug view (why these scores?)",
+
+      // Predictions (NEW)
+      "pred.noSpotSelected": "No spot selected",
+      "pred.missingSpotId": "Missing spotId in URL.",
+      "pred.spotNotFound": "Spot not found",
+      "pred.unableToLoadSpot": "Unable to load this spot.",
+      "pred.loadingCatchesAndForecast": "Loading catches and forecast…",
+      "pred.spotCatchSummary": "{total} total catches at this spot, {withWeather} with weather data saved.",
+      "pred.noGpsNoPrediction": "This spot has no GPS coordinates, so forecast-based prediction is not available.",
+      "pred.failedToCompute": "Failed to compute predictions.",
+      "pred.noForecastData": "No forecast data available.",
+      "pred.avgScoreSummary": "Average score for the next 3 days: {avg}% (based on {usable} catches with weather data).",
+      "pred.noUsableCatchesYet": "No usable catches with weather data yet – predictions are not available.",
+      "pred.tagGood": "Good",
+      "pred.tagMedium": "Medium",
+      "pred.tagPoor": "Poor",
+      "pred.tagNoData": "No data",
+      "pred.weatherFog": "Fog",
+      "pred.weatherFailedToLoad": "Weather: failed to load",
+      "pred.weatherNotAvailable": "Weather now: not available",
 
       // Settings
       "settings.title": "Settings",
@@ -386,7 +405,7 @@
       "common.loading": "Laadimine…",
       "common.loadingSpot": "Koha laadimine…",
 
-      // Add catch (existing)
+      // Add catch
       "catch.title": "Lisa kala",
       "catch.subtitle":
         "Salvesta uus saak koos püügikoha, kaalu, ilma ja märkmetega.",
@@ -403,7 +422,6 @@
       "catch.notesLabel": "Märkmed",
       "catch.saveButton": "Salvesta saak",
 
-      // Add catch (NEW for i18n in add-catch.html)
       "catch.speciesPlaceholder": "haug, ahven jne.",
       "catch.lurePlaceholder": "Spinner, jig, uss…",
       "catch.notesPlaceholder": "Ilm, käitumine jne.",
@@ -423,11 +441,11 @@
       "catch.saving": "Salvestan…",
       "catch.savedRedirecting": "Saak salvestatud. Suunan tagasi…",
       "catch.errorSaving": "Saagi salvestamine ebaõnnestus:",
-      "catch.confirmDuplicateSave":
-  "See tundub olevat duplikaatsaak (sama koht, sama päev, sama liik/kaal/lant). Kas salvestan ikkagi?",
-"catch.duplicateBlocked":
-  "Duplikaatsaaki ei salvestatud.",
 
+      "catch.confirmDuplicateSave":
+        "See tundub olevat duplikaatsaak (sama koht, sama päev, sama liik/kaal/lant). Kas salvestan ikkagi?",
+      "catch.duplicateBlocked":
+        "Duplikaatsaaki ei salvestatud.",
 
       // Catches list
       "catches.title": "Sinu saagid",
@@ -492,7 +510,7 @@
       "spotsMap.legendDescription":
         "• Markeri värv (homne päev): ● hea (≥70%), ● keskmine (40–69%), ● nõrk (<40%).\n• Hüpikaken näitab hetke ilma ja ennustusi järgmiseks 3 päevaks.",
 
-      // Predictions
+      // Predictions (existing)
       "pred.title": "Ennustused",
       "pred.subtitle":
         "Ilmaprognoosi sobivus sinu varasemate selle koha saakidega.",
@@ -503,6 +521,26 @@
       "pred.hotTimesExplain":
         "Ajad on vahemikus tund enne päikesetõusu kuni tund pärast päikeseloojangut, põhinedes sinu ilmaandmetega saakidel.",
       "pred.debugTitle": "Silumisvaade (miks sellised skoorid?)",
+
+      // Predictions (NEW)
+      "pred.noSpotSelected": "Püügikohta pole valitud",
+      "pred.missingSpotId": "URL-is puudub spotId.",
+      "pred.spotNotFound": "Püügikohta ei leitud",
+      "pred.unableToLoadSpot": "Seda püügikohta ei õnnestunud laadida.",
+      "pred.loadingCatchesAndForecast": "Laen saake ja prognoosi…",
+      "pred.spotCatchSummary": "Selles kohas kokku {total} saaki, neist {withWeather} salvestatud ilmaandmetega.",
+      "pred.noGpsNoPrediction": "Sellel püügikohal puuduvad GPS-koordinaadid, seega prognoosipõhine ennustus pole saadaval.",
+      "pred.failedToCompute": "Ennustuse arvutamine ebaõnnestus.",
+      "pred.noForecastData": "Prognoosiandmed pole saadaval.",
+      "pred.avgScoreSummary": "Järgmise 3 päeva keskmine skoor: {avg}% (põhineb {usable} ilmaandmetega saagil).",
+      "pred.noUsableCatchesYet": "Ilmaandmetega saake pole veel piisavalt – ennustus pole saadaval.",
+      "pred.tagGood": "Hea",
+      "pred.tagMedium": "Keskmine",
+      "pred.tagPoor": "Nõrk",
+      "pred.tagNoData": "Andmeid pole",
+      "pred.weatherFog": "Udu",
+      "pred.weatherFailedToLoad": "Ilm: laadimine ebaõnnestus",
+      "pred.weatherNotAvailable": "Ilm praegu: pole saadaval",
 
       // Settings
       "settings.title": "Seaded",
