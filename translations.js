@@ -371,7 +371,7 @@
       "common.loadingSpot": "Koha laadimine…",
 
       // Add catch
-      "catch.title": "Lisa saak",
+      "catch.title": "Lisa kala",
       "catch.subtitle":
         "Salvesta uus saak koos püügikoha, kaalu, ilma ja märkmetega.",
       "catch.speciesLabel": "Kalaliik",
@@ -410,11 +410,11 @@
       // Single spot page
       "spotPage.title": "Püügikoht",
       "spotPage.subtitle": "Vaata selle koha andmeid ja saake.",
-      "spotPage.addCatch": "Lisa saak",
+      "spotPage.addCatch": "Lisa kala",
       "spotPage.predictions": "Ennustused",
       "spotPage.edit": "Muuda",
       "spotPage.delete": "Kustuta koht",
-      "spotPage.catchesTitle": "Selle koha saagid",
+      "spotPage.catchesTitle": "Selle koha kalad",
       "spotPage.loading": "Laadimine…",
 
 // spot.html extra strings
@@ -429,7 +429,7 @@
 "spotPage.belongsToAnotherUser": "See püügikoht kuulub teisele kasutajale.",
 "spotPage.unnamedSpot": "Nimetu püügikoht",
 
-"spotPage.noCatchesYet": "Selles kohas pole veel saake.",
+"spotPage.noCatchesYet": "Selles kohas pole kala.",
 "spotPage.lureLabel": "Lant",
 "spotPage.depthLabel": "Sügavus",
 "spotPage.waterTempLabel": "Vee temp",
