@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,11 +11,11 @@
     <header class="card">
       <div class="card-header">
         <div>
-          <h1>Fishing spot</h1>
-          <p class="muted-text">See details and catches for this spot.</p>
+          <h1 data-i18n="spotPage.title">Fishing spot</h1>
+          <p class="muted-text" data-i18n="spotPage.subtitle">See details and catches for this spot.</p>
         </div>
         <div>
-          <button class="secondary-btn btn-back-main" id="backBtn">
+          <button class="secondary-btn btn-back-main" id="backBtn" data-i18n="common.backToMain">
             ← Back to main
           </button>
         </div>
@@ -26,30 +25,33 @@
     <div class="card" id="spotCard">
       <div class="card-header">
         <div>
-          <h2 id="spotName">Loading spot…</h2>
+          <h2 id="spotName" data-i18n="common.loadingSpot">Loading spot…</h2>
           <p class="muted-text" id="spotLocation"></p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="secondary-btn" id="addCatchBtn">Add catch</button>
-          <button class="secondary-btn" id="predictionsBtn">Predictions</button>
-          <button class="secondary-btn" id="editSpotBtn">Edit</button>
-          <button class="danger-btn" id="deleteSpotBtn">Delete spot</button>
+          <button class="secondary-btn" id="addCatchBtn" data-i18n="spotPage.addCatch">Add catch</button>
+          <button class="secondary-btn" id="predictionsBtn" data-i18n="spotPage.predictions">Predictions</button>
+          <button class="secondary-btn" id="editSpotBtn" data-i18n="spotPage.edit">Edit</button>
+          <button class="danger-btn" id="deleteSpotBtn" data-i18n="spotPage.delete">Delete spot</button>
         </div>
       </div>
     </div>
 
     <div class="card" id="catchesCard">
-      <h2>Catches at this spot</h2>
+      <h2 data-i18n="spotPage.catchesTitle">Catches at this spot</h2>
       <div id="catchesList" class="spot-catches-list"></div>
     </div>
 
     <div class="card" id="loadingCard" style="display:none;">
       <div class="loading-center">
         <div class="spinner"></div>
-        <div>Loading…</div>
+        <div data-i18n="common.loading">Loading…</div>
       </div>
     </div>
   </div>
+
+  <!-- i18n -->
+  <script src="translations.js"></script>
 
   <script type="module">
     import { initializeApp }
@@ -82,6 +84,13 @@
     const auth = getAuth(app);
     const db   = getFirestore(app);
 
+    // i18n helpers
+    const i18n = window.fishingLogI18n;
+    const t = (key) => (i18n && typeof i18n.t === "function") ? i18n.t(key) : key;
+    function reapplyTranslations() {
+      if (i18n && typeof i18n.applyTranslations === "function") i18n.applyTranslations();
+    }
+
     const backBtn        = document.getElementById("backBtn");
     const addCatchBtn    = document.getElementById("addCatchBtn");
     const predictionsBtn = document.getElementById("predictionsBtn");
@@ -104,7 +113,6 @@
     if (addCatchBtn) {
       addCatchBtn.onclick = () => {
         if (!spotId) return;
-        // IMPORTANT CHANGE: from spot → from=spot
         window.location.href =
           `add-catch.html?spotId=${encodeURIComponent(spotId)}&from=spot`;
       };
@@ -126,11 +134,18 @@
       };
     }
 
+    function renderMessage(key, fallbackHtml) {
+      catchesListEl.innerHTML = fallbackHtml || "";
+      reapplyTranslations();
+    }
+
     async function loadSpot(user) {
       if (!spotId) {
-        spotNameEl.textContent = "No spot selected";
-        catchesListEl.innerHTML =
-          `<p class="muted-text">Missing spot id in URL.</p>`;
+        spotNameEl.textContent = t("spotPage.noSpotSelected");
+        renderMessage(
+          "spotPage.missingSpotId",
+          `<p class="muted-text" data-i18n="spotPage.missingSpotId">Missing spot id in URL.</p>`
+        );
         return;
       }
 
@@ -141,30 +156,36 @@
       const snap = await getDoc(spotRef);
 
       if (!snap.exists()) {
-        spotNameEl.textContent = "Spot not found";
+        spotNameEl.textContent = t("spotPage.spotNotFound");
         spotLocationEl.textContent = "";
-        catchesListEl.innerHTML =
-          `<p class="muted-text">This spot does not exist.</p>`;
+        renderMessage(
+          "spotPage.spotDoesNotExist",
+          `<p class="muted-text" data-i18n="spotPage.spotDoesNotExist">This spot does not exist.</p>`
+        );
         loadingCard.style.display = "none";
         return;
       }
 
       const spot = snap.data();
       if (spot.userId !== user.uid) {
-        spotNameEl.textContent = "Access denied";
-        catchesListEl.innerHTML =
-          `<p class="muted-text">This spot belongs to another user.</p>`;
+        spotNameEl.textContent = t("spotPage.accessDenied");
+        renderMessage(
+          "spotPage.belongsToAnotherUser",
+          `<p class="muted-text" data-i18n="spotPage.belongsToAnotherUser">This spot belongs to another user.</p>`
+        );
         loadingCard.style.display = "none";
         return;
       }
 
-      spotNameEl.textContent = spot.name || "Unnamed spot";
-      if (typeof spot.latitude === "number" &&
-          typeof spot.longitude === "number") {
+      spotNameEl.removeAttribute("data-i18n"); // avoid overwriting the actual name
+      spotNameEl.textContent = spot.name || t("spotPage.unnamedSpot");
+
+      if (typeof spot.latitude === "number" && typeof spot.longitude === "number") {
         spotLocationEl.textContent =
-          `Location: ${spot.latitude.toFixed(4)}, ${spot.longitude.toFixed(4)}`;
+          `${t("spotPage.locationLabel")} ${spot.latitude.toFixed(4)}, ${spot.longitude.toFixed(4)}`;
       } else {
-        spotLocationEl.textContent = "Location: not set";
+        spotLocationEl.textContent =
+          `${t("spotPage.locationLabel")} ${t("spotPage.locationNotSet")}`;
       }
 
       const q = query(
@@ -176,7 +197,8 @@
 
       if (catchesSnap.empty) {
         catchesListEl.innerHTML =
-          `<p class="muted-text">No catches at this spot yet.</p>`;
+          `<p class="muted-text" data-i18n="spotPage.noCatchesYet">No catches at this spot yet.</p>`;
+        reapplyTranslations();
       } else {
         const items = [];
         catchesSnap.forEach(docSnap =>
@@ -205,36 +227,41 @@
           const waterTemp = (typeof c.temperature === "number" && !isNaN(c.temperature))
             ? `${c.temperature.toFixed(1)} °C`
             : "-";
-          const weatherDesc = c.weatherDescription || "no weather data";
+          const weatherDesc = c.weatherDescription || t("spotPage.noWeatherData");
 
           row.innerHTML = `
             <p><strong>${species}</strong> • ${weight} ${dateText}</p>
-            <p>Lure: ${lure}</p>
-            <p>Depth: ${depth}</p>
-            <p>Water temp: ${waterTemp}</p>
-            <p>Weather at time of catch: ${weatherDesc}</p>
-            <button class="danger-btn catch-delete-btn" data-id="${c.id}">
+            <p><span data-i18n="spotPage.lureLabel">Lure</span>: ${lure}</p>
+            <p><span data-i18n="spotPage.depthLabel">Depth</span>: ${depth}</p>
+            <p><span data-i18n="spotPage.waterTempLabel">Water temp</span>: ${waterTemp}</p>
+            <p><span data-i18n="spotPage.weatherAtCatchLabel">Weather at time of catch</span>: ${weatherDesc}</p>
+            <button class="danger-btn catch-delete-btn" data-id="${c.id}" data-i18n="spotPage.deleteCatch">
               Delete catch
             </button>
           `;
           catchesListEl.appendChild(row);
         }
 
+        reapplyTranslations();
+
         document.querySelectorAll(".catch-delete-btn").forEach(btn => {
           btn.addEventListener("click", async () => {
             const id = btn.getAttribute("data-id");
             if (!id) return;
-            const ok = confirm("Delete this catch permanently?");
+
+            const ok = confirm(t("spotPage.confirmDeleteCatch"));
             if (!ok) return;
+
             try {
               await deleteDoc(doc(db, "catches", id));
               btn.closest(".catch-row")?.remove();
               if (!catchesListEl.children.length) {
                 catchesListEl.innerHTML =
-                  `<p class="muted-text">No catches at this spot yet.</p>`;
+                  `<p class="muted-text" data-i18n="spotPage.noCatchesYet">No catches at this spot yet.</p>`;
+                reapplyTranslations();
               }
             } catch (err) {
-              alert("Error deleting catch: " + (err.message || err));
+              alert(`${t("spotPage.errorDeletingCatch")} ${(err.message || err)}`);
             }
           });
         });
@@ -242,17 +269,17 @@
 
       loadingCard.style.display = "none";
       catchesCard.style.display = "block";
+      reapplyTranslations();
     }
 
     async function handleDeleteSpot(user) {
       if (!spotId) return;
-      const ok = confirm(
-        "Delete this spot and all catches at this spot? This cannot be undone."
-      );
+
+      const ok = confirm(t("spotPage.confirmDeleteSpot"));
       if (!ok) return;
 
       deleteSpotBtn.disabled = true;
-      deleteSpotBtn.textContent = "Deleting…";
+      deleteSpotBtn.textContent = t("spotPage.deleting");
 
       try {
         const q = query(
@@ -261,18 +288,17 @@
           where("spotId", "==", spotId)
         );
         const snap = await getDocs(q);
-        const deletions = snap.docs.map(d =>
-          deleteDoc(doc(db, "catches", d.id))
-        );
+        const deletions = snap.docs.map(d => deleteDoc(doc(db, "catches", d.id)));
         await Promise.all(deletions);
+
         await deleteDoc(doc(db, "spots", spotId));
 
-        alert("Spot and its catches deleted.");
+        alert(t("spotPage.spotDeleted"));
         window.location.href = "index.html";
       } catch (err) {
-        alert("Error deleting spot: " + (err.message || err));
+        alert(`${t("spotPage.errorDeletingSpot")} ${(err.message || err)}`);
         deleteSpotBtn.disabled = false;
-        deleteSpotBtn.textContent = "Delete spot";
+        deleteSpotBtn.textContent = t("spotPage.deleteButtonFallback");
       }
     }
 
@@ -284,8 +310,9 @@
       await loadSpot(user);
       deleteSpotBtn.onclick = () => handleDeleteSpot(user);
     });
-  </script>
-  <script src="translations.js"></script>
 
+    // Initial apply for static page strings
+    reapplyTranslations();
+  </script>
 </body>
 </html>
