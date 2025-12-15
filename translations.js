@@ -160,6 +160,11 @@
       "catch.saving": "Saving…",
       "catch.savedRedirecting": "Catch saved. Redirecting…",
       "catch.errorSaving": "Error saving catch:",
+      "catch.confirmDuplicateSave":
+  "This looks like a duplicate catch (same spot, same day, same species/weight/lure). Save anyway?",
+"catch.duplicateBlocked":
+  "Duplicate catch was not saved.",
+
 
       // Catches list
       "catches.title": "Your Catches",
@@ -418,6 +423,11 @@
       "catch.saving": "Salvestan…",
       "catch.savedRedirecting": "Saak salvestatud. Suunan tagasi…",
       "catch.errorSaving": "Saagi salvestamine ebaõnnestus:",
+      "catch.confirmDuplicateSave":
+  "See tundub olevat duplikaatsaak (sama koht, sama päev, sama liik/kaal/lant). Kas salvestan ikkagi?",
+"catch.duplicateBlocked":
+  "Duplikaatsaaki ei salvestatud.",
+
 
       // Catches list
       "catches.title": "Sinu saagid",
