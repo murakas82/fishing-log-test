@@ -20,7 +20,7 @@ export function getApproxMoonPhase(date) {
  * Score forecast conditions against the user's historic catches (with saved weather).
  * Returns average score across usable catches, or null if none are usable.
  *
- * Pressure logic: tolerance + linear scaling (no hard 1000 hPa threshold).
+ * Pressure logic: tolerance + linear scaling 
  */
 export function computePredictionScoreForDay(
   catches,
@@ -35,8 +35,8 @@ export function computePredictionScoreForDay(
     tempPenaltyPerC: 2,
     windTolMs: 4,
     windPenaltyPerMs: 3,
-    pressTolHpa: 8,              // 6–8 recommended
-    pressPenaltyPerHpa: 1.2,     // tune 0.8–2.0
+    pressTolHpa: 6,              // 6–8 recommended
+    pressPenaltyPerHpa: 1.8,     // tune 0.8–2.0
     moonPenaltyFactor: 40,       // legacy behavior
     ...options
   };
