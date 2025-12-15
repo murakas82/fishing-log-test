@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Predictions – Fishing Spot</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <link rel="stylesheet" href="style.css" />
 
   <style>
@@ -16,19 +15,9 @@
       border-bottom: 1px solid rgba(148,163,184,0.25);
       font-size: 0.9rem;
     }
-
-    .pred-row:last-child {
-      border-bottom: none;
-    }
-
-    .pred-label {
-      font-weight: 500;
-    }
-
-    .pred-score {
-      font-weight: 600;
-    }
-
+    .pred-row:last-child { border-bottom: none; }
+    .pred-label { font-weight: 500; }
+    .pred-score { font-weight: 600; }
     .pred-tag {
       font-size: 0.8rem;
       padding: 2px 8px;
@@ -36,22 +25,9 @@
       border: 1px solid rgba(148,163,184,0.5);
       margin-left: 6px;
     }
-
-    .pred-tag-good {
-      border-color: #22c55e;
-      color: #22c55e;
-    }
-
-    .pred-tag-medium {
-      border-color: #eab308;
-      color: #eab308;
-    }
-
-    .pred-tag-poor {
-      border-color: #ef4444;
-      color: #ef4444;
-    }
-
+    .pred-tag-good { border-color: #22c55e; color: #22c55e; }
+    .pred-tag-medium { border-color: #eab308; color: #eab308; }
+    .pred-tag-poor { border-color: #ef4444; color: #ef4444; }
     .pred-info {
       font-size: 0.82rem;
       opacity: 0.85;
@@ -62,56 +38,60 @@
 
 <body>
   <div class="app fade-in">
-    <header>
-      <h1>Predictions</h1>
-      <p>Forecast match vs your past catches at this spot.</p>
+    <header class="card">
+      <div class="card-header">
+        <div>
+          <h1 data-i18n="pred.title">Predictions</h1>
+          <p class="muted-text" data-i18n="pred.subtitle">
+            Forecast match vs your past catches at this spot.
+          </p>
+        </div>
+        <button class="secondary-btn btn-back-main" id="backToSpotBtn" data-i18n="common.backToMain">
+          ← Back to main
+        </button>
+      </div>
     </header>
 
     <div class="card" id="spotHeaderCard">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
         <div>
-          <h2 id="spotNameHeading" style="margin:0 0 4px;">Loading spot…</h2>
-          <p id="spotDesc" class="pred-info" style="margin:0;">
-            Fetching data…
-          </p>
+          <h2 id="spotNameHeading" style="margin:0 0 4px;" data-i18n="pred.loadingSpot">Loading spot…</h2>
+          <p id="spotDesc" class="pred-info" style="margin:0;" data-i18n="pred.fetchingData">Fetching data…</p>
         </div>
-        <button class="secondary-btn" id="backToSpotBtn">
-          ← Back to main
-        </button>
       </div>
     </div>
 
     <div class="card" id="predictionsCard" style="display:none;">
-      <h2>Next 3 days</h2>
+      <h2 data-i18n="pred.next3Days">Next 3 days</h2>
       <div id="predictionsList"></div>
       <p class="pred-info" id="predSummary"></p>
     </div>
 
-    <!-- Hot times tomorrow (daylight only) -->
     <div class="card" id="hotTimesCard" style="display:none;">
-      <h2>Hot times tomorrow</h2>
+      <h2 data-i18n="pred.hotTimesTomorrow">Hot times tomorrow</h2>
       <div id="hotTimesList"></div>
-      <p class="pred-info" id="hotTimesNote">
+      <p class="pred-info" id="hotTimesNote" data-i18n="pred.hotTimesExplain">
         Times are between 1 hour before sunrise and 1 hour after sunset, based on your catches with weather data.
       </p>
     </div>
 
     <div class="card" id="debugCard" style="display:none;">
-      <h2>Debug view (why these scores?)</h2>
+      <h2 data-i18n="pred.debugTitle">Debug view (why these scores?)</h2>
       <p class="pred-info" id="debugInfo"></p>
       <p class="pred-info" id="weatherNowInfo"></p>
     </div>
   </div>
 
+  <!-- i18n (load once) -->
+  <script src="translations.js"></script>
+
   <script type="module">
     import { initializeApp }
       from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-
     import {
       getAuth,
       onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-
     import {
       getFirestore,
       doc, getDoc,
@@ -132,7 +112,12 @@
     const auth = getAuth(app);
     const db   = getFirestore(app);
 
-    const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    // i18n helpers
+    const i18n = window.fishingLogI18n;
+    const t = (key) => (i18n && typeof i18n.t === "function") ? i18n.t(key) : key;
+    function reapplyTranslations() {
+      if (i18n && typeof i18n.applyTranslations === "function") i18n.applyTranslations();
+    }
 
     const spotNameHeading = document.getElementById("spotNameHeading");
     const spotDesc        = document.getElementById("spotDesc");
@@ -142,8 +127,8 @@
     const predictionsList = document.getElementById("predictionsList");
     const predSummary     = document.getElementById("predSummary");
 
-    const hotTimesCard = document.getElementById("hotTimesCard");
-    const hotTimesList = document.getElementById("hotTimesList");
+    const hotTimesCard    = document.getElementById("hotTimesCard");
+    const hotTimesList    = document.getElementById("hotTimesList");
 
     const debugCard       = document.getElementById("debugCard");
     const debugInfo       = document.getElementById("debugInfo");
@@ -158,28 +143,42 @@
       return params.get("spotId");
     }
 
+    function weekdayKeyForDate(d) {
+      const keys = [
+        "home.weekdaySun",
+        "home.weekdayMon",
+        "home.weekdayTue",
+        "home.weekdayWed",
+        "home.weekdayThu",
+        "home.weekdayFri",
+        "home.weekdaySat"
+      ];
+      return keys[d.getDay()] || "home.weekdaySun";
+    }
+
     function formatDateLabel(dateObj) {
       const d = dateObj.getDate();
       const m = dateObj.getMonth() + 1;
       const y = dateObj.getFullYear();
-      const weekday = WEEKDAYS[dateObj.getDay()];
+      const weekday = t(weekdayKeyForDate(dateObj));
       return `${weekday} ${d}.${m}.${y}`;
     }
 
+    // Reuse same condition keys as index/spots-map
     function getWeatherIconAndLabel(code) {
-      if (code === 0) return { icon: "☀️", label: "Clear sky" };
-      if (code === 1) return { icon: "🌤️", label: "Mainly clear" };
-      if (code === 2) return { icon: "⛅",  label: "Partly cloudy" };
-      if (code === 3) return { icon: "☁️", label: "Overcast" };
-      if (code === 45 || code === 48) return { icon: "🌫️", label: "Fog" };
-      if (code >= 51 && code <= 57) return { icon: "🌦️", label: "Drizzle" };
-      if (code >= 61 && code <= 67) return { icon: "🌧️", label: "Rain" };
-      if (code >= 71 && code <= 77) return { icon: "🌨️", label: "Snow" };
-      if (code >= 80 && code <= 82) return { icon: "🌦️", label: "Rain showers" };
-      if (code >= 85 && code <= 86) return { icon: "🌨️", label: "Snow showers" };
-      if (code === 95) return { icon: "⛈️", label: "Thunderstorm" };
-      if (code === 96 || code === 99) return { icon: "⛈️", label: "Thunderstorm with hail" };
-      return { icon: "❓", label: "Unknown" };
+      if (code === 0)  return { icon: "☀️", label: t("home.weatherClear") };
+      if (code === 1)  return { icon: "🌤️", label: t("home.weatherMainlyClear") };
+      if (code === 2)  return { icon: "⛅",  label: t("home.weatherPartlyCloudy") };
+      if (code === 3)  return { icon: "☁️", label: t("home.weatherOvercast") };
+      if (code === 45 || code === 48) return { icon: "🌫️", label: t("pred.weatherFog") };
+      if (code >= 51 && code <= 57) return { icon: "🌦️", label: t("home.weatherDrizzle") };
+      if (code >= 61 && code <= 67) return { icon: "🌧️", label: t("home.weatherRain") };
+      if (code >= 71 && code <= 77) return { icon: "🌨️", label: t("home.weatherSnow") };
+      if (code >= 80 && code <= 82) return { icon: "🌦️", label: t("home.weatherRainShowers") };
+      if (code >= 85 && code <= 86) return { icon: "🌨️", label: t("home.weatherSnowShowers") };
+      if (code === 95) return { icon: "⛈️", label: t("home.weatherThunderstorm") };
+      if (code === 96 || code === 99) return { icon: "⛈️", label: t("home.weatherThunderstormHail") };
+      return { icon: "❓", label: t("home.weatherUnknown") };
     }
 
     // Approximate moon phase (0..1)
@@ -225,6 +224,7 @@
 
         const catchMoon =
           typeof c.moonPhase === "number" ? c.moonPhase : null;
+
         if (catchMoon != null && typeof forecastMoonPhase === "number") {
           const moonDiff = Math.abs(c.moonPhase - forecastMoonPhase);
           penalty += moonDiff * 40;
@@ -240,7 +240,7 @@
     }
 
     async function computeSpotWeatherAndPredictions(lat, lng, spotCatches) {
-      let weatherNowText = "Weather: failed to load";
+      let weatherNowText = t("pred.weatherFailedToLoad");
       const predictions = [];
       let hotHoursTomorrow = [];
 
@@ -268,11 +268,12 @@
       const { icon, label } = getWeatherIconAndLabel(codeNow);
       const wParts = [];
       if (label) wParts.push(label);
-      if (tempNow != null) wParts.push(`${tempNow.toFixed(1)} °C`);
-      if (windMsNow != null) wParts.push(`wind ${windMsNow.toFixed(1)} m/s`);
+      if (tempNow != null) wParts.push(`${tempNow.toFixed(1)} ${t("home.unitCelsius")}`);
+      if (windMsNow != null) wParts.push(`${t("home.wind")} ${windMsNow.toFixed(1)} ${t("home.unitMetersPerSecond")}`);
+
       weatherNowText = wParts.length
-        ? `Weather now: ${icon} ${wParts.join(", ")}`
-        : "Weather now: not available";
+        ? `${t("home.weatherNow")}: ${icon} ${wParts.join(", ")}`
+        : t("pred.weatherNotAvailable");
 
       // ---- Hourly forecast ----
       const hourly = data.hourly || {};
@@ -305,15 +306,14 @@
         return { dateObj: base, temp: fTemp, windMs: fWind, press: fPress, moon: fMoon };
       }
 
-      // Daily predictions for next 3 days
       for (let offset = 1; offset <= 3; offset++) {
         const fc = getForecastForDayOffset(offset);
         if (!fc) {
+          const d = new Date();
+          d.setDate(d.getDate() + offset);
           predictions.push({
             score: null,
-            dateLabel: formatDateLabel(
-              new Date(new Date().setDate(new Date().getDate() + offset))
-            ),
+            dateLabel: formatDateLabel(d),
             forecast: null
           });
           continue;
@@ -334,7 +334,7 @@
         });
       }
 
-      // ---- Hot times tomorrow (hourly, daylight only) ----
+      // ---- Hot times tomorrow (daylight only) ----
       async function getHotHoursForDayOffset(dayOffset) {
         const base = new Date();
         base.setDate(base.getDate() + dayOffset);
@@ -343,7 +343,6 @@
         const dd = String(base.getDate()).padStart(2, "0");
         const dateStr = `${yyyy}-${mm}-${dd}`;
 
-        // Sunrise / sunset for that day
         const sunUrl =
           `https://api.open-meteo.com/v1/forecast` +
           `?latitude=${lat}&longitude=${lng}` +
@@ -357,7 +356,6 @@
           sunrise = new Date(sunData.daily.sunrise[0]);
           sunset  = new Date(sunData.daily.sunset[0]);
         } catch (e) {
-          console.warn("Sunrise/sunset not available:", e);
           return [];
         }
 
@@ -370,8 +368,6 @@
           if (!times[i].startsWith(dateStr)) continue;
 
           const dt = new Date(times[i]);
-
-          // Skip night hours
           if (dt < allowedStart || dt > allowedEnd) continue;
 
           const fTemp  = temps[i];
@@ -386,18 +382,15 @@
             fPress,
             fMoon
           );
-          if (score == null) continue;
 
+          if (score == null) continue;
           results.push({ dateObj: dt, score });
         }
 
         results.sort((a, b) => b.score - a.score);
 
         return results.slice(0, 5).map(r => ({
-          label: r.dateObj.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit"
-          }),
+          label: r.dateObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           score: r.score
         }));
       }
@@ -414,26 +407,37 @@
       }
       currentUser   = user;
       currentSpotId = getSpotIdFromUrl();
+
       if (!currentSpotId) {
-        spotNameHeading.textContent = "No spot selected";
-        spotDesc.textContent = "Missing spotId in URL.";
+        spotNameHeading.removeAttribute("data-i18n");
+        spotNameHeading.textContent = t("pred.noSpotSelected");
+        spotDesc.removeAttribute("data-i18n");
+        spotDesc.textContent = t("pred.missingSpotId");
         return;
       }
+
       await initPredictionsPage();
     });
 
     async function initPredictionsPage() {
       const spotRef  = doc(db, "spots", currentSpotId);
       const spotSnap = await getDoc(spotRef);
+
       if (!spotSnap.exists()) {
-        spotNameHeading.textContent = "Spot not found";
-        spotDesc.textContent        = "Unable to load this spot.";
+        spotNameHeading.removeAttribute("data-i18n");
+        spotNameHeading.textContent = t("pred.spotNotFound");
+        spotDesc.removeAttribute("data-i18n");
+        spotDesc.textContent = t("pred.unableToLoadSpot");
         return;
       }
 
       currentSpot = { id: spotSnap.id, ...spotSnap.data() };
-      spotNameHeading.textContent = currentSpot.name || "Unnamed spot";
-      spotDesc.textContent = "Loading catches and forecast…";
+
+      spotNameHeading.removeAttribute("data-i18n");
+      spotNameHeading.textContent = currentSpot.name || t("spotPage.unnamedSpot");
+
+      spotDesc.removeAttribute("data-i18n");
+      spotDesc.textContent = t("pred.loadingCatchesAndForecast");
 
       const q = query(
         collection(db, "catches"),
@@ -449,17 +453,17 @@
         typeof c.weatherPressure === "number"
       );
 
-      spotDesc.textContent =
-        `${spotCatches.length} total catches at this spot, ` +
-        `${withWeather.length} with weather data saved.`;
+      spotDesc.textContent = t("pred.spotCatchSummary")
+        .replace("{total}", String(spotCatches.length))
+        .replace("{withWeather}", String(withWeather.length));
 
       if (typeof currentSpot.latitude !== "number" ||
           typeof currentSpot.longitude !== "number") {
         predictionsCard.style.display = "none";
         hotTimesCard.style.display    = "none";
         debugCard.style.display       = "block";
-        debugInfo.textContent         =
-          "This spot has no GPS coordinates, so forecast-based prediction is not available.";
+        debugInfo.textContent         = t("pred.noGpsNoPrediction");
+        weatherNowInfo.textContent    = "";
         return;
       }
 
@@ -477,12 +481,13 @@
         weatherNowInfo.textContent = weatherNowText;
         renderPredictions(predictions, withWeather.length);
         renderHotHours(hotHoursTomorrow);
+
       } catch (err) {
         console.error(err);
         predictionsCard.style.display = "none";
         hotTimesCard.style.display    = "none";
         debugCard.style.display       = "block";
-        debugInfo.textContent         = "Failed to compute predictions.";
+        debugInfo.textContent         = t("pred.failedToCompute");
       }
     }
 
@@ -490,8 +495,8 @@
       predictionsList.innerHTML = "";
 
       if (!predictions.length) {
-        predictionsList.innerHTML =
-          `<p class="pred-info">No forecast data available.</p>`;
+        predictionsList.innerHTML = `<p class="pred-info">${t("pred.noForecastData")}</p>`;
+        predSummary.textContent = "";
         return;
       }
 
@@ -518,21 +523,21 @@
           scoreSpan.textContent = `${p.score.toFixed(0)}%`;
 
           if (p.score >= 70) {
-            tag.textContent = "Good";
+            tag.textContent = t("pred.tagGood");
             tag.classList.add("pred-tag-good");
           } else if (p.score >= 40) {
-            tag.textContent = "Medium";
+            tag.textContent = t("pred.tagMedium");
             tag.classList.add("pred-tag-medium");
           } else {
-            tag.textContent = "Poor";
+            tag.textContent = t("pred.tagPoor");
             tag.classList.add("pred-tag-poor");
           }
 
           sumScores   += p.score;
           countScores += 1;
         } else {
-          scoreSpan.textContent = "n/a";
-          tag.textContent = "No data";
+          scoreSpan.textContent = t("home.na");
+          tag.textContent = t("pred.tagNoData");
         }
 
         right.appendChild(scoreSpan);
@@ -544,12 +549,11 @@
 
       if (countScores > 0) {
         const avg = sumScores / countScores;
-        predSummary.textContent =
-          `Average score for the next 3 days: ${avg.toFixed(0)}% ` +
-          `(based on ${usableCount} catches with weather data).`;
+        predSummary.textContent = t("pred.avgScoreSummary")
+          .replace("{avg}", avg.toFixed(0))
+          .replace("{usable}", String(usableCount));
       } else {
-        predSummary.textContent =
-          `No usable catches with weather data yet – predictions are not available.`;
+        predSummary.textContent = t("pred.noUsableCatchesYet");
       }
     }
 
@@ -583,8 +587,8 @@
     backToSpotBtn.onclick = () => {
       window.location.href = "index.html";
     };
-  </script>
-  <script src="translations.js"></script>
 
+    reapplyTranslations();
+  </script>
 </body>
 </html>
