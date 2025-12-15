@@ -216,11 +216,19 @@
         const windDiff = Math.abs(c.weatherWindMs - forecastWindMs);
         if (windDiff > 4) penalty += (windDiff - 4) * 3;
 
-        if (forecastPress < 1000) {
-          if (c.weatherPressure >= 1000) penalty += 10;
-        } else {
-          if (c.weatherPressure < 1000)  penalty += 10;
-        }
+// Pressure: tolerance + scaling (instead of a hard 1000 hPa threshold)
+// - No penalty within PRESS_TOL_HPA
+// - After that, penalty increases linearly per extra hPa
+const pressDiff = Math.abs((c.weatherPressure ?? 0) - (forecastPress ?? 0));
+const PRESS_TOL_HPA = 8;          // set to 6–8 (use 6 if you want stricter)
+const PRESS_PENALTY_PER_HPA = 1.2; // scaling factor; tune 0.8–2.0 as needed
+
+if (typeof c.weatherPressure === "number" && typeof forecastPress === "number") {
+  if (pressDiff > PRESS_TOL_HPA) {
+    penalty += (pressDiff - PRESS_TOL_HPA) * PRESS_PENALTY_PER_HPA;
+  }
+}
+
 
         const catchMoon =
           typeof c.moonPhase === "number" ? c.moonPhase : null;
