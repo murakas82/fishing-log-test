@@ -174,6 +174,36 @@
       "spotPage.catchesTitle": "Catches at this spot",
       "spotPage.loading": "Loading…",
 
+       // spot.html extra strings
+"spotPage.locationLabel": "Location:",
+"spotPage.locationNotSet": "not set",
+
+"spotPage.noSpotSelected": "No spot selected",
+"spotPage.missingSpotId": "Missing spot id in URL.",
+"spotPage.spotNotFound": "Spot not found",
+"spotPage.spotDoesNotExist": "This spot does not exist.",
+"spotPage.accessDenied": "Access denied",
+"spotPage.belongsToAnotherUser": "This spot belongs to another user.",
+"spotPage.unnamedSpot": "Unnamed spot",
+
+"spotPage.noCatchesYet": "No catches at this spot yet.",
+"spotPage.lureLabel": "Lure",
+"spotPage.depthLabel": "Depth",
+"spotPage.waterTempLabel": "Water temp",
+"spotPage.weatherAtCatchLabel": "Weather at time of catch",
+"spotPage.noWeatherData": "no weather data",
+
+"spotPage.deleteCatch": "Delete catch",
+"spotPage.confirmDeleteCatch": "Delete this catch permanently?",
+"spotPage.errorDeletingCatch": "Error deleting catch:",
+
+"spotPage.confirmDeleteSpot": "Delete this spot and all catches at this spot? This cannot be undone.",
+"spotPage.deleting": "Deleting…",
+"spotPage.spotDeleted": "Spot and its catches deleted.",
+"spotPage.errorDeletingSpot": "Error deleting spot:",
+"spotPage.deleteButtonFallback": "Delete spot",
+ 
+      
       // Spots map
       "spotsMap.title": "My fishing spots – map",
       "spotsMap.subtitle":
@@ -387,6 +417,36 @@
       "spotPage.catchesTitle": "Selle koha saagid",
       "spotPage.loading": "Laadimine…",
 
+// spot.html extra strings
+"spotPage.locationLabel": "Asukoht:",
+"spotPage.locationNotSet": "määramata",
+
+"spotPage.noSpotSelected": "Püügikohta pole valitud",
+"spotPage.missingSpotId": "URL-is puudub koha ID.",
+"spotPage.spotNotFound": "Püügikohta ei leitud",
+"spotPage.spotDoesNotExist": "Seda püügikohta ei eksisteeri.",
+"spotPage.accessDenied": "Ligipääs keelatud",
+"spotPage.belongsToAnotherUser": "See püügikoht kuulub teisele kasutajale.",
+"spotPage.unnamedSpot": "Nimetu püügikoht",
+
+"spotPage.noCatchesYet": "Selles kohas pole veel saake.",
+"spotPage.lureLabel": "Lant",
+"spotPage.depthLabel": "Sügavus",
+"spotPage.waterTempLabel": "Vee temp",
+"spotPage.weatherAtCatchLabel": "Ilm saagi ajal",
+"spotPage.noWeatherData": "ilmaandmed puuduvad",
+
+"spotPage.deleteCatch": "Kustuta saak",
+"spotPage.confirmDeleteCatch": "Kas kustutada see saak jäädavalt?",
+"spotPage.errorDeletingCatch": "Saagi kustutamine ebaõnnestus:",
+
+"spotPage.confirmDeleteSpot": "Kas kustutada see püügikoht ja kõik selle koha saagid? Seda ei saa tagasi võtta.",
+"spotPage.deleting": "Kustutan…",
+"spotPage.spotDeleted": "Püügikoht ja selle saagid kustutati.",
+"spotPage.errorDeletingSpot": "Püügikoha kustutamine ebaõnnestus:",
+"spotPage.deleteButtonFallback": "Kustuta koht",
+
+      
       // Spots map
       "spotsMap.title": "Minu püügikohad – kaart",
       "spotsMap.subtitle":
