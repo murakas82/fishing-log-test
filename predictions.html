@@ -99,6 +99,8 @@
       query, where
     } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
+    import { computeNext3DayScores, computeHotHoursFromForecast } from "./predictions-core.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyCXIdT74cNDSVIoMs3NZ86tPf2kzFm8Iug",
       authDomain: "fishing-log-app-murx.firebaseapp.com",
@@ -181,88 +183,17 @@
       return { icon: "❓", label: t("home.weatherUnknown") };
     }
 
-    // Approximate moon phase (0..1)
-    function getApproxMoonPhase(date) {
-      const lp = 2551443;
-      const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14);
-      const diff = date.getTime() - knownNewMoon;
-      const phase = (diff / 1000) % lp;
-      let frac = phase / lp;
-      if (frac < 0) frac += 1;
-      return frac;
-    }
-
-    function computePredictionScoreForDay(
-      spotCatches,
-      forecastTemp,
-      forecastWindMs,
-      forecastPress,
-      forecastMoonPhase
-    ) {
-      const usable = spotCatches.filter(c =>
-        typeof c.weatherTemp     === "number" &&
-        typeof c.weatherWindMs   === "number" &&
-        typeof c.weatherPressure === "number"
-      );
-
-      if (!usable.length) return null;
-
-      const scores = usable.map(c => {
-        let penalty = 0;
-
-        const tempDiff = Math.abs(c.weatherTemp - forecastTemp);
-        if (tempDiff > 5) penalty += (tempDiff - 5) * 2;
-
-        const windDiff = Math.abs(c.weatherWindMs - forecastWindMs);
-        if (windDiff > 4) penalty += (windDiff - 4) * 3;
-
-// Pressure: tolerance + scaling (instead of a hard 1000 hPa threshold)
-// - No penalty within PRESS_TOL_HPA
-// - After that, penalty increases linearly per extra hPa
-const pressDiff = Math.abs((c.weatherPressure ?? 0) - (forecastPress ?? 0));
-const PRESS_TOL_HPA = 8;          // set to 6–8 (use 6 if you want stricter)
-const PRESS_PENALTY_PER_HPA = 1.2; // scaling factor; tune 0.8–2.0 as needed
-
-if (typeof c.weatherPressure === "number" && typeof forecastPress === "number") {
-  if (pressDiff > PRESS_TOL_HPA) {
-    penalty += (pressDiff - PRESS_TOL_HPA) * PRESS_PENALTY_PER_HPA;
-  }
-}
-
-
-        const catchMoon =
-          typeof c.moonPhase === "number" ? c.moonPhase : null;
-
-        if (catchMoon != null && typeof forecastMoonPhase === "number") {
-          const moonDiff = Math.abs(c.moonPhase - forecastMoonPhase);
-          penalty += moonDiff * 40;
-        }
-
-        let score = 100 - penalty;
-        if (score < 0) score = 0;
-        if (score > 100) score = 100;
-        return score;
-      });
-
-      return scores.reduce((a, b) => a + b, 0) / scores.length;
-    }
-
     async function computeSpotWeatherAndPredictions(lat, lng, spotCatches) {
       let weatherNowText = t("pred.weatherFailedToLoad");
       const predictions = [];
       let hotHoursTomorrow = [];
-
-      // ---- Day score strategy ----
-      // "avgTopN" = average of the best N daylight hours
-      // "max"     = the single best daylight hour
-      const DAY_SCORE_MODE = "avgTopN";
-      const DAY_SCORE_TOP_N = 8;
 
       const url =
         `https://api.open-meteo.com/v1/forecast` +
         `?latitude=${lat}&longitude=${lng}` +
         `&current=temperature_2m,wind_speed_10m,weather_code` +
         `&hourly=temperature_2m,wind_speed_10m,pressure_msl` +
+        `&daily=sunrise,sunset` +
         `&forecast_days=4` +
         `&wind_speed_unit=ms` +
         `&timezone=auto`;
@@ -289,177 +220,39 @@ if (typeof c.weatherPressure === "number" && typeof forecastPress === "number") 
         ? `${t("home.weatherNow")}: ${icon} ${wParts.join(", ")}`
         : t("pred.weatherNotAvailable");
 
-      // ---- Hourly forecast ----
-      const hourly = data.hourly || {};
-      const times   = hourly.time || [];
-      const temps   = hourly.temperature_2m || [];
-      const windsMs = hourly.wind_speed_10m || [];
-      const presses = hourly.pressure_msl || [];
-
-      if (!times.length || !temps.length || !windsMs.length || !presses.length) {
-        return { weatherNowText, predictions, hotHoursTomorrow };
-      }
-
-      // Cache sunrise/sunset lookups per dateStr (YYYY-MM-DD)
-      const sunCache = new Map();
-
-      function dateStrForOffset(dayOffset) {
-        const base = new Date();
-        base.setDate(base.getDate() + dayOffset);
-        const yyyy = base.getFullYear();
-        const mm = String(base.getMonth() + 1).padStart(2, "0");
-        const dd = String(base.getDate()).padStart(2, "0");
-        return `${yyyy}-${mm}-${dd}`;
-      }
-
-      async function getSunTimesForDateStr(dateStr) {
-        if (sunCache.has(dateStr)) return sunCache.get(dateStr);
-
-        const sunUrl =
-          `https://api.open-meteo.com/v1/forecast` +
-          `?latitude=${lat}&longitude=${lng}` +
-          `&daily=sunrise,sunset&timezone=auto` +
-          `&start_date=${dateStr}&end_date=${dateStr}`;
-
-        try {
-          const sunRes = await fetch(sunUrl);
-          if (!sunRes.ok) throw new Error("Sun HTTP " + sunRes.status);
-          const sunData = await sunRes.json();
-          const sunriseRaw = sunData?.daily?.sunrise?.[0];
-          const sunsetRaw  = sunData?.daily?.sunset?.[0];
-          if (!sunriseRaw || !sunsetRaw) throw new Error("Sun data missing");
-
-          const sunrise = new Date(sunriseRaw);
-          const sunset  = new Date(sunsetRaw);
-          const result = { sunrise, sunset };
-          sunCache.set(dateStr, result);
-          return result;
-        } catch (e) {
-          sunCache.set(dateStr, null);
-          return null;
+      // ---- Predictions (shared module) ----
+      const PREDICT_OPTS = {
+        mode: "avgTopN",
+        topN: 8,
+        daylightPadHours: 1,
+        scoreOptions: {
+          pressTolHpa: 8,
+          pressPenaltyPerHpa: 1.2
         }
-      }
+      };
 
-      function getHourlyScoresForDateWindow(dateStr, allowedStart, allowedEnd) {
-        const results = [];
-
-        for (let i = 0; i < times.length; i++) {
-          if (!times[i].startsWith(dateStr)) continue;
-
-          const dt = new Date(times[i]);
-          if (dt < allowedStart || dt > allowedEnd) continue;
-
-          const fTemp  = temps[i];
-          const fWind  = windsMs[i];
-          const fPress = presses[i];
-          const fMoon  = getApproxMoonPhase(dt);
-
-          const score = computePredictionScoreForDay(
-            spotCatches,
-            fTemp,
-            fWind,
-            fPress,
-            fMoon
-          );
-
-          if (score == null) continue;
-          results.push({ dateObj: dt, score });
-        }
-
-        results.sort((a, b) => b.score - a.score);
-        return results;
-      }
-
-      // Fallback: old behavior (midday score) if sunrise/sunset cannot be loaded.
-      function getForecastForDayOffset(dayOffset) {
-        const base = new Date();
-        base.setDate(base.getDate() + dayOffset);
-        const yyyy = base.getFullYear();
-        const mm = String(base.getMonth() + 1).padStart(2, "0");
-        const dd = String(base.getDate()).padStart(2, "0");
-        const dateStr = `${yyyy}-${mm}-${dd}`;
-
-        let idx = times.findIndex(t => t.startsWith(`${dateStr}T12`));
-        if (idx === -1) idx = times.findIndex(t => t.startsWith(dateStr));
-        if (idx === -1) return null;
-
-        const fTemp  = temps[idx];
-        const fWind  = windsMs[idx];
-        const fPress = presses[idx];
-        const fMoon  = getApproxMoonPhase(base);
-
-        return { dateObj: base, temp: fTemp, windMs: fWind, press: fPress, moon: fMoon };
-      }
-
-      async function getDayScoreForOffset(dayOffset) {
-        const base = new Date();
-        base.setDate(base.getDate() + dayOffset);
-        const dateStr = dateStrForOffset(dayOffset);
-
-        const sun = await getSunTimesForDateStr(dateStr);
-        if (!sun) {
-          // fallback to midday sampling
-          const fc = getForecastForDayOffset(dayOffset);
-          if (!fc) return { score: null, dateObj: base };
-          const score = computePredictionScoreForDay(
-            spotCatches,
-            fc.temp,
-            fc.windMs,
-            fc.press,
-            fc.moon
-          );
-          return { score, dateObj: base };
-        }
-
-        const allowedStart = new Date(sun.sunrise.getTime() - 60 * 60 * 1000);
-        const allowedEnd   = new Date(sun.sunset.getTime()  + 60 * 60 * 1000);
-
-        const hourlyScores = getHourlyScoresForDateWindow(dateStr, allowedStart, allowedEnd);
-        if (!hourlyScores.length) return { score: null, dateObj: base };
-
-        if (DAY_SCORE_MODE === "max") {
-          return { score: hourlyScores[0].score, dateObj: base };
-        }
-
-        // avgTopN
-        const n = Math.max(1, Math.min(DAY_SCORE_TOP_N, hourlyScores.length));
-        const top = hourlyScores.slice(0, n);
-        const avg = top.reduce((sum, r) => sum + r.score, 0) / n;
-        return { score: avg, dateObj: base };
-      }
-
+      const next3 = computeNext3DayScores(data, spotCatches, PREDICT_OPTS);
       for (let offset = 1; offset <= 3; offset++) {
         const d = new Date();
         d.setDate(d.getDate() + offset);
-
-        const ds = await getDayScoreForOffset(offset);
+        const entry = next3.find(x => x.offset === offset);
         predictions.push({
-          score: ds.score,
+          score: entry ? entry.score : null,
           dateLabel: formatDateLabel(d),
           forecast: null
         });
       }
 
-      // ---- Hot times tomorrow (daylight only) ----
-      // Uses the same hourly scoring window as the new day score.
-      try {
-        const dateStr = dateStrForOffset(1);
-        const sun = await getSunTimesForDateStr(dateStr);
-        if (sun) {
-          const allowedStart = new Date(sun.sunrise.getTime() - 60 * 60 * 1000);
-          const allowedEnd   = new Date(sun.sunset.getTime()  + 60 * 60 * 1000);
+      const hot = computeHotHoursFromForecast(data, spotCatches, 1, {
+        limit: 5,
+        daylightPadHours: 1,
+        scoreOptions: PREDICT_OPTS.scoreOptions
+      });
 
-          const hourlyScores = getHourlyScoresForDateWindow(dateStr, allowedStart, allowedEnd);
-          hotHoursTomorrow = hourlyScores.slice(0, 5).map(r => ({
-            label: r.dateObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-            score: r.score
-          }));
-        } else {
-          hotHoursTomorrow = [];
-        }
-      } catch {
-        hotHoursTomorrow = [];
-      }
+      hotHoursTomorrow = hot.map(r => ({
+        label: r.dateObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        score: r.score
+      }));
 
       return { weatherNowText, predictions, hotHoursTomorrow };
     }
