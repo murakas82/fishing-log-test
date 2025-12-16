@@ -71,7 +71,6 @@ p {
   gap: 8px;
 }
 
-/* Simple grid for two-half layout */
 .grid-2 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -151,7 +150,6 @@ textarea {
   transform: translateY(0);
 }
 
-/* Glow button (used everywhere for navigation/actions) */
 .secondary-btn,
 .btn-glow {
   display: inline-flex;
@@ -189,14 +187,12 @@ textarea {
   box-shadow: 0 0 10px rgba(37, 99, 235, 0.5);
 }
 
-/* Back-to-main semantic helper */
 .btn-back-main {
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
-/* Danger button (delete catch, delete spot, etc.) */
 .danger-btn {
   display: inline-flex;
   align-items: center;
@@ -229,7 +225,6 @@ textarea {
   transform: translateY(0);
 }
 
-/* When using <a> as button */
 a.secondary-btn,
 a.btn-glow,
 a.danger-btn {
@@ -262,20 +257,13 @@ a.danger-btn {
   }
 }
 
-/* Simple fade-in animation for pages */
 .fade-in {
   animation: fadeIn 0.4s ease-out;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* =========================================
@@ -297,7 +285,6 @@ a.danger-btn {
   background: rgba(15, 23, 42, 0.9);
 }
 
-/* Prediction status badge under each spot main page */
 .prediction-badge {
   display: inline-flex;
   align-items: center;
@@ -350,13 +337,11 @@ a.danger-btn {
   overflow: hidden;
 }
 
-/* White text inside popup buttons */
 .leaflet-popup-content .secondary-btn,
 .leaflet-popup-content .btn-glow {
   color: #ffffff !important;
 }
 
-/* Map search input for add-spot page */
 .map-search-container {
   position: absolute;
   top: 12px;
@@ -372,10 +357,6 @@ a.danger-btn {
   border-radius: 999px;
 }
 
-/* =========================================
-   Responsive tweaks
-   ========================================= */
-
 @media (max-width: 640px) {
   .card-header {
     flex-direction: column;
@@ -390,12 +371,12 @@ a.danger-btn {
 
 /* Move Leaflet zoom controls so they do NOT overlap the search suggestions */
 .leaflet-top.leaflet-left {
-  margin-top: 120px !important;   /* adjust as needed */
+  margin-top: 120px !important;
   margin-left: 8px !important;
 }
 
 /* =========================================
-   Toggle button selection state (language + theme)
+   Toggle button selection state
    ========================================= */
 
 .lang-switch .is-selected,
@@ -406,34 +387,30 @@ a.danger-btn {
 
 /* =========================================
    THEME OVERRIDES
-   Theme is applied via: <body data-theme="...">
-   Allowed:
-   dark, light, dawn, dusk, nature, marine, pro
    ========================================= */
 
-/* ---------- LIGHT ---------- */
-
+/* Semi-light (not bright white) */
 body[data-theme="light"] {
-  background: #f8fafc;
-  color: #0f172a;
-}
-
-body[data-theme="light"] .card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+  background: #e9eef5;           /* soft blue-gray */
+  color: #0f172a;                 /* slate-900 */
 }
 
 body[data-theme="light"] .muted-text {
-  color: #475569;
+  color: #475569;                 /* slate-600 */
+}
+
+body[data-theme="light"] .card {
+  background: radial-gradient(circle at top left, #f7f9fc, #e6edf6);
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.18);
 }
 
 body[data-theme="light"] input,
 body[data-theme="light"] textarea,
 body[data-theme="light"] select {
-  background: #ffffff;
+  background: #f7f9fc;
   color: #0f172a;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #b8c4d6;
 }
 
 body[data-theme="light"] input::placeholder,
@@ -443,258 +420,34 @@ body[data-theme="light"] textarea::placeholder {
 
 body[data-theme="light"] .secondary-btn,
 body[data-theme="light"] .btn-glow {
-  background: #ffffff;
+  background: rgba(247, 249, 252, 0.95);
   color: #0f172a;
-  border: 1px solid #cbd5e1;
-  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.15);
+  border: 1px solid #9fb3d6;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.12);
 }
 
 body[data-theme="light"] .secondary-btn:hover,
 body[data-theme="light"] .btn-glow:hover {
-  background: #f1f5f9;
+  background: rgba(96, 165, 250, 0.10);
   border-color: #60a5fa;
-  box-shadow: 0 0 18px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 0 18px rgba(37, 99, 235, 0.22);
 }
 
-/* ---------- DAWN (cool, warm sunrise) ---------- */
-
-body[data-theme="dawn"] {
-  background: radial-gradient(circle at top, #1b2a5a 0%, #070a1a 60%, #020617 100%);
-  color: #eaf0ff;
+body[data-theme="light"] .stat-pill,
+body[data-theme="light"] .prediction-badge {
+  background: rgba(247, 249, 252, 0.95);
+  border: 1px solid #cbd5e1;
 }
 
-body[data-theme="dawn"] .card {
-  background: radial-gradient(circle at top left, rgba(255, 183, 77, 0.10), rgba(11, 17, 32, 0.88)),
-              radial-gradient(circle at bottom right, rgba(96, 165, 250, 0.10), rgba(2, 6, 23, 0.92));
-  border: 1px solid rgba(96, 165, 250, 0.22);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.78);
+body[data-theme="light"] .spot-row {
+  border-top: 1px solid #cbd5e1;
 }
 
-body[data-theme="dawn"] .muted-text {
-  color: rgba(226, 232, 240, 0.72);
+/* Optional: reduce neon-glow in light mode */
+body[data-theme="light"] .primary-btn {
+  box-shadow: 0 0 18px rgba(34, 197, 94, 0.35);
 }
 
-body[data-theme="dawn"] input,
-body[data-theme="dawn"] textarea,
-body[data-theme="dawn"] select {
-  background-color: rgba(2, 6, 23, 0.88);
-  border: 1px solid rgba(96, 165, 250, 0.25);
-}
-
-body[data-theme="dawn"] input:focus,
-body[data-theme="dawn"] textarea:focus,
-body[data-theme="dawn"] select:focus {
-  border-color: rgba(251, 191, 36, 0.85);
-  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.45);
-}
-
-body[data-theme="dawn"] .secondary-btn,
-body[data-theme="dawn"] .btn-glow {
-  border-color: rgba(251, 191, 36, 0.65);
-  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.20);
-}
-
-body[data-theme="dawn"] .secondary-btn:hover,
-body[data-theme="dawn"] .btn-glow:hover {
-  background: rgba(251, 191, 36, 0.10);
-  border-color: rgba(251, 191, 36, 0.95);
-  box-shadow: 0 0 18px rgba(251, 191, 36, 0.45);
-}
-
-/* ---------- DUSK (purple/indigo evening) ---------- */
-
-body[data-theme="dusk"] {
-  background: radial-gradient(circle at top, #2b1750 0%, #0a0820 55%, #020617 100%);
-  color: #f1efff;
-}
-
-body[data-theme="dusk"] .card {
-  background: radial-gradient(circle at top left, rgba(168, 85, 247, 0.10), rgba(11, 17, 32, 0.88)),
-              radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.08), rgba(2, 6, 23, 0.92));
-  border: 1px solid rgba(168, 85, 247, 0.22);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.80);
-}
-
-body[data-theme="dusk"] .muted-text {
-  color: rgba(226, 232, 240, 0.70);
-}
-
-body[data-theme="dusk"] input,
-body[data-theme="dusk"] textarea,
-body[data-theme="dusk"] select {
-  background-color: rgba(2, 6, 23, 0.88);
-  border: 1px solid rgba(168, 85, 247, 0.22);
-}
-
-body[data-theme="dusk"] input:focus,
-body[data-theme="dusk"] textarea:focus,
-body[data-theme="dusk"] select:focus {
-  border-color: rgba(168, 85, 247, 0.85);
-  box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.45);
-}
-
-body[data-theme="dusk"] .secondary-btn,
-body[data-theme="dusk"] .btn-glow {
-  border-color: rgba(168, 85, 247, 0.70);
-  box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.18);
-}
-
-body[data-theme="dusk"] .secondary-btn:hover,
-body[data-theme="dusk"] .btn-glow:hover {
-  background: rgba(168, 85, 247, 0.10);
-  border-color: rgba(196, 181, 253, 0.95);
-  box-shadow: 0 0 18px rgba(168, 85, 247, 0.42);
-}
-
-/* ---------- NATURE (pine/forest) ---------- */
-
-body[data-theme="nature"] {
-  background: radial-gradient(circle at top, #0b2a1d 0%, #04110c 55%, #020617 100%);
-  color: #eafff3;
-}
-
-body[data-theme="nature"] .card {
-  background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.10), rgba(11, 17, 32, 0.90)),
-              radial-gradient(circle at bottom right, rgba(20, 83, 45, 0.12), rgba(2, 6, 23, 0.92));
-  border: 1px solid rgba(34, 197, 94, 0.20);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.82);
-}
-
-body[data-theme="nature"] .muted-text {
-  color: rgba(209, 250, 229, 0.65);
-}
-
-body[data-theme="nature"] input,
-body[data-theme="nature"] textarea,
-body[data-theme="nature"] select {
-  background-color: rgba(2, 6, 23, 0.88);
-  border: 1px solid rgba(34, 197, 94, 0.20);
-}
-
-body[data-theme="nature"] input:focus,
-body[data-theme="nature"] textarea:focus,
-body[data-theme="nature"] select:focus {
-  border-color: rgba(34, 197, 94, 0.85);
-  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.42);
-}
-
-body[data-theme="nature"] .secondary-btn,
-body[data-theme="nature"] .btn-glow {
-  border-color: rgba(34, 197, 94, 0.65);
-  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.18);
-}
-
-body[data-theme="nature"] .secondary-btn:hover,
-body[data-theme="nature"] .btn-glow:hover {
-  background: rgba(34, 197, 94, 0.10);
-  border-color: rgba(134, 239, 172, 0.95);
-  box-shadow: 0 0 18px rgba(34, 197, 94, 0.40);
-}
-
-/* ---------- MARINE (teal/ocean) ---------- */
-
-body[data-theme="marine"] {
-  background: radial-gradient(circle at top, #0a2a3b 0%, #041018 55%, #020617 100%);
-  color: #e6fbff;
-}
-
-body[data-theme="marine"] .card {
-  background: radial-gradient(circle at top left, rgba(6, 182, 212, 0.10), rgba(11, 17, 32, 0.90)),
-              radial-gradient(circle at bottom right, rgba(14, 116, 144, 0.10), rgba(2, 6, 23, 0.92));
-  border: 1px solid rgba(6, 182, 212, 0.22);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.82);
-}
-
-body[data-theme="marine"] .muted-text {
-  color: rgba(207, 250, 254, 0.65);
-}
-
-body[data-theme="marine"] input,
-body[data-theme="marine"] textarea,
-body[data-theme="marine"] select {
-  background-color: rgba(2, 6, 23, 0.88);
-  border: 1px solid rgba(6, 182, 212, 0.22);
-}
-
-body[data-theme="marine"] input:focus,
-body[data-theme="marine"] textarea:focus,
-body[data-theme="marine"] select:focus {
-  border-color: rgba(6, 182, 212, 0.90);
-  box-shadow: 0 0 0 1px rgba(6, 182, 212, 0.42);
-}
-
-body[data-theme="marine"] .secondary-btn,
-body[data-theme="marine"] .btn-glow {
-  border-color: rgba(6, 182, 212, 0.70);
-  box-shadow: 0 0 0 1px rgba(6, 182, 212, 0.18);
-}
-
-body[data-theme="marine"] .secondary-btn:hover,
-body[data-theme="marine"] .btn-glow:hover {
-  background: rgba(6, 182, 212, 0.10);
-  border-color: rgba(103, 232, 249, 0.95);
-  box-shadow: 0 0 18px rgba(6, 182, 212, 0.40);
-}
-
-/* ---------- PRO (minimal, higher contrast, less “glow”) ---------- */
-
-body[data-theme="pro"] {
-  background: #0b0f1a;
-  color: #f1f5f9;
-}
-
-body[data-theme="pro"] .muted-text {
-  color: rgba(203, 213, 225, 0.70);
-}
-
-body[data-theme="pro"] .card {
-  background: #0f172a;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  box-shadow: 0 10px 26px rgba(2, 6, 23, 0.65);
-}
-
-body[data-theme="pro"] input,
-body[data-theme="pro"] textarea,
-body[data-theme="pro"] select {
-  background-color: #0b1223;
-  border: 1px solid rgba(148, 163, 184, 0.22);
-}
-
-body[data-theme="pro"] input:focus,
-body[data-theme="pro"] textarea:focus,
-body[data-theme="pro"] select:focus {
-  border-color: rgba(148, 163, 184, 0.70);
-  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.30);
-}
-
-/* Make Pro feel more “analyst”: reduce glow, slightly sharper buttons */
-body[data-theme="pro"] .secondary-btn,
-body[data-theme="pro"] .btn-glow {
-  border-color: rgba(148, 163, 184, 0.55);
-  box-shadow: none;
-  background: rgba(15, 23, 42, 0.95);
-}
-
-body[data-theme="pro"] .secondary-btn:hover,
-body[data-theme="pro"] .btn-glow:hover {
-  background: rgba(148, 163, 184, 0.10);
-  border-color: rgba(203, 213, 225, 0.85);
-  box-shadow: none;
-}
-
-body[data-theme="pro"] .primary-btn {
-  box-shadow: 0 0 14px rgba(34, 197, 94, 0.35);
-}
-
-body[data-theme="pro"] .primary-btn:hover {
-  box-shadow: 0 0 18px rgba(34, 197, 94, 0.45);
-}
-
-/* Keep selection ring visible across all themes */
-body[data-theme="dawn"] .lang-switch .is-selected,
-body[data-theme="dusk"] .lang-switch .is-selected,
-body[data-theme="nature"] .lang-switch .is-selected,
-body[data-theme="marine"] .lang-switch .is-selected,
-body[data-theme="pro"] .lang-switch .is-selected {
-  box-shadow: 0 0 0 2px rgba(226, 232, 240, 0.18);
+body[data-theme="light"] .primary-btn:hover {
+  box-shadow: 0 0 22px rgba(34, 197, 94, 0.45);
 }
