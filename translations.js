@@ -4,6 +4,30 @@
 (function () {
   const STORAGE_KEY = "fishinglog_lang";
 
+    const THEME_KEY = "fishinglog_theme";
+
+  function getTheme() {
+    try {
+      return localStorage.getItem(THEME_KEY) || "dark";
+    } catch (e) {
+      return "dark";
+    }
+  }
+
+  function setTheme(theme) {
+    try {
+      localStorage.setItem(THEME_KEY, theme === "light" ? "light" : "dark");
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  function applyTheme(theme = getTheme()) {
+    const t = theme === "light" ? "light" : "dark";
+    document.body.setAttribute("data-theme", t);
+  }
+
+
   // Translation dictionary
   const TRANSLATIONS = {
     en: {
@@ -273,6 +297,12 @@
       "settings.languageEnglish": "English",
       "settings.languageEstonian": "Estonian",
       "settings.languageSaved": "Language preference saved.",
+            "settings.themeLabel": "Theme",
+      "settings.themeDescription": "Choose light or dark mode. This setting is saved on this device.",
+      "settings.themeDark": "Dark",
+      "settings.themeLight": "Light",
+      "settings.themeSaved": "Theme preference saved.",
+
 
       // Privacy
       "privacy.title": "Privacy Policy",
@@ -558,6 +588,12 @@
       "settings.languageEnglish": "Inglise keel",
       "settings.languageEstonian": "Eesti keel",
       "settings.languageSaved": "Keele-eelistus on salvestatud.",
+            "settings.themeLabel": "Teema",
+      "settings.themeDescription": "Vali hele või tume režiim. See seadistus salvestatakse sellesse seadmesse.",
+      "settings.themeDark": "Tume",
+      "settings.themeLight": "Hele",
+      "settings.themeSaved": "Teema eelistus salvestatud.",
+
 
       // Privacy
       "privacy.title": "Privaatsuspoliitika",
@@ -649,6 +685,12 @@
     applyTranslations();
   }
 
+    // Apply saved theme ASAP
+  try { applyTheme(); } catch (e) {}
+
+  window.fishingLogTheme = { getTheme, setTheme, applyTheme };
+
+  
   window.fishingLogI18n = {
     getCurrentLang,
     setLanguage,
