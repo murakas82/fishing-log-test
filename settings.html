@@ -40,6 +40,34 @@
             Choose the language for the app. This setting is saved on this device.
           </p>
 
+          <!-- Theme selector -->
+<div style="margin-top:16px;">
+  <label data-i18n="settings.themeLabel">Theme</label>
+  <p class="muted-text" data-i18n="settings.themeDescription">
+    Choose light or dark mode. This setting is saved on this device.
+  </p>
+
+  <div class="lang-switch" id="themeSwitch">
+    <button
+      type="button"
+      class="secondary-btn"
+      data-theme="dark"
+      data-i18n="settings.themeDark"
+    >
+      Dark
+    </button>
+    <button
+      type="button"
+      class="secondary-btn"
+      data-theme="light"
+      data-i18n="settings.themeLight"
+    >
+      Light
+    </button>
+  </div>
+</div>
+
+          
           <div class="lang-switch">
             <button
               type="button"
@@ -169,6 +197,41 @@
       }
     };
 
+    // Theme switcher (saved on this device)
+    const themeApi = window.fishingLogTheme;
+    const themeButtons = document.querySelectorAll("#themeSwitch [data-theme]");
+
+    function updateThemeButtons(theme) {
+      themeButtons.forEach((b) => {
+        const isActive = b.getAttribute("data-theme") === theme;
+        b.classList.toggle("is-selected", isActive);
+        b.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
+    }
+
+    if (themeApi && themeButtons.length) {
+      // Initialize from saved theme
+      updateThemeButtons(themeApi.getTheme());
+
+      themeButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const theme = btn.getAttribute("data-theme");
+          if (!theme) return;
+
+          themeApi.setTheme(theme);
+          themeApi.applyTheme(theme);
+          updateThemeButtons(theme);
+
+          const msg = t("settings.themeSaved");
+          messageEl.textContent =
+            msg !== "settings.themeSaved"
+              ? msg
+              : "Theme preference saved.";
+        });
+      });
+    }
+
+    
     // Language switcher (only here)
     const langButtons = document.querySelectorAll(".lang-switch [data-lang]");
     if (langButtons.length) {
