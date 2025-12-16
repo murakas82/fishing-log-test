@@ -54,22 +54,17 @@
         <div style="margin-top:16px;">
           <label data-i18n="settings.themeLabel">Theme</label>
           <p class="muted-text" data-i18n="settings.themeDescription">
-            Choose a theme. This setting is saved on this device.
+            Choose light or dark mode. This setting is saved on this device.
           </p>
 
-          <div class="lang-switch" id="themeSwitch" style="display:flex;flex-wrap:wrap;gap:8px;">
-            <button type="button" class="secondary-btn" data-theme="dark" data-i18n="settings.themeDark">Dark</button>
-            <button type="button" class="secondary-btn" data-theme="light" data-i18n="settings.themeLight">Light</button>
-            <button type="button" class="secondary-btn" data-theme="dawn" data-i18n="settings.themeDawn">Dawn</button>
-            <button type="button" class="secondary-btn" data-theme="dusk" data-i18n="settings.themeDusk">Dusk</button>
-            <button type="button" class="secondary-btn" data-theme="nature" data-i18n="settings.themeNature">Nature</button>
-            <button type="button" class="secondary-btn" data-theme="marine" data-i18n="settings.themeMarine">Marine</button>
-            <button type="button" class="secondary-btn" data-theme="pro" data-i18n="settings.themePro">Pro</button>
+          <div class="lang-switch" id="themeSwitch">
+            <button type="button" class="secondary-btn" data-theme="dark" data-i18n="settings.themeDark">
+              Dark
+            </button>
+            <button type="button" class="secondary-btn" data-theme="light" data-i18n="settings.themeLight">
+              Light
+            </button>
           </div>
-
-          <p class="muted-text" style="margin-top:6px;" data-i18n="settings.themeNote">
-            Note: you also need matching CSS for each theme (style.css).
-          </p>
         </div>
 
         <div style="margin-top:10px;">
@@ -113,7 +108,6 @@
     const nameEl     = document.getElementById("displayName");
     const messageEl  = document.getElementById("settingsMessage");
 
-    // i18n helper (from translations.js)
     const i18n = window.fishingLogI18n;
     const t = (key) => (i18n && typeof i18n.t === "function") ? i18n.t(key) : key;
 
