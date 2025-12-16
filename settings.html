@@ -24,7 +24,6 @@
 
     <div class="card">
       <form id="settingsForm">
-        <!-- Display name -->
         <label for="displayName" data-i18n="settings.displayNameLabel">Display name</label>
         <input
           id="displayName"
@@ -33,7 +32,6 @@
           data-i18n-placeholder="settings.displayNamePlaceholder"
         />
 
-        <!-- Language selector -->
         <div style="margin-top:16px;">
           <label data-i18n="settings.languageLabel">Language</label>
           <p class="muted-text" data-i18n="settings.languageDescription">
@@ -50,7 +48,6 @@
           </div>
         </div>
 
-        <!-- Theme selector -->
         <div style="margin-top:16px;">
           <label data-i18n="settings.themeLabel">Theme</label>
           <p class="muted-text" data-i18n="settings.themeDescription">
@@ -58,12 +55,8 @@
           </p>
 
           <div class="lang-switch" id="themeSwitch">
-            <button type="button" class="secondary-btn" data-theme="dark" data-i18n="settings.themeDark">
-              Dark
-            </button>
-            <button type="button" class="secondary-btn" data-theme="light" data-i18n="settings.themeLight">
-              Light
-            </button>
+            <button type="button" class="secondary-btn" data-theme="dark" data-i18n="settings.themeDark">Dark</button>
+            <button type="button" class="secondary-btn" data-theme="light" data-i18n="settings.themeLight">Light</button>
           </div>
         </div>
 
@@ -78,17 +71,12 @@
     </div>
   </div>
 
-  <!-- i18n script (global, non-module) -->
   <script src="translations.js"></script>
 
-  <!-- Firebase + settings logic -->
   <script type="module">
-    import { initializeApp }
-      from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged }
-      from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc }
-      from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCXIdT74cNDSVIoMs3NZ86tPf2kzFm8Iug",
@@ -101,37 +89,30 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db   = getFirestore(app);
+    const db = getFirestore(app);
 
-    const backBtn    = document.getElementById("backBtn");
-    const form       = document.getElementById("settingsForm");
-    const nameEl     = document.getElementById("displayName");
-    const messageEl  = document.getElementById("settingsMessage");
+    const backBtn = document.getElementById("backBtn");
+    const form = document.getElementById("settingsForm");
+    const nameEl = document.getElementById("displayName");
+    const messageEl = document.getElementById("settingsMessage");
 
     const i18n = window.fishingLogI18n;
+    const themeApi = window.fishingLogTheme;
     const t = (key) => (i18n && typeof i18n.t === "function") ? i18n.t(key) : key;
 
-    function reapplyTranslations() {
-      if (i18n && typeof i18n.applyTranslations === "function") i18n.applyTranslations();
-    }
-
-    backBtn.onclick = () => {
-      window.location.href = "index.html";
-    };
+    backBtn.onclick = () => { window.location.href = "index.html"; };
 
     let currentUser = null;
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "index.html";
-        return;
-      }
+      if (!user) { window.location.href = "index.html"; return; }
       currentUser = user;
-      await loadSettings();
 
+      await loadSettings();
       initLanguageSwitcher();
       initThemeSwitcher();
-      reapplyTranslations();
+
+      if (i18n && typeof i18n.applyTranslations === "function") i18n.applyTranslations();
     });
 
     async function loadSettings() {
@@ -150,26 +131,14 @@
       const displayName = nameEl.value.trim();
 
       try {
-        await setDoc(
-          doc(db, "profiles", currentUser.uid),
-          { displayName },
-          { merge: true }
-        );
-
-        const msg = t("settings.saved");
-        messageEl.textContent = (msg !== "settings.saved") ? msg : "Settings saved.";
-
-        setTimeout(() => {
-          window.location.href = "index.html";
-        }, 600);
-
+        await setDoc(doc(db, "profiles", currentUser.uid), { displayName }, { merge: true });
+        messageEl.textContent = t("settings.saved");
+        setTimeout(() => { window.location.href = "index.html"; }, 600);
       } catch {
-        const msg = t("settings.saveFailed");
-        messageEl.textContent = (msg !== "settings.saveFailed") ? msg : "Failed to save settings.";
+        messageEl.textContent = t("settings.saveFailed");
       }
     };
 
-    // ---- Language switcher (saved on this device) ----
     function initLanguageSwitcher() {
       const langButtons = document.querySelectorAll("#languageSwitch [data-lang]");
       if (!langButtons.length || !i18n) return;
@@ -186,9 +155,7 @@
       try {
         if (typeof i18n.getLanguage === "function") currentLang = i18n.getLanguage() || "en";
         else currentLang = localStorage.getItem("fishinglog_lang") || "en";
-      } catch {
-        currentLang = "en";
-      }
+      } catch { currentLang = "en"; }
 
       updateLangButtons(currentLang);
 
@@ -196,22 +163,14 @@
         btn.addEventListener("click", () => {
           const lang = btn.getAttribute("data-lang");
           if (!lang) return;
-
           i18n.setLanguage(lang);
           updateLangButtons(lang);
-
-          const msg = t("settings.languageSaved");
-          messageEl.textContent =
-            (msg !== "settings.languageSaved") ? msg : "Language preference saved.";
-
-          reapplyTranslations();
+          messageEl.textContent = t("settings.languageSaved");
         });
       });
     }
 
-    // ---- Theme switcher (saved on this device) ----
     function initThemeSwitcher() {
-      const themeApi = window.fishingLogTheme;
       const themeButtons = document.querySelectorAll("#themeSwitch [data-theme]");
       if (!themeApi || !themeButtons.length) return;
 
@@ -229,14 +188,10 @@
         btn.addEventListener("click", () => {
           const theme = btn.getAttribute("data-theme");
           if (!theme) return;
-
           themeApi.setTheme(theme);
           themeApi.applyTheme(theme);
           updateThemeButtons(theme);
-
-          const msg = t("settings.themeSaved");
-          messageEl.textContent =
-            (msg !== "settings.themeSaved") ? msg : "Theme preference saved.";
+          messageEl.textContent = t("settings.themeSaved");
         });
       });
     }
