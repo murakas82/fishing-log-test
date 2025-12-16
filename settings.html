@@ -33,42 +33,14 @@
           data-i18n-placeholder="settings.displayNamePlaceholder"
         />
 
-        <!-- Language selector (only here) -->
+        <!-- Language selector -->
         <div style="margin-top:16px;">
           <label data-i18n="settings.languageLabel">Language</label>
           <p class="muted-text" data-i18n="settings.languageDescription">
             Choose the language for the app. This setting is saved on this device.
           </p>
 
-          <!-- Theme selector -->
-<div style="margin-top:16px;">
-  <label data-i18n="settings.themeLabel">Theme</label>
-  <p class="muted-text" data-i18n="settings.themeDescription">
-    Choose light or dark mode. This setting is saved on this device.
-  </p>
-
-  <div class="lang-switch" id="themeSwitch">
-    <button
-      type="button"
-      class="secondary-btn"
-      data-theme="dark"
-      data-i18n="settings.themeDark"
-    >
-      Dark
-    </button>
-    <button
-      type="button"
-      class="secondary-btn"
-      data-theme="light"
-      data-i18n="settings.themeLight"
-    >
-      Light
-    </button>
-  </div>
-</div>
-
-          
-          <div class="lang-switch">
+          <div class="lang-switch" id="languageSwitch">
             <button
               type="button"
               class="secondary-btn"
@@ -84,6 +56,33 @@
               data-i18n="settings.languageEstonian"
             >
               Estonian
+            </button>
+          </div>
+        </div>
+
+        <!-- Theme selector -->
+        <div style="margin-top:16px;">
+          <label data-i18n="settings.themeLabel">Theme</label>
+          <p class="muted-text" data-i18n="settings.themeDescription">
+            Choose light or dark mode. This setting is saved on this device.
+          </p>
+
+          <div class="lang-switch" id="themeSwitch">
+            <button
+              type="button"
+              class="secondary-btn"
+              data-theme="dark"
+              data-i18n="settings.themeDark"
+            >
+              Dark
+            </button>
+            <button
+              type="button"
+              class="secondary-btn"
+              data-theme="light"
+              data-i18n="settings.themeLight"
+            >
+              Light
             </button>
           </div>
         </div>
@@ -106,16 +105,10 @@
   <script type="module">
     import { initializeApp }
       from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-    import {
-      getAuth,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-    import {
-      getFirestore,
-      doc,
-      getDoc,
-      setDoc
-    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc }
+      from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCXIdT74cNDSVIoMs3NZ86tPf2kzFm8Iug",
@@ -137,7 +130,7 @@
 
     // i18n helper (from translations.js)
     const i18n = window.fishingLogI18n;
-    const t = i18n?.t ? i18n.t.bind(i18n) : (k) => k;
+    const t = (key) => (i18n && typeof i18n.t === "function") ? i18n.t(key) : key;
 
     function reapplyTranslations() {
       if (i18n && typeof i18n.applyTranslations === "function") i18n.applyTranslations();
@@ -156,6 +149,11 @@
       }
       currentUser = user;
       await loadSettings();
+
+      // Apply selection styles on load
+      initThemeSwitcher();
+      initLanguageSwitcher();
+      reapplyTranslations();
     });
 
     async function loadSettings() {
@@ -172,6 +170,7 @@
       if (!currentUser) return;
 
       const displayName = nameEl.value.trim();
+
       try {
         await setDoc(
           doc(db, "profiles", currentUser.uid),
@@ -179,38 +178,33 @@
           { merge: true }
         );
 
-        // Show translated success message
         const msg = t("settings.saved");
-        messageEl.textContent =
-          msg !== "settings.saved" ? msg : "Settings saved.";
+        messageEl.textContent = (msg !== "settings.saved") ? msg : "Settings saved.";
 
-        // Redirect to main automatically after save
-        // (short delay so the user sees the confirmation)
         setTimeout(() => {
           window.location.href = "index.html";
         }, 600);
 
       } catch {
         const msg = t("settings.saveFailed");
-        messageEl.textContent =
-          msg !== "settings.saveFailed" ? msg : "Failed to save settings.";
+        messageEl.textContent = (msg !== "settings.saveFailed") ? msg : "Failed to save settings.";
       }
     };
 
-    // Theme switcher (saved on this device)
-    const themeApi = window.fishingLogTheme;
-    const themeButtons = document.querySelectorAll("#themeSwitch [data-theme]");
+    // ---- Theme switcher (saved on this device) ----
+    function initThemeSwitcher() {
+      const themeApi = window.fishingLogTheme;
+      const themeButtons = document.querySelectorAll("#themeSwitch [data-theme]");
+      if (!themeApi || !themeButtons.length) return;
 
-    function updateThemeButtons(theme) {
-      themeButtons.forEach((b) => {
-        const isActive = b.getAttribute("data-theme") === theme;
-        b.classList.toggle("is-selected", isActive);
-        b.setAttribute("aria-pressed", isActive ? "true" : "false");
-      });
-    }
+      function updateThemeButtons(theme) {
+        themeButtons.forEach((b) => {
+          const isActive = b.getAttribute("data-theme") === theme;
+          b.classList.toggle("is-selected", isActive);
+          b.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
+      }
 
-    if (themeApi && themeButtons.length) {
-      // Initialize from saved theme
       updateThemeButtons(themeApi.getTheme());
 
       themeButtons.forEach((btn) => {
@@ -224,31 +218,47 @@
 
           const msg = t("settings.themeSaved");
           messageEl.textContent =
-            msg !== "settings.themeSaved"
-              ? msg
-              : "Theme preference saved.";
+            (msg !== "settings.themeSaved") ? msg : "Theme preference saved.";
         });
       });
     }
 
-    
-    // Language switcher (only here)
-    const langButtons = document.querySelectorAll(".lang-switch [data-lang]");
-    if (langButtons.length) {
+    // ---- Language switcher (saved on this device) ----
+    function initLanguageSwitcher() {
+      const langButtons = document.querySelectorAll("#languageSwitch [data-lang]");
+      if (!langButtons.length || !i18n) return;
+
+      function updateLangButtons(lang) {
+        langButtons.forEach((b) => {
+          const isActive = b.getAttribute("data-lang") === lang;
+          b.classList.toggle("is-selected", isActive);
+          b.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
+      }
+
+      // Best-effort: i18n may expose current language; otherwise infer from localStorage
+      let currentLang = "en";
+      try {
+        if (typeof i18n.getLanguage === "function") currentLang = i18n.getLanguage() || "en";
+        else currentLang = localStorage.getItem("fishinglog_lang") || "en";
+      } catch {
+        currentLang = "en";
+      }
+
+      updateLangButtons(currentLang);
+
       langButtons.forEach((btn) => {
         btn.addEventListener("click", () => {
           const lang = btn.getAttribute("data-lang");
-          if (!lang || !i18n) return;
+          if (!lang) return;
 
           i18n.setLanguage(lang); // saves to localStorage + re-applies translations
+          updateLangButtons(lang);
 
           const msg = t("settings.languageSaved");
           messageEl.textContent =
-            msg !== "settings.languageSaved"
-              ? msg
-              : "Language preference saved.";
+            (msg !== "settings.languageSaved") ? msg : "Language preference saved.";
 
-          // Ensure any text/placeholder updates are applied immediately
           reapplyTranslations();
         });
       });
