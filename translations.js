@@ -81,7 +81,7 @@
       "home.weekdaySat": "Sat.",
 
       "settings.title": "Settings",
-      "settings.subtitle": "Personalize how your name appears in the app.",
+      "settings.subtitle": "Personalize the app",
       "settings.displayNameLabel": "Display name",
       "settings.displayNamePlaceholder": "What should the app call you?",
       "settings.saveButton": "Save settings",
@@ -143,7 +143,7 @@
       "home.unitMetersPerSecond": "m/s",
 
       "settings.title": "Seaded",
-      "settings.subtitle": "Kohanda, kuidas sinu nimi rakenduses kuvatakse.",
+      "settings.subtitle": "Kohanda seadeid.",
       "settings.displayNameLabel": "Kuvatav nimi",
       "settings.displayNamePlaceholder": "Kuidas rakendus peaks sind kutsuma?",
       "settings.saveButton": "Salvesta seaded",
