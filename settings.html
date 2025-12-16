@@ -41,20 +41,10 @@
           </p>
 
           <div class="lang-switch" id="languageSwitch">
-            <button
-              type="button"
-              class="secondary-btn"
-              data-lang="en"
-              data-i18n="settings.languageEnglish"
-            >
+            <button type="button" class="secondary-btn" data-lang="en" data-i18n="settings.languageEnglish">
               English
             </button>
-            <button
-              type="button"
-              class="secondary-btn"
-              data-lang="et"
-              data-i18n="settings.languageEstonian"
-            >
+            <button type="button" class="secondary-btn" data-lang="et" data-i18n="settings.languageEstonian">
               Estonian
             </button>
           </div>
@@ -64,27 +54,22 @@
         <div style="margin-top:16px;">
           <label data-i18n="settings.themeLabel">Theme</label>
           <p class="muted-text" data-i18n="settings.themeDescription">
-            Choose light or dark mode. This setting is saved on this device.
+            Choose a theme. This setting is saved on this device.
           </p>
 
-          <div class="lang-switch" id="themeSwitch">
-            <button
-              type="button"
-              class="secondary-btn"
-              data-theme="dark"
-              data-i18n="settings.themeDark"
-            >
-              Dark
-            </button>
-            <button
-              type="button"
-              class="secondary-btn"
-              data-theme="light"
-              data-i18n="settings.themeLight"
-            >
-              Light
-            </button>
+          <div class="lang-switch" id="themeSwitch" style="display:flex;flex-wrap:wrap;gap:8px;">
+            <button type="button" class="secondary-btn" data-theme="dark" data-i18n="settings.themeDark">Dark</button>
+            <button type="button" class="secondary-btn" data-theme="light" data-i18n="settings.themeLight">Light</button>
+            <button type="button" class="secondary-btn" data-theme="dawn" data-i18n="settings.themeDawn">Dawn</button>
+            <button type="button" class="secondary-btn" data-theme="dusk" data-i18n="settings.themeDusk">Dusk</button>
+            <button type="button" class="secondary-btn" data-theme="nature" data-i18n="settings.themeNature">Nature</button>
+            <button type="button" class="secondary-btn" data-theme="marine" data-i18n="settings.themeMarine">Marine</button>
+            <button type="button" class="secondary-btn" data-theme="pro" data-i18n="settings.themePro">Pro</button>
           </div>
+
+          <p class="muted-text" style="margin-top:6px;" data-i18n="settings.themeNote">
+            Note: you also need matching CSS for each theme (style.css).
+          </p>
         </div>
 
         <div style="margin-top:10px;">
@@ -150,9 +135,8 @@
       currentUser = user;
       await loadSettings();
 
-      // Apply selection styles on load
-      initThemeSwitcher();
       initLanguageSwitcher();
+      initThemeSwitcher();
       reapplyTranslations();
     });
 
@@ -191,6 +175,46 @@
       }
     };
 
+    // ---- Language switcher (saved on this device) ----
+    function initLanguageSwitcher() {
+      const langButtons = document.querySelectorAll("#languageSwitch [data-lang]");
+      if (!langButtons.length || !i18n) return;
+
+      function updateLangButtons(lang) {
+        langButtons.forEach((b) => {
+          const isActive = b.getAttribute("data-lang") === lang;
+          b.classList.toggle("is-selected", isActive);
+          b.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
+      }
+
+      let currentLang = "en";
+      try {
+        if (typeof i18n.getLanguage === "function") currentLang = i18n.getLanguage() || "en";
+        else currentLang = localStorage.getItem("fishinglog_lang") || "en";
+      } catch {
+        currentLang = "en";
+      }
+
+      updateLangButtons(currentLang);
+
+      langButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const lang = btn.getAttribute("data-lang");
+          if (!lang) return;
+
+          i18n.setLanguage(lang);
+          updateLangButtons(lang);
+
+          const msg = t("settings.languageSaved");
+          messageEl.textContent =
+            (msg !== "settings.languageSaved") ? msg : "Language preference saved.";
+
+          reapplyTranslations();
+        });
+      });
+    }
+
     // ---- Theme switcher (saved on this device) ----
     function initThemeSwitcher() {
       const themeApi = window.fishingLogTheme;
@@ -219,47 +243,6 @@
           const msg = t("settings.themeSaved");
           messageEl.textContent =
             (msg !== "settings.themeSaved") ? msg : "Theme preference saved.";
-        });
-      });
-    }
-
-    // ---- Language switcher (saved on this device) ----
-    function initLanguageSwitcher() {
-      const langButtons = document.querySelectorAll("#languageSwitch [data-lang]");
-      if (!langButtons.length || !i18n) return;
-
-      function updateLangButtons(lang) {
-        langButtons.forEach((b) => {
-          const isActive = b.getAttribute("data-lang") === lang;
-          b.classList.toggle("is-selected", isActive);
-          b.setAttribute("aria-pressed", isActive ? "true" : "false");
-        });
-      }
-
-      // Best-effort: i18n may expose current language; otherwise infer from localStorage
-      let currentLang = "en";
-      try {
-        if (typeof i18n.getLanguage === "function") currentLang = i18n.getLanguage() || "en";
-        else currentLang = localStorage.getItem("fishinglog_lang") || "en";
-      } catch {
-        currentLang = "en";
-      }
-
-      updateLangButtons(currentLang);
-
-      langButtons.forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const lang = btn.getAttribute("data-lang");
-          if (!lang) return;
-
-          i18n.setLanguage(lang); // saves to localStorage + re-applies translations
-          updateLangButtons(lang);
-
-          const msg = t("settings.languageSaved");
-          messageEl.textContent =
-            (msg !== "settings.languageSaved") ? msg : "Language preference saved.";
-
-          reapplyTranslations();
         });
       });
     }
