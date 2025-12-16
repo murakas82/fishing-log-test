@@ -3,30 +3,41 @@
 
 (function () {
   const STORAGE_KEY = "fishinglog_lang";
+  const THEME_KEY = "fishinglog_theme";
 
-    const THEME_KEY = "fishinglog_theme";
+  const ALLOWED_THEMES = new Set([
+    "dark",
+    "light",
+    "dawn",
+    "dusk",
+    "nature",
+    "marine",
+    "pro",
+  ]);
 
   function getTheme() {
     try {
-      return localStorage.getItem(THEME_KEY) || "dark";
+      const stored = localStorage.getItem(THEME_KEY);
+      if (stored && ALLOWED_THEMES.has(stored)) return stored;
+      return "dark";
     } catch (e) {
       return "dark";
     }
   }
 
   function setTheme(theme) {
+    const t = (theme && ALLOWED_THEMES.has(theme)) ? theme : "dark";
     try {
-      localStorage.setItem(THEME_KEY, theme === "light" ? "light" : "dark");
+      localStorage.setItem(THEME_KEY, t);
     } catch (e) {
       // ignore
     }
   }
 
   function applyTheme(theme = getTheme()) {
-    const t = theme === "light" ? "light" : "dark";
+    const t = (theme && ALLOWED_THEMES.has(theme)) ? theme : "dark";
     document.body.setAttribute("data-theme", t);
   }
-
 
   // Translation dictionary
   const TRANSLATIONS = {
@@ -252,7 +263,7 @@
       "spotsMap.legendDescription":
         "• Marker color (tomorrow): ● good (≥70%), ● medium (40–69%), ● poor (<40%).\n• Popup shows live weather now and predictions for the next 3 days.",
 
-      // Predictions (existing)
+      // Predictions
       "pred.title": "Predictions",
       "pred.subtitle": "Forecast match vs your past catches at this spot.",
       "pred.loadingSpot": "Loading spot…",
@@ -263,7 +274,6 @@
         "Times are between 1 hour before sunrise and 1 hour after sunset, based on your catches with weather data.",
       "pred.debugTitle": "Debug view (why these scores?)",
 
-      // Predictions (NEW)
       "pred.noSpotSelected": "No spot selected",
       "pred.missingSpotId": "Missing spotId in URL.",
       "pred.spotNotFound": "Spot not found",
@@ -291,18 +301,25 @@
       "settings.saveButton": "Save settings",
       "settings.saved": "Settings saved.",
       "settings.saveFailed": "Failed to save settings.",
+
       "settings.languageLabel": "Language",
       "settings.languageDescription":
         "Choose the language for the app. This setting is saved on this device.",
       "settings.languageEnglish": "English",
       "settings.languageEstonian": "Estonian",
       "settings.languageSaved": "Language preference saved.",
-            "settings.themeLabel": "Theme",
-      "settings.themeDescription": "Choose light or dark mode. This setting is saved on this device.",
+
+      "settings.themeLabel": "Theme",
+      "settings.themeDescription": "Choose a theme. This setting is saved on this device.",
       "settings.themeDark": "Dark",
       "settings.themeLight": "Light",
+      "settings.themeDawn": "Dawn",
+      "settings.themeDusk": "Dusk",
+      "settings.themeNature": "Nature",
+      "settings.themeMarine": "Marine",
+      "settings.themePro": "Pro",
       "settings.themeSaved": "Theme preference saved.",
-
+      "settings.themeNote": "Note: you also need matching CSS for each theme (style.css).",
 
       // Privacy
       "privacy.title": "Privacy Policy",
@@ -540,7 +557,7 @@
       "spotsMap.legendDescription":
         "• Markeri värv (homne päev): ● hea (≥70%), ● keskmine (40–69%), ● nõrk (<40%).\n• Hüpikaken näitab hetke ilma ja ennustusi järgmiseks 3 päevaks.",
 
-      // Predictions (existing)
+      // Predictions
       "pred.title": "Ennustused",
       "pred.subtitle":
         "Ilmaprognoosi sobivus sinu varasemate selle koha püütud kaladega.",
@@ -552,7 +569,6 @@
         "Ajad on vahemikus tund enne päikesetõusu kuni tund pärast päikeseloojangut, põhinedes sinu ilmaandmetega kaladel.",
       "pred.debugTitle": "Silumisvaade (miks sellised skoorid?)",
 
-      // Predictions (NEW)
       "pred.noSpotSelected": "Püügikohta pole valitud",
       "pred.missingSpotId": "URL-is puudub spotId.",
       "pred.spotNotFound": "Püügikohta ei leitud",
@@ -582,18 +598,25 @@
       "settings.saveButton": "Salvesta seaded",
       "settings.saved": "Seaded on salvestatud.",
       "settings.saveFailed": "Seadete salvestamine ebaõnnestus.",
+
       "settings.languageLabel": "Keel",
       "settings.languageDescription":
         "Vali rakenduse keel. See eelistus salvestatakse sellesse seadmesse.",
       "settings.languageEnglish": "Inglise keel",
       "settings.languageEstonian": "Eesti keel",
       "settings.languageSaved": "Keele-eelistus on salvestatud.",
-            "settings.themeLabel": "Teema",
-      "settings.themeDescription": "Vali hele või tume režiim. See seadistus salvestatakse sellesse seadmesse.",
+
+      "settings.themeLabel": "Teema",
+      "settings.themeDescription": "Vali teema. See seadistus salvestatakse sellesse seadmesse.",
       "settings.themeDark": "Tume",
       "settings.themeLight": "Hele",
+      "settings.themeDawn": "Koit",
+      "settings.themeDusk": "Hämarik",
+      "settings.themeNature": "Loodus",
+      "settings.themeMarine": "Mereline",
+      "settings.themePro": "Pro",
       "settings.themeSaved": "Teema eelistus salvestatud.",
-
+      "settings.themeNote": "Märkus: iga teema jaoks on vaja vastavat CSS-i (style.css).",
 
       // Privacy
       "privacy.title": "Privaatsuspoliitika",
@@ -685,16 +708,17 @@
     applyTranslations();
   }
 
-    // Apply saved theme ASAP
+  // Apply saved theme ASAP
   try { applyTheme(); } catch (e) {}
 
   window.fishingLogTheme = { getTheme, setTheme, applyTheme };
 
-  
   window.fishingLogI18n = {
     getCurrentLang,
     setLanguage,
     applyTranslations,
+    // Optional alias some pages use
+    getLanguage() { return getCurrentLang(); },
     t(key) {
       const lang = getCurrentLang();
       const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
