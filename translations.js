@@ -28,6 +28,8 @@
 
   function applyTheme(theme = getTheme()) {
     const t = (theme && ALLOWED_THEMES.has(theme)) ? theme : "dark";
+    // IMPORTANT: apply to both <html> and <body>
+    document.documentElement.setAttribute("data-theme", t);
     document.body.setAttribute("data-theme", t);
   }
 
@@ -78,55 +80,6 @@
       "home.weekdayFri": "Fri.",
       "home.weekdaySat": "Sat.",
 
-      "home.weatherClear": "Clear",
-      "home.weatherMainlyClear": "Mainly clear",
-      "home.weatherPartlyCloudy": "Partly cloudy",
-      "home.weatherOvercast": "Overcast",
-      "home.weatherDrizzle": "Drizzle",
-      "home.weatherRain": "Rain",
-      "home.weatherSnow": "Snow",
-      "home.weatherRainShowers": "Rain showers",
-      "home.weatherSnowShowers": "Snow showers",
-      "home.weatherThunderstorm": "Thunderstorm",
-      "home.weatherThunderstormHail": "Thunderstorm with hail",
-      "home.weatherUnknown": "Unknown",
-
-      "auth.title": "Log in or sign up",
-      "auth.emailPlaceholder": "Email",
-      "auth.passwordPlaceholder": "Password",
-      "auth.logIn": "Log in",
-      "auth.signUp": "Sign up",
-      "auth.or": "or",
-      "auth.continueWithGoogle": "Continue with Google",
-
-      "auth.loginFailedPrefix": "Login failed:",
-      "auth.signUpFailedPrefix": "Sign up failed:",
-      "auth.googleFailedPrefix": "Google sign-in failed:",
-      "auth.enterEmailPassword": "Enter email & password, then press Sign up.",
-
-      "spotsMap.title": "My fishing spots – map",
-      "spotsMap.subtitle":
-        "See all your spots on an interactive map with live weather & predictions.",
-      "spotsMap.overview": "Spots overview",
-      "spotsMap.legendDescription":
-        "• Marker color (tomorrow): ● good (≥70%), ● medium (40–69%), ● poor (<40%).\n• Popup shows live weather now and predictions for the next 3 days.",
-
-      "common.backToMain": "← Back to main",
-      "common.backToMainPage": "Back to main page",
-      "common.loggedInAs": "Logged in as …",
-      "common.useMyLocation": "Use my location",
-      "common.loading": "Loading…",
-      "common.loadingSpot": "Loading spot…",
-
-      "pred.title": "Predictions",
-      "pred.subtitle": "Forecast match vs your past catches at this spot.",
-      "pred.loadingSpot": "Loading spot…",
-      "pred.fetchingData": "Fetching data…",
-      "pred.next3Days": "Next 3 days",
-      "pred.hotTimesTomorrow": "Hot times tomorrow",
-      "pred.hotTimesExplain":
-        "Times are between 1 hour before sunrise and 1 hour after sunset, based on your catches with weather data.",
-
       "settings.title": "Settings",
       "settings.subtitle": "Personalize how your name appears in the app.",
       "settings.displayNameLabel": "Display name",
@@ -147,6 +100,8 @@
       "settings.themeDark": "Dark",
       "settings.themeLight": "Light",
       "settings.themeSaved": "Theme preference saved.",
+
+      "common.backToMain": "← Back to main",
     },
 
     et: {
@@ -187,70 +142,10 @@
       "home.unitCelsius": "°C",
       "home.unitMetersPerSecond": "m/s",
 
-      "home.weekdaySun": "P",
-      "home.weekdayMon": "E",
-      "home.weekdayTue": "T",
-      "home.weekdayWed": "K",
-      "home.weekdayThu": "N",
-      "home.weekdayFri": "R",
-      "home.weekdaySat": "L",
-
-      "home.weatherClear": "Selge",
-      "home.weatherMainlyClear": "Peamiselt selge",
-      "home.weatherPartlyCloudy": "Vahelduv pilvisus",
-      "home.weatherOvercast": "Pilves",
-      "home.weatherDrizzle": "Uduvihm",
-      "home.weatherRain": "Vihm",
-      "home.weatherSnow": "Lumi",
-      "home.weatherRainShowers": "Vihmahood",
-      "home.weatherSnowShowers": "Lumehood",
-      "home.weatherThunderstorm": "Äike",
-      "home.weatherThunderstormHail": "Äike rahega",
-      "home.weatherUnknown": "Teadmata",
-
-      "auth.title": "Logi sisse või loo konto",
-      "auth.emailPlaceholder": "E-post",
-      "auth.passwordPlaceholder": "Parool",
-      "auth.logIn": "Logi sisse",
-      "auth.signUp": "Loo konto",
-      "auth.or": "või",
-      "auth.continueWithGoogle": "Jätka Google’iga",
-
-      "auth.loginFailedPrefix": "Sisselogimine ebaõnnestus:",
-      "auth.signUpFailedPrefix": "Konto loomine ebaõnnestus:",
-      "auth.googleFailedPrefix": "Google’i sisselogimine ebaõnnestus:",
-      "auth.enterEmailPassword": "Sisesta e-post ja parool ning vajuta „Loo konto“.",
-
-      "spotsMap.title": "Minu püügikohad – kaart",
-      "spotsMap.subtitle":
-        "Vaata kõiki oma püügikohti interaktiivsel kaardil koos ilma ja ennustustega.",
-      "spotsMap.overview": "Kohtade ülevaade",
-      "spotsMap.legendDescription":
-        "• Markeri värv (homne päev): ● hea (≥70%), ● keskmine (40–69%), ● nõrk (<40%).\n• Hüpikaken näitab hetke ilma ja ennustusi järgmiseks 3 päevaks.",
-
-      "common.backToMain": "← Tagasi avalehele",
-      "common.backToMainPage": "Tagasi avalehele",
-      "common.loggedInAs": "Kasutaja: ",
-      "common.useMyLocation": "Kasuta minu asukohta",
-      "common.loading": "Laadimine…",
-      "common.loadingSpot": "Koha laadimine…",
-
-      "pred.title": "Ennustused",
-      "pred.subtitle":
-        "Ilmaprognoosi sobivus sinu varasemate selle koha püütud kaladega.",
-      "pred.loadingSpot": "Koha laadimine…",
-      "pred.fetchingData": "Andmete toomine…",
-      "pred.next3Days": "Järgmised 3 päeva",
-      "pred.hotTimesTomorrow": "Parimad ajad homseks",
-      "pred.hotTimesExplain":
-        "Ajad on vahemikus tund enne päikesetõusu kuni tund pärast päikeseloojangut, põhinedes sinu ilmaandmetega kaladel.",
-
       "settings.title": "Seaded",
-      "settings.subtitle":
-        "Kohanda, kuidas sinu nimi rakenduses kuvatakse.",
+      "settings.subtitle": "Kohanda, kuidas sinu nimi rakenduses kuvatakse.",
       "settings.displayNameLabel": "Kuvatav nimi",
-      "settings.displayNamePlaceholder":
-        "Kuidas rakendus peaks sind kutsuma?",
+      "settings.displayNamePlaceholder": "Kuidas rakendus peaks sind kutsuma?",
       "settings.saveButton": "Salvesta seaded",
       "settings.saved": "Seaded on salvestatud.",
       "settings.saveFailed": "Seadete salvestamine ebaõnnestus.",
@@ -267,6 +162,8 @@
       "settings.themeDark": "Tume",
       "settings.themeLight": "Hele",
       "settings.themeSaved": "Teema eelistus salvestatud.",
+
+      "common.backToMain": "← Tagasi avalehele",
     },
   };
 
@@ -308,28 +205,13 @@
       const key = el.getAttribute("data-i18n");
       const value = dict[key];
       if (!value) return;
-
-      if (value.indexOf("\n") >= 0) {
-        el.innerHTML = "";
-        value.split("\n").forEach((line, idx) => {
-          if (idx > 0) el.appendChild(document.createElement("br"));
-          el.appendChild(document.createTextNode(line));
-        });
-      } else {
-        el.textContent = value;
-      }
+      el.textContent = value;
     });
 
     document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
       const key = el.getAttribute("data-i18n-placeholder");
       const value = dict[key];
       if (value) el.setAttribute("placeholder", value);
-    });
-
-    document.querySelectorAll("[data-i18n-title]").forEach((el) => {
-      const key = el.getAttribute("data-i18n-title");
-      const value = dict[key];
-      if (value) el.setAttribute("title", value);
     });
   }
 
@@ -339,7 +221,7 @@
     applyTranslations();
   }
 
-  // Apply saved theme ASAP (so there is no flash)
+  // Apply saved theme ASAP
   try { applyTheme(); } catch (e) {}
 
   window.fishingLogTheme = { getTheme, setTheme, applyTheme };
