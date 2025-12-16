@@ -393,3 +393,54 @@ a.danger-btn {
   margin-top: 120px !important;   /* adjust as needed */
   margin-left: 8px !important;
 }
+
+/* =========================================
+   Light theme overrides
+   Apply by setting: <body data-theme="light">
+   ========================================= */
+
+body[data-theme="light"] {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+body[data-theme="light"] .card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+}
+
+body[data-theme="light"] .muted-text {
+  color: #475569;
+}
+
+body[data-theme="light"] input,
+body[data-theme="light"] textarea,
+body[data-theme="light"] select {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+body[data-theme="light"] input::placeholder,
+body[data-theme="light"] textarea::placeholder {
+  color: #64748b;
+}
+
+body[data-theme="light"] .secondary-btn {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+body[data-theme="light"] .secondary-btn:hover {
+  background: #f1f5f9;
+}
+
+/* Visual selection state for toggle buttons (language + theme) */
+.lang-switch .is-selected,
+#themeSwitch .is-selected {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.25);
+}
+
