@@ -400,7 +400,7 @@
       // Common
       "common.backToMain": "← Tagasi avalehele",
       "common.backToMainPage": "Tagasi avalehele",
-      "common.loggedInAs": "Sisse logitud kui …",
+      "common.loggedInAs": "Kasutaja: ",
       "common.useMyLocation": "Kasuta minu asukohta",
       "common.loading": "Laadimine…",
       "common.loadingSpot": "Koha laadimine…",
