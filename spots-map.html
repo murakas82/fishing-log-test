@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>My fishing spots – map</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <link rel="stylesheet" href="style.css" />
+
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -17,18 +20,16 @@
       width: 100%;
       height: 420px;
       border-radius: 16px;
-      overflow: hidden;
-      margin-top: 10px;
     }
-
-    /* Move Leaflet zoom controls to top-right like in add-spot */
-    .leaflet-top.leaflet-left {
-      right: 16px !important;
-      left: auto !important;
-      top: 16px !important;
+    .legend {
+      margin-top: 10px;
+      font-size: 0.92rem;
+      color: #9ca3af;
+      line-height: 1.35;
     }
   </style>
 </head>
+
 <body>
   <div class="app fade-in">
     <header class="card">
@@ -36,12 +37,10 @@
         <div>
           <h1 data-i18n="spotsMap.title">My fishing spots – map</h1>
           <p class="muted-text" data-i18n="spotsMap.subtitle">
-            See all your spots on an interactive map with live weather &amp; predictions.
+            See all your spots on an interactive map with live weather & predictions.
           </p>
         </div>
-        <button class="secondary-btn btn-back-main" id="backBtn" data-i18n="common.backToMain">
-          ← Back to main
-        </button>
+        <a class="secondary-btn btn-back-main" href="index.html" data-i18n="common.backToMain">← Back to main</a>
       </div>
     </header>
 
@@ -49,18 +48,15 @@
       <h2 data-i18n="spotsMap.overview">Spots overview</h2>
       <div id="map"></div>
 
-      <!-- Legend: keep colored dots; translate labels -->
-      <p class="muted-text" style="margin-top:10px;">
-        • <span data-i18n="spotsMap.legendMarkerColor">Marker color (tomorrow)</span>:
-        <span style="color:#22c55e;">●</span> <span data-i18n="spotsMap.legendGood">good</span> (≥70%),
-        <span style="color:#facc15;">●</span> <span data-i18n="spotsMap.legendMedium">medium</span> (40–69%),
-        <span style="color:#ef4444;">●</span> <span data-i18n="spotsMap.legendPoor">poor</span> (&lt;40%).<br/>
-        • <span data-i18n="spotsMap.legendPopupShows">Popup shows live weather now and predictions for the next 3 days.</span>
-      </p>
+      <div class="legend">
+        <div data-i18n="spotsMap.legendDescription">
+          • Marker color (tomorrow): ● good (≥70%), ● medium (40–69%), ● poor (<40%).<br />
+          • Popup shows live weather now and predictions for the next 3 days.
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- i18n (load once, before module script) -->
   <script src="translations.js"></script>
 
   <script
@@ -79,15 +75,12 @@
     import {
       getFirestore,
       collection,
+      getDocs,
       query,
-      where,
-      getDocs
+      where
     } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
     import { computeDayScoreFromForecast } from "./predictions-core.js";
-
-
-    import { computeNext3DayScores } from "./predictions-core.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCXIdT74cNDSVIoMs3NZ86tPf2kzFm8Iug",
@@ -100,250 +93,204 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db   = getFirestore(app);
+    const db = getFirestore(app);
 
-    // i18n helpers
     const i18n = window.fishingLogI18n;
-    const t = (key) => (i18n && typeof i18n.t === "function") ? i18n.t(key) : key;
-    function reapplyTranslations() {
-      if (i18n && typeof i18n.applyTranslations === "function") i18n.applyTranslations();
-    }
-
-    // Apply static page translations now
-    reapplyTranslations();
-
-    const backBtn = document.getElementById("backBtn");
-    backBtn.onclick = () => {
-      window.location.href = "index.html";
-    };
+    const t = (k) => (i18n && typeof i18n.t === "function") ? i18n.t(k) : k;
 
     let map;
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "index.html";
-        return;
-      }
-      initMap();
-      await loadSpotsAndCatches(user);
-    });
-
-    function initMap() {
-      map = L.map("map").setView([59.437, 24.7536], 7);
-
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 18,
-        attribution: "&copy; OpenStreetMap contributors"
-      }).addTo(map);
+    function dateLabelForOffset(offset) {
+      const d = new Date();
+      d.setDate(d.getDate() + offset);
+      const dd = String(d.getDate()).padStart(2, "0");
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const yyyy = d.getFullYear();
+      return `${dd}.${mm}.${yyyy}`;
     }
 
     function getWeatherIconAndLabel(code) {
       if (code === 0)  return { icon: "☀️", label: t("home.weatherClear") };
       if (code === 1)  return { icon: "🌤️", label: t("home.weatherMainlyClear") };
       if (code === 2)  return { icon: "⛅",  label: t("home.weatherPartlyCloudy") };
-      if (code === 3)  return { icon: "☁️", label: t("home.weatherOvercast") };
-      if (code >= 51 && code <= 57) return { icon: "🌦️", label: t("home.weatherDrizzle") };
-      if (code >= 61 && code <= 67) return { icon: "🌧️", label: t("home.weatherRain") };
-      if (code >= 71 && code <= 77) return { icon: "🌨️", label: t("home.weatherSnow") };
-      if (code >= 80 && code <= 82) return { icon: "🌦️", label: t("home.weatherRainShowers") };
-      if (code >= 85 && code <= 86) return { icon: "🌨️", label: t("home.weatherSnowShowers") };
-      if (code === 95) return { icon: "⛈️", label: t("home.weatherThunderstorm") };
-      if (code === 96 || code === 99) return { icon: "⛈️", label: t("home.weatherThunderstormHail") };
-      return { icon: "❓", label: t("home.weatherUnknown") };
+      if (code === 3)  return { icon: "☁️",  label: t("home.weatherOvercast") };
+
+      if (code === 45 || code === 48) return { icon: "🌫️", label: t("pred.weatherFog") };
+
+      if ([51,53,55,56,57].includes(code)) return { icon: "🌦️", label: t("home.weatherDrizzle") };
+      if ([61,63,65,66,67].includes(code)) return { icon: "🌧️", label: t("home.weatherRain") };
+      if ([71,73,75,77,85,86].includes(code)) return { icon: "🌨️", label: t("home.weatherSnow") };
+      if ([80,81,82].includes(code)) return { icon: "🌦️", label: t("home.weatherRainShowers") };
+      if ([95].includes(code)) return { icon: "⛈️", label: t("home.weatherThunderstorm") };
+      if ([96,99].includes(code)) return { icon: "⛈️", label: t("home.weatherThunderstormHail") };
+
+      return { icon: "❔", label: t("home.weatherUnknown") };
     }
 
-    function weekdayKeyForDate(d) {
-      const keys = [
-        "home.weekdaySun",
-        "home.weekdayMon",
-        "home.weekdayTue",
-        "home.weekdayWed",
-        "home.weekdayThu",
-        "home.weekdayFri",
-        "home.weekdaySat"
-      ];
-      return keys[d.getDay()] || "home.weekdaySun";
+    function markerColorByScore(score) {
+      if (typeof score !== "number") return "#94a3b8"; // gray
+      if (score >= 70) return "#22c55e";
+      if (score >= 40) return "#eab308";
+      return "#f97373";
     }
 
-    function dateLabelForOffset(offset) {
-      const base = new Date();
-      base.setDate(base.getDate() + offset);
-
-      const wd = t(weekdayKeyForDate(base));
-      const day = base.getDate();
-      const month = base.getMonth() + 1;
-      const year = base.getFullYear();
-      return `${wd} ${day}.${month}.${year}`;
+    function makeDot(color) {
+      return `<span style="display:inline-block;width:10px;height:10px;border-radius:999px;background:${color};margin-right:6px;"></span>`;
     }
 
-    async function loadSpotsAndCatches(user) {
-      const spotsSnap = await getDocs(
-        query(collection(db, "spots"), where("userId", "==", user.uid))
-      );
-      const spots = spotsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    async function loadSpotCatches(user, spotId) {
+      const catchesRef = collection(db, "users", user.uid, "catches");
+      const qC = query(catchesRef, where("spotId", "==", spotId));
+      const snap = await getDocs(qC);
 
-      const catchesSnap = await getDocs(
-        query(collection(db, "catches"), where("userId", "==", user.uid))
-      );
-      const allCatches = catchesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-      for (const spot of spots) {
-        if (typeof spot.latitude !== "number" || typeof spot.longitude !== "number") continue;
-
-        const spotCatches = allCatches.filter(c => c.spotId === spot.id);
-        const { weatherNowHtml, tomorrowScore, next3 } =
-          await fetchWeatherAndPrediction(spot, spotCatches);
-
-        let color = "red";
-        if (tomorrowScore == null) {
-          color = "gray";
-        } else if (tomorrowScore >= 70) {
-          color = "green";
-        } else if (tomorrowScore >= 40) {
-          color = "gold";
-        }
-
-        const marker = L.circleMarker(
-          [spot.latitude, spot.longitude],
-          { radius: 7, color }
-        ).addTo(map);
-
-        const total = spotCatches.length;
-        let biggest = 0;
-        let bigSpecies = "-";
-        spotCatches.forEach(c => {
-          if (typeof c.weightKg === "number" && c.weightKg > biggest) {
-            biggest = c.weightKg;
-            bigSpecies = c.species || "-";
-          }
+      const arr = [];
+      snap.forEach(d => {
+        const c = d.data();
+        arr.push({
+          ...c,
+          weatherTemp: c.weatherTemp,
+          weatherWindMs: c.weatherWindMs,
+          weatherPressure: c.weatherPressure,
+          weatherWindDirDeg: c.weatherWindDirDeg,
+          moonPhase: c.moonPhase
         });
-
-        const mapsUrl =
-          `https://www.google.com/maps?q=${spot.latitude},${spot.longitude}`;
-
-        const spotName = spot.name || t("spotAdd.unnamedPlace");
-
-        let popupHtml = `
-          <div style="min-width:260px;">
-            <strong>${spotName}</strong><br/>
-            <span data-i18n="home.statsTotalCatches">Total catches</span>: ${total},
-            <span data-i18n="home.biggestFish">Biggest</span>: ${biggest.toFixed(2)} kg ${bigSpecies}<br/>
-            ${weatherNowHtml}<br/>
-            <span data-i18n="home.predictionNext3Days">Prediction (next 3 days)</span>:<br/>
-        `;
-
-        next3.forEach(p => {
-          const scoreText = (p.score == null) ? t("home.na") : (p.score.toFixed(0) + "%");
-          popupHtml += `${p.dateLabel}: ${scoreText}<br/>`;
-        });
-
-        popupHtml += `
-            <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">
-              <button class="secondary-btn" data-open-spot="${spot.id}" data-i18n="home.openSpot">Open spot</button>
-              <button class="secondary-btn" data-add-catch="${spot.id}" data-i18n="home.AddCatch">Add catch</button>
-              <a class="secondary-btn" href="${mapsUrl}" target="_blank" rel="noopener noreferrer" data-i18n="home.googleMaps">Google Maps</a>
-            </div>
-          </div>
-        `;
-
-        marker.bindPopup(popupHtml);
-
-        marker.on("popupopen", (e) => {
-          // Translate content inside popup (added dynamically)
-          reapplyTranslations();
-
-          const popupEl = e.popup.getElement();
-          if (!popupEl) return;
-
-          const openBtn = popupEl.querySelector("button[data-open-spot]");
-          const addBtn  = popupEl.querySelector("button[data-add-catch]");
-
-          if (openBtn) {
-            openBtn.onclick = () => {
-              window.location.href = `spot.html?id=${encodeURIComponent(spot.id)}`;
-            };
-          }
-          if (addBtn) {
-            addBtn.onclick = () => {
-              window.location.href = `add-catch.html?spotId=${encodeURIComponent(spot.id)}`;
-            };
-          }
-        });
-      }
-
-      // Safety: re-apply after markers created
-      reapplyTranslations();
+      });
+      return arr;
     }
 
-    async function fetchWeatherAndPrediction(spot, spotCatches) {
-      const lat = spot.latitude;
-      const lng = spot.longitude;
-
-      // Default (translated)
-      let weatherNowHtml =
-        `<span data-i18n="home.weatherNow">Weather now</span>: ${t("home.failedToLoad")}`;
-
+    async function computeWeatherAndNext3(lat, lng, spotCatches) {
+      let weatherNowHtml = t("pred.weatherFailedToLoad");
       let tomorrowScore = null;
       const next3 = [];
 
       try {
-const url =
-  `https://api.open-meteo.com/v1/forecast` +
-  `?latitude=${lat}&longitude=${lng}` +
-  `&current=temperature_2m,wind_speed_10m,wind_direction_10m,weather_code,pressure_msl,cloudcover` +
-  `&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,pressure_msl,cloudcover` +
-  `&daily=sunrise,sunset` +
-  `&forecast_days=4&wind_speed_unit=ms&timezone=auto`;
-
+        const url =
+          `https://api.open-meteo.com/v1/forecast` +
+          `?latitude=${lat}&longitude=${lng}` +
+          `&current=temperature_2m,wind_speed_10m,wind_direction_10m,weather_code,pressure_msl,cloudcover` +
+          `&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,pressure_msl,cloudcover` +
+          `&daily=sunrise,sunset` +
+          `&forecast_days=4&wind_speed_unit=ms&timezone=auto`;
 
         const res = await fetch(url);
         if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
 
         const cur = data.current || {};
-        const ct  = cur.temperature_2m;
-        const cw  = cur.wind_speed_10m;
-        const cc  = cur.weather_code;
+        const tempNow = (typeof cur.temperature_2m === "number") ? cur.temperature_2m : null;
+        const windNow = (typeof cur.wind_speed_10m === "number") ? cur.wind_speed_10m : null;
+        const codeNow = cur.weather_code;
 
-        const { icon, label } = getWeatherIconAndLabel(cc);
+        const { icon, label } = getWeatherIconAndLabel(codeNow);
         const parts = [];
         if (label) parts.push(label);
-        if (typeof ct === "number") parts.push(`${ct.toFixed(1)} ${t("home.unitCelsius")}`);
-        if (typeof cw === "number") parts.push(`${t("home.wind")} ${cw.toFixed(1)} ${t("home.unitMetersPerSecond")}`);
+        if (tempNow != null) parts.push(`${tempNow.toFixed(1)} ${t("home.unitCelsius")}`);
+        if (windNow != null) parts.push(`${t("home.wind")} ${windNow.toFixed(1)} ${t("home.unitMetersPerSecond")}`);
 
-        weatherNowHtml =
-          `<span data-i18n="home.weatherNow">Weather now</span>: ${icon} ${parts.join(", ")}`;
+        weatherNowHtml = parts.length
+          ? `${t("home.weatherNow")}: ${icon} ${parts.join(", ")}`
+          : t("pred.weatherNotAvailable");
 
-        const scoresNext3 = computeNext3DayScores(data, spotCatches, {
-          mode: "avgTopN",
-          topN: 8,
-          daylightPadHours: 1,
-          scoreOptions: {
-            pressTolHpa: 8,
-            pressPenaltyPerHpa: 1.2
-          }
-        });
+        for (let offset = 1; offset <= 3; offset++) {
+          const dateLabel = dateLabelForOffset(offset);
 
-for (let offset = 1; offset <= 3; offset++) {
-  const dateLabel = dateLabelForOffset(offset);
+          const score = computeDayScoreFromForecast(
+            data,
+            spotCatches,
+            offset,
+            { mode: "avgTopN", topN: 8, daylightPadHours: 1 }
+          );
 
-  const score = computeDayScoreFromForecast(
-    data,
-    spotCatches,
-    offset,
-    { mode: "avgTopN", topN: 8, daylightPadHours: 1 }
-  );
-
-  if (offset === 1) tomorrowScore = (typeof score === "number") ? score : null;
-  next3.push({ dateLabel, score: (typeof score === "number") ? score : null });
-}
-
+          if (offset === 1) tomorrowScore = (typeof score === "number") ? score : null;
+          next3.push({ dateLabel, score: (typeof score === "number") ? score : null });
+        }
       } catch {
         // keep defaults
       }
 
       return { weatherNowHtml, tomorrowScore, next3 };
     }
+
+    function initMap() {
+      map = L.map("map").setView([58.7, 25.0], 7);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      initMap();
+
+      try {
+        const spotsRef = collection(db, "users", user.uid, "spots");
+        const snap = await getDocs(spotsRef);
+
+        const spots = [];
+        snap.forEach(d => spots.push({ id: d.id, ...d.data() }));
+
+        if (!spots.length) return;
+
+        for (const spot of spots) {
+          const lat = spot.lat;
+          const lng = spot.lng;
+          if (typeof lat !== "number" || typeof lng !== "number") continue;
+
+          const spotCatches = await loadSpotCatches(user, spot.id);
+          const wx = await computeWeatherAndNext3(lat, lng, spotCatches);
+
+          const color = markerColorByScore(wx.tomorrowScore);
+
+          const marker = L.circleMarker([lat, lng], {
+            radius: 10,
+            weight: 2,
+            color: color,
+            fillColor: color,
+            fillOpacity: 0.85
+          }).addTo(map);
+
+          const name = spot.name || t("spotPage.unnamedSpot");
+          const totalCatches = spotCatches.length;
+          const biggest = (() => {
+            const ws = spotCatches.map(c => Number(c.weightKg)).filter(x => Number.isFinite(x) && x > 0);
+            return ws.length ? Math.max(...ws) : 0;
+          })();
+
+          const lines = [];
+          lines.push(`<b>${name}</b>`);
+          lines.push(`${t("home.statsTotalCatches")}: ${totalCatches}, ${t("home.biggestFish")}: ${biggest.toFixed(2)} kg`);
+          lines.push(wx.weatherNowHtml);
+          lines.push(`<div style="margin-top:6px;"><b>${t("home.predictionNext3Days")}</b>:</div>`);
+
+          if (!wx.next3.length) {
+            lines.push(t("pred.noForecastData"));
+          } else {
+            wx.next3.forEach(d => {
+              const s = (typeof d.score === "number") ? `${d.score.toFixed(0)}%` : t("home.na");
+              lines.push(`${d.dateLabel}: ${s}`);
+            });
+          }
+
+          lines.push(`<div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">`);
+          lines.push(`<a class="secondary-btn" href="spot.html?spotId=${spot.id}">${t("home.openSpot")}</a>`);
+          lines.push(`<a class="secondary-btn" href="add-catch.html?spotId=${spot.id}">${t("home.AddCatch")}</a>`);
+          lines.push(`<a class="secondary-btn" href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" rel="noopener">${t("home.googleMaps")}</a>`);
+          lines.push(`</div>`);
+
+          marker.bindPopup(lines.join("<br/>"), { maxWidth: 320 });
+        }
+      } catch {
+        // silent
+      }
+
+      if (i18n && typeof i18n.applyTranslations === "function") i18n.applyTranslations();
+    });
   </script>
 </body>
 </html>
