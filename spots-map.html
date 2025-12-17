@@ -84,6 +84,9 @@
       getDocs
     } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
+    import { computeDayScoreFromForecast } from "./predictions-core.js";
+
+
     import { computeNext3DayScores } from "./predictions-core.js";
 
     const firebaseConfig = {
@@ -284,20 +287,14 @@
       const next3 = [];
 
       try {
-        const url =
+const url =
   `https://api.open-meteo.com/v1/forecast` +
   `?latitude=${lat}&longitude=${lng}` +
-  `&current=temperature_2m,wind_speed_10m,weather_code` +
-  `&hourly=` +
-    `temperature_2m,` +
-    `wind_speed_10m,` +
-    `wind_direction_10m,` +   // NEW – wind direction
-    `pressure_msl,` +
-    `cloudcover` +            // NEW – cloud cover
+  `&current=temperature_2m,wind_speed_10m,wind_direction_10m,weather_code,pressure_msl,cloudcover` +
+  `&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,pressure_msl,cloudcover` +
   `&daily=sunrise,sunset` +
-  `&forecast_days=4` +
-  `&wind_speed_unit=ms` +
-  `&timezone=auto`;
+  `&forecast_days=4&wind_speed_unit=ms&timezone=auto`;
+
 
         const res = await fetch(url);
         if (!res.ok) throw new Error("HTTP " + res.status);
@@ -327,13 +324,20 @@
           }
         });
 
-        for (let offset = 1; offset <= 3; offset++) {
-          const entry = scoresNext3.find(x => x.offset === offset);
-          const score = entry ? entry.score : null;
+for (let offset = 1; offset <= 3; offset++) {
+  const dateLabel = dateLabelForOffset(offset);
 
-          if (offset === 1) tomorrowScore = score;
-          next3.push({ dateLabel: dateLabelForOffset(offset), score });
-        }
+  const score = computeDayScoreFromForecast(
+    data,
+    spotCatches,
+    offset,
+    { mode: "avgTopN", topN: 8, daylightPadHours: 1 }
+  );
+
+  if (offset === 1) tomorrowScore = (typeof score === "number") ? score : null;
+  next3.push({ dateLabel, score: (typeof score === "number") ? score : null });
+}
+
       } catch {
         // keep defaults
       }
