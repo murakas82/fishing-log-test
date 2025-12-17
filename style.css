@@ -296,3 +296,32 @@ body[data-theme="light"] .primary-btn {
 body[data-theme="light"] .primary-btn:hover {
   box-shadow: 0 0 22px rgba(34, 197, 94, 0.45);
 }
+
+/* Fix Leaflet popup button visibility in LIGHT mode */
+body[data-theme="light"] .leaflet-popup-content .secondary-btn,
+body[data-theme="light"] .leaflet-popup-content .btn-glow {
+  color: #0f172a !important;                 /* dark text */
+  background: rgba(247, 249, 252, 0.98) !important;
+  border: 1px solid #9fb3d6 !important;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.12) !important;
+}
+
+body[data-theme="light"] .leaflet-popup-content .secondary-btn:hover,
+body[data-theme="light"] .leaflet-popup-content .btn-glow:hover {
+  background: rgba(96, 165, 250, 0.10) !important;
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 18px rgba(37, 99, 235, 0.22) !important;
+}
+
+/* Make Leaflet popup background readable in LIGHT mode */
+body[data-theme="light"] .leaflet-popup-content-wrapper,
+body[data-theme="light"] .leaflet-popup-tip {
+  background: #f7f9fc !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+body[data-theme="light"] .leaflet-popup-content {
+  color: #0f172a !important;
+}
+
