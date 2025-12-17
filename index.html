@@ -81,6 +81,9 @@
       where
     } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
+    import { computeDayScoreFromForecast } from "./predictions-core.js";
+
+
     import { computeNext3DayScores } from "./predictions-core.js";
 
     const firebaseConfig = {
@@ -351,25 +354,21 @@
       reapplyTranslations();
 
       try {
-        const url =
+ const url =
   `https://api.open-meteo.com/v1/forecast` +
   `?latitude=${lat}&longitude=${lng}` +
-  `&current=temperature_2m,wind_speed_10m,weather_code` +
-  `&hourly=` +
-    `temperature_2m,` +
-    `wind_speed_10m,` +
-    `wind_direction_10m,` +   // NEW – wind direction
-    `pressure_msl,` +
-    `cloudcover` +            // NEW – cloud cover
+  `&current=temperature_2m,wind_speed_10m,wind_direction_10m,weather_code,pressure_msl,cloudcover` +
+  `&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,pressure_msl,cloudcover` +
   `&daily=sunrise,sunset` +
-  `&forecast_days=4` +
-  `&wind_speed_unit=ms` +
-  `&timezone=auto`;
+  `&forecast_days=4&wind_speed_unit=ms&timezone=auto`;
+
 
 
         const res = await fetch(url);
         if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
+        const forecastData = data;
+
 
         const cur = data.current || {};
         const ct  = cur.temperature_2m;
@@ -396,33 +395,37 @@
           }
         });
 
-        const pieces = [];
-        for (let offset = 1; offset <= 3; offset++) {
-          const base = new Date();
-          base.setDate(base.getDate() + offset);
+       const pieces = [];
+for (let offset = 1; offset <= 3; offset++) {
+  const base = new Date();
+  base.setDate(base.getDate() + offset);
 
-          const wd = getWeekdayShortName(base.getDay());
-          const entry = scoresNext3.find(x => x.offset === offset);
-          const score = entry ? entry.score : null;
+  const wd = getWeekdayShortName(base.getDay());
 
-          if (score == null) {
-            pieces.push(`${wd}: ${t("home.na")}`);
-          } else {
-            let color = "#f97373";
-            if (score >= 70)      color = "#22c55e";
-            else if (score >= 40) color = "#eab308";
+  const score = computeDayScoreFromForecast(
+    forecastData,
+    spotCatches,
+    offset,
+    { mode: "avgTopN", topN: 8, daylightPadHours: 1 }
+  );
 
-            pieces.push(
-              `${wd} <span style="color:${color};font-weight:600;">${score.toFixed(0)}%</span>`
-            );
-          }
-        }
+  if (typeof score !== "number") {
+    pieces.push(`${wd}: ${t("home.na")}`);
+  } else {
+    let color = "#f97373";
+    if (score >= 70)      color = "#22c55e";
+    else if (score >= 40) color = "#eab308";
 
-        if (pieces.length) {
-          setPredictionRow(pieces.join(" · "));
-        } else {
-          setPredictionRow(`<span data-i18n="home.notEnoughDataYet">not enough data yet.</span>`);
-        }
+    pieces.push(
+      `${wd} <span style="color:${color};font-weight:600;">${score.toFixed(0)}%</span>`
+    );
+  }
+}
+
+if (pieces.length) {
+  setPredictionRow(pieces.join(" · "));
+}
+
 
         reapplyTranslations();
       } catch (err) {
@@ -592,4 +595,5 @@
   </script>
 </body>
 </html>
+
 
