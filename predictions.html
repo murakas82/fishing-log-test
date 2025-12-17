@@ -99,6 +99,9 @@
       query, where
     } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
+    import { computeDayScoreFromForecast, computeHotHoursFromForecast } from "./predictions-core.js";
+
+
     import { computeNext3DayScores, computeHotHoursFromForecast } from "./predictions-core.js";
 
     const firebaseConfig = {
@@ -191,13 +194,8 @@
 const url =
   `https://api.open-meteo.com/v1/forecast` +
   `?latitude=${lat}&longitude=${lng}` +
-  `&current=temperature_2m,wind_speed_10m,weather_code` +
-  `&hourly=` +
-    `temperature_2m,` +
-    `wind_speed_10m,` +
-    `wind_direction_10m,` +   // NEW – wind direction
-    `pressure_msl,` +
-    `cloudcover` +            // NEW – cloud cover
+  `&current=temperature_2m,wind_speed_10m,wind_direction_10m,weather_code,pressure_msl,cloudcover` +
+  `&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,pressure_msl,cloudcover` +
   `&daily=sunrise,sunset` +
   `&forecast_days=4` +
   `&wind_speed_unit=ms` +
@@ -237,31 +235,34 @@ const url =
       };
 
       const next3 = computeNext3DayScores(data, spotCatches, PREDICT_OPTS);
-      for (let offset = 1; offset <= 3; offset++) {
-        const d = new Date();
-        d.setDate(d.getDate() + offset);
-        const entry = next3.find(x => x.offset === offset);
-        predictions.push({
-          score: entry ? entry.score : null,
-          dateLabel: formatDateLabel(d),
-          forecast: null
-        });
-      }
+  for (let offset = 1; offset <= 3; offset++) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
 
-      const hot = computeHotHoursFromForecast(data, spotCatches, 1, {
-        limit: 5,
-        daylightPadHours: 1,
-        scoreOptions: PREDICT_OPTS.scoreOptions
-      });
+  const score = computeDayScoreFromForecast(
+    data,
+    spotCatches,
+    offset,
+    { mode: "avgTopN", topN: 8, daylightPadHours: 1 }
+  );
 
-      hotHoursTomorrow = hot.map(r => ({
-        label: r.dateObj.toLocaleTimeString("en-GB", {
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: false
-}),
-        score: r.score
-      }));
+  predictions.push({
+    score: (typeof score === "number") ? score : null,
+    dateLabel: formatDateLabel(d)
+  });
+}
+const hot = computeHotHoursFromForecast(
+  data,
+  spotCatches,
+  1,
+  { limit: 8, daylightPadHours: 1 }
+);
+
+hotHoursTomorrow = hot.map(r => ({
+  label: r.dateObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false }),
+  score: r.score
+}));
+
 
       return { weatherNowText, predictions, hotHoursTomorrow };
     }
