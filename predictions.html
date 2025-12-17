@@ -13,38 +13,26 @@
       align-items: center;
       padding: 6px 0;
       border-bottom: 1px solid rgba(148,163,184,0.25);
+      font-size: 0.9rem;
     }
     .pred-row:last-child { border-bottom: none; }
-
-    .pred-label { font-weight: 600; }
-    .pred-score { font-weight: 700; }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 10px;
+    .pred-label { font-weight: 500; }
+    .pred-score { font-weight: 600; }
+    .pred-tag {
+      font-size: 0.8rem;
+      padding: 2px 8px;
       border-radius: 999px;
-      font-size: 0.78rem;
-      margin-left: 8px;
-      border: 1px solid rgba(148,163,184,0.35);
-      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(148,163,184,0.5);
+      margin-left: 6px;
     }
-    .tag.good { border-color: rgba(34,197,94,0.6); }
-    .tag.med  { border-color: rgba(234,179,8,0.6); }
-    .tag.poor { border-color: rgba(248,113,113,0.6); }
-
+    .pred-tag-good { border-color: #22c55e; color: #22c55e; }
+    .pred-tag-medium { border-color: #eab308; color: #eab308; }
+    .pred-tag-poor { border-color: #ef4444; color: #ef4444; }
     .pred-info {
-      margin-top: 8px;
-      color: #9ca3af;
-      font-size: 0.92rem;
-      line-height: 1.35;
+      font-size: 0.82rem;
+      opacity: 0.85;
+      margin-top: 6px;
     }
-    .hot-hour {
-      display: flex;
-      justify-content: space-between;
-      padding: 6px 0;
-      border-bottom: 1px solid rgba(148,163,184,0.2);
-    }
-    .hot-hour:last-child { border-bottom: none; }
   </style>
 </head>
 
@@ -64,8 +52,8 @@
       </div>
     </header>
 
-    <div class="card">
-      <div class="grid-2">
+    <div class="card" id="spotHeaderCard">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
         <div>
           <h2 id="spotNameHeading" style="margin:0 0 4px;" data-i18n="pred.loadingSpot">Loading spot…</h2>
           <p id="spotDesc" class="pred-info" style="margin:0;" data-i18n="pred.fetchingData">Fetching data…</p>
@@ -94,6 +82,7 @@
     </div>
   </div>
 
+  <!-- i18n (load once) -->
   <script src="translations.js"></script>
 
   <script type="module">
@@ -110,7 +99,7 @@
       query, where
     } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-    import { computeDayScoreFromForecast, computeHotHoursFromForecast } from "./predictions-core.js";
+    import { computeNext3DayScores, computeHotHoursFromForecast } from "./predictions-core.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCXIdT74cNDSVIoMs3NZ86tPf2kzFm8Iug",
@@ -121,89 +110,77 @@
       appId: "1:1056807867882:web:e59ddd8f6353d190080e93"
     };
 
-    const app  = initializeApp(firebaseConfig);
+    const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db   = getFirestore(app);
 
+    // i18n helpers
     const i18n = window.fishingLogI18n;
-    const t = (k) => (i18n && typeof i18n.t === "function") ? i18n.t(k) : k;
-
-    const spotNameHeading = document.getElementById("spotNameHeading");
-    const spotDesc        = document.getElementById("spotDesc");
-    const predictionsCard = document.getElementById("predictionsCard");
-    const predictionsList = document.getElementById("predictionsList");
-    const predSummary     = document.getElementById("predSummary");
-    const hotTimesCard    = document.getElementById("hotTimesCard");
-    const hotTimesList    = document.getElementById("hotTimesList");
-    const debugCard       = document.getElementById("debugCard");
-    const debugInfo       = document.getElementById("debugInfo");
-    const weatherNowInfo  = document.getElementById("weatherNowInfo");
-    const backToSpotBtn   = document.getElementById("backToSpotBtn");
-
+    const t = (key) => (i18n && typeof i18n.t === "function") ? i18n.t(key) : key;
     function reapplyTranslations() {
       if (i18n && typeof i18n.applyTranslations === "function") i18n.applyTranslations();
     }
 
+    const spotNameHeading = document.getElementById("spotNameHeading");
+    const spotDesc        = document.getElementById("spotDesc");
+    const backToSpotBtn   = document.getElementById("backToSpotBtn");
+
+    const predictionsCard = document.getElementById("predictionsCard");
+    const predictionsList = document.getElementById("predictionsList");
+    const predSummary     = document.getElementById("predSummary");
+
+    const hotTimesCard    = document.getElementById("hotTimesCard");
+    const hotTimesList    = document.getElementById("hotTimesList");
+
+    const debugCard       = document.getElementById("debugCard");
+    const debugInfo       = document.getElementById("debugInfo");
+    const weatherNowInfo  = document.getElementById("weatherNowInfo");
+
+    let currentUser   = null;
+    let currentSpotId = null;
+    let currentSpot   = null;
+
     function getSpotIdFromUrl() {
-      const p = new URLSearchParams(window.location.search);
-      return p.get("spotId");
+      const params = new URLSearchParams(window.location.search);
+      return params.get("spotId");
+    }
+
+    function weekdayKeyForDate(d) {
+      const keys = [
+        "home.weekdaySun",
+        "home.weekdayMon",
+        "home.weekdayTue",
+        "home.weekdayWed",
+        "home.weekdayThu",
+        "home.weekdayFri",
+        "home.weekdaySat"
+      ];
+      return keys[d.getDay()] || "home.weekdaySun";
     }
 
     function formatDateLabel(dateObj) {
-      // Thu. 18.12.2025
-      const weekdays = ["Sun.", "Mon.", "Tue.", "Wed.", "Thu.", "Fri.", "Sat."];
-      const wd = weekdays[dateObj.getDay()];
-      const dd = String(dateObj.getDate()).padStart(2, "0");
-      const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
-      const yyyy = dateObj.getFullYear();
-      return `${wd} ${dd}.${mm}.${yyyy}`;
+      const d = dateObj.getDate();
+      const m = dateObj.getMonth() + 1;
+      const y = dateObj.getFullYear();
+      const weekday = t(weekdayKeyForDate(dateObj));
+      return `${weekday} ${d}.${m}.${y}`;
     }
 
+    // Reuse same condition keys as index/spots-map
     function getWeatherIconAndLabel(code) {
       if (code === 0)  return { icon: "☀️", label: t("home.weatherClear") };
       if (code === 1)  return { icon: "🌤️", label: t("home.weatherMainlyClear") };
       if (code === 2)  return { icon: "⛅",  label: t("home.weatherPartlyCloudy") };
-      if (code === 3)  return { icon: "☁️",  label: t("home.weatherOvercast") };
-
+      if (code === 3)  return { icon: "☁️", label: t("home.weatherOvercast") };
       if (code === 45 || code === 48) return { icon: "🌫️", label: t("pred.weatherFog") };
-
-      if ([51,53,55,56,57].includes(code)) return { icon: "🌦️", label: t("home.weatherDrizzle") };
-      if ([61,63,65,66,67].includes(code)) return { icon: "🌧️", label: t("home.weatherRain") };
-      if ([71,73,75,77,85,86].includes(code)) return { icon: "🌨️", label: t("home.weatherSnow") };
-      if ([80,81,82].includes(code)) return { icon: "🌦️", label: t("home.weatherRainShowers") };
-      if ([95].includes(code)) return { icon: "⛈️", label: t("home.weatherThunderstorm") };
-      if ([96,99].includes(code)) return { icon: "⛈️", label: t("home.weatherThunderstormHail") };
-
-      return { icon: "❔", label: t("home.weatherUnknown") };
-    }
-
-    async function loadSpotAndCatches(user, spotId) {
-      const spotRef = doc(db, "users", user.uid, "spots", spotId);
-      const spotSnap = await getDoc(spotRef);
-
-      if (!spotSnap.exists()) return { spot: null, spotCatches: [] };
-
-      const spot = { id: spotSnap.id, ...spotSnap.data() };
-
-      const catchesRef = collection(db, "users", user.uid, "catches");
-      const qC = query(catchesRef, where("spotId", "==", spotId));
-      const catchSnap = await getDocs(qC);
-
-      const spotCatches = [];
-      catchSnap.forEach(docu => {
-        const d = docu.data();
-        spotCatches.push({
-          id: docu.id,
-          ...d,
-          weatherTemp: d.weatherTemp,
-          weatherWindMs: d.weatherWindMs,
-          weatherPressure: d.weatherPressure,
-          weatherWindDirDeg: d.weatherWindDirDeg,
-          moonPhase: d.moonPhase
-        });
-      });
-
-      return { spot, spotCatches };
+      if (code >= 51 && code <= 57) return { icon: "🌦️", label: t("home.weatherDrizzle") };
+      if (code >= 61 && code <= 67) return { icon: "🌧️", label: t("home.weatherRain") };
+      if (code >= 71 && code <= 77) return { icon: "🌨️", label: t("home.weatherSnow") };
+      if (code >= 80 && code <= 82) return { icon: "🌦️", label: t("home.weatherRainShowers") };
+      if (code >= 85 && code <= 86) return { icon: "🌨️", label: t("home.weatherSnowShowers") };
+      if (code === 95) return { icon: "⛈️", label: t("home.weatherThunderstorm") };
+      if (code === 96 || code === 99) return { icon: "⛈️", label: t("home.weatherThunderstormHail") };
+      return { icon: "❓", label: t("home.weatherUnknown") };
     }
 
     async function computeSpotWeatherAndPredictions(lat, lng, spotCatches) {
@@ -211,15 +188,20 @@
       const predictions = [];
       let hotHoursTomorrow = [];
 
-      const url =
-        `https://api.open-meteo.com/v1/forecast` +
-        `?latitude=${lat}&longitude=${lng}` +
-        `&current=temperature_2m,wind_speed_10m,wind_direction_10m,weather_code,pressure_msl,cloudcover` +
-        `&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,pressure_msl,cloudcover` +
-        `&daily=sunrise,sunset` +
-        `&forecast_days=4` +
-        `&wind_speed_unit=ms` +
-        `&timezone=auto`;
+const url =
+  `https://api.open-meteo.com/v1/forecast` +
+  `?latitude=${lat}&longitude=${lng}` +
+  `&current=temperature_2m,wind_speed_10m,weather_code` +
+  `&hourly=` +
+    `temperature_2m,` +
+    `wind_speed_10m,` +
+    `wind_direction_10m,` +   // NEW – wind direction
+    `pressure_msl,` +
+    `cloudcover` +            // NEW – cloud cover
+  `&daily=sunrise,sunset` +
+  `&forecast_days=4` +
+  `&wind_speed_unit=ms` +
+  `&timezone=auto`;
 
       const res = await fetch(url);
       if (!res.ok) throw new Error("Open-Meteo HTTP " + res.status);
@@ -243,21 +225,41 @@
         ? `${t("home.weatherNow")}: ${icon} ${wParts.join(", ")}`
         : t("pred.weatherNotAvailable");
 
-      // ---- Next 3 days ----
+      // ---- Predictions (shared module) ----
+      const PREDICT_OPTS = {
+        mode: "avgTopN",
+        topN: 8,
+        daylightPadHours: 1,
+        scoreOptions: {
+          pressTolHpa: 8,
+          pressPenaltyPerHpa: 1.2
+        }
+      };
+
+      const next3 = computeNext3DayScores(data, spotCatches, PREDICT_OPTS);
       for (let offset = 1; offset <= 3; offset++) {
         const d = new Date();
         d.setDate(d.getDate() + offset);
-        const score = computeDayScoreFromForecast(data, spotCatches, offset);
+        const entry = next3.find(x => x.offset === offset);
         predictions.push({
-          score: (typeof score === "number") ? score : null,
-          dateLabel: formatDateLabel(d)
+          score: entry ? entry.score : null,
+          dateLabel: formatDateLabel(d),
+          forecast: null
         });
       }
 
-      // ---- Hot times tomorrow (daylight window) ----
-      const hot = computeHotHoursFromForecast(data, spotCatches, 1);
+      const hot = computeHotHoursFromForecast(data, spotCatches, 1, {
+        limit: 5,
+        daylightPadHours: 1,
+        scoreOptions: PREDICT_OPTS.scoreOptions
+      });
+
       hotHoursTomorrow = hot.map(r => ({
-        label: r.dateObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false }),
+        label: r.dateObj.toLocaleTimeString("en-GB", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false
+}),
         score: r.score
       }));
 
@@ -269,79 +271,91 @@
         window.location.href = "index.html";
         return;
       }
+      currentUser   = user;
+      currentSpotId = getSpotIdFromUrl();
 
-      const spotId = getSpotIdFromUrl();
-      if (!spotId) {
+      if (!currentSpotId) {
+        spotNameHeading.removeAttribute("data-i18n");
         spotNameHeading.textContent = t("pred.noSpotSelected");
+        spotDesc.removeAttribute("data-i18n");
         spotDesc.textContent = t("pred.missingSpotId");
-        debugCard.style.display = "block";
-        debugInfo.textContent = t("pred.missingSpotId");
         return;
       }
 
+      await initPredictionsPage();
+    });
+
+    async function initPredictionsPage() {
+      const spotRef  = doc(db, "spots", currentSpotId);
+      const spotSnap = await getDoc(spotRef);
+
+      if (!spotSnap.exists()) {
+        spotNameHeading.removeAttribute("data-i18n");
+        spotNameHeading.textContent = t("pred.spotNotFound");
+        spotDesc.removeAttribute("data-i18n");
+        spotDesc.textContent = t("pred.unableToLoadSpot");
+        return;
+      }
+
+      currentSpot = { id: spotSnap.id, ...spotSnap.data() };
+
+      spotNameHeading.removeAttribute("data-i18n");
+      spotNameHeading.textContent = currentSpot.name || t("spotPage.unnamedSpot");
+
+      spotDesc.removeAttribute("data-i18n");
       spotDesc.textContent = t("pred.loadingCatchesAndForecast");
 
+      const q = query(
+        collection(db, "catches"),
+        where("userId", "==", currentUser.uid),
+        where("spotId", "==", currentSpot.id)
+      );
+      const snap = await getDocs(q);
+      const spotCatches = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const withWeather = spotCatches.filter(c =>
+        typeof c.weatherTemp     === "number" &&
+        typeof c.weatherWindMs   === "number" &&
+        typeof c.weatherPressure === "number"
+      );
+
+      spotDesc.textContent = t("pred.spotCatchSummary")
+        .replace("{total}", String(spotCatches.length))
+        .replace("{withWeather}", String(withWeather.length));
+
+      if (typeof currentSpot.latitude !== "number" ||
+          typeof currentSpot.longitude !== "number") {
+        predictionsCard.style.display = "none";
+        hotTimesCard.style.display    = "none";
+        debugCard.style.display       = "block";
+        debugInfo.textContent         = t("pred.noGpsNoPrediction");
+        weatherNowInfo.textContent    = "";
+        return;
+      }
+
       try {
-        const { spot, spotCatches } = await loadSpotAndCatches(user, spotId);
-
-        if (!spot) {
-          spotNameHeading.textContent = t("pred.spotNotFound");
-          spotDesc.textContent = t("pred.unableToLoadSpot");
-          debugCard.style.display = "block";
-          debugInfo.textContent = t("pred.spotNotFound");
-          return;
-        }
-
-        const name = spot.name || t("spotPage.unnamedSpot");
-        spotNameHeading.textContent = name;
-
-        const usableCount = spotCatches.filter(c =>
-          typeof c.weatherTemp === "number" &&
-          typeof c.weatherWindMs === "number" &&
-          typeof c.weatherPressure === "number"
-        ).length;
-
-        spotDesc.textContent = t("pred.spotCatchSummary")
-          .replace("{total}", String(spotCatches.length))
-          .replace("{withWeather}", String(usableCount));
-
-        const lat = spot.lat;
-        const lng = spot.lng;
-
-        if (typeof lat !== "number" || typeof lng !== "number") {
-          predictionsCard.style.display = "none";
-          hotTimesCard.style.display    = "none";
-          debugCard.style.display       = "block";
-          debugInfo.textContent         = t("pred.noGpsNoPrediction");
-          return;
-        }
-
         const { weatherNowText, predictions, hotHoursTomorrow } =
-          await computeSpotWeatherAndPredictions(lat, lng, spotCatches);
+          await computeSpotWeatherAndPredictions(
+            currentSpot.latitude,
+            currentSpot.longitude,
+            spotCatches
+          );
+
+        predictionsCard.style.display = "block";
+        debugCard.style.display       = "block";
 
         weatherNowInfo.textContent = weatherNowText;
-
-        const anyForecast = predictions.some(p => typeof p.score === "number");
-        if (anyForecast) {
-          predictionsCard.style.display = "block";
-          hotTimesCard.style.display    = (hotHoursTomorrow && hotHoursTomorrow.length) ? "block" : "none";
-          debugCard.style.display       = "block";
-        } else {
-          predictionsCard.style.display = "none";
-          hotTimesCard.style.display    = "none";
-          debugCard.style.display       = "block";
-        }
-
-        renderPredictions(predictions, usableCount);
+        renderPredictions(predictions, withWeather.length);
         renderHotHours(hotHoursTomorrow);
 
-      } catch (e) {
+      } catch (err) {
+        console.error(err);
         predictionsCard.style.display = "none";
         hotTimesCard.style.display    = "none";
         debugCard.style.display       = "block";
         debugInfo.textContent         = t("pred.failedToCompute");
       }
-    });
+    }
 
     function renderPredictions(predictions, usableCount) {
       predictionsList.innerHTML = "";
@@ -364,30 +378,36 @@
         left.textContent = p.dateLabel;
 
         const right = document.createElement("div");
-        right.className = "pred-score";
 
-        if (typeof p.score !== "number") {
-          right.textContent = t("home.na");
-          const tag = document.createElement("span");
-          tag.className = "tag";
-          tag.textContent = t("pred.tagNoData");
-          left.appendChild(tag);
+        const scoreSpan = document.createElement("span");
+        scoreSpan.className = "pred-score";
+
+        const tag = document.createElement("span");
+        tag.className = "pred-tag";
+
+        if (typeof p.score === "number") {
+          scoreSpan.textContent = `${p.score.toFixed(0)}%`;
+
+          if (p.score >= 70) {
+            tag.textContent = t("pred.tagGood");
+            tag.classList.add("pred-tag-good");
+          } else if (p.score >= 40) {
+            tag.textContent = t("pred.tagMedium");
+            tag.classList.add("pred-tag-medium");
+          } else {
+            tag.textContent = t("pred.tagPoor");
+            tag.classList.add("pred-tag-poor");
+          }
+
+          sumScores   += p.score;
+          countScores += 1;
         } else {
-          right.textContent = `${p.score.toFixed(0)}%`;
-          sumScores += p.score;
-          countScores++;
-
-          let tagClass = "poor";
-          let tagText  = t("pred.tagPoor");
-          if (p.score >= 70) { tagClass = "good"; tagText = t("pred.tagGood"); }
-          else if (p.score >= 40) { tagClass = "med"; tagText = t("pred.tagMedium"); }
-
-          const tag = document.createElement("span");
-          tag.className = `tag ${tagClass}`;
-          tag.textContent = tagText;
-          left.appendChild(tag);
+          scoreSpan.textContent = t("home.na");
+          tag.textContent = t("pred.tagNoData");
         }
 
+        right.appendChild(scoreSpan);
+        right.appendChild(tag);
         row.appendChild(left);
         row.appendChild(right);
         predictionsList.appendChild(row);
@@ -408,11 +428,13 @@
         hotTimesCard.style.display = "none";
         return;
       }
+
+      hotTimesCard.style.display = "block";
       hotTimesList.innerHTML = "";
 
       hotHours.forEach(h => {
         const row = document.createElement("div");
-        row.className = "hot-hour";
+        row.className = "pred-row";
 
         const left = document.createElement("div");
         left.className = "pred-label";
