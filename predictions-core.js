@@ -1,7 +1,6 @@
 // predictions-core.js
 // Shared prediction logic for all pages.
-// Personal-catch matching + daylight-hour scoring + pressure tolerance +
-// pressure trend direction awareness + cloud cover + optional wind direction.
+// Personal-catch matching + daylight-hour scoring + pressure tolerance + trend direction + cloud cover + optional wind direction.
 
 //
 // ---------- Utilities ----------
@@ -46,6 +45,11 @@ function cloudDelta(hourDate, cloudPct, sunrise, sunset) {
 //
 // ---------- Core scoring ----------
 //
+// forecast expects:
+// { temp, windMs, pressure, pressureTrend, windDir, cloudCover, moonPhase, sunrise, sunset }
+// catch expects:
+// { weatherTemp, weatherWindMs, weatherPressure, moonPhase } plus optional weatherWindDirDeg
+//
 
 export function computePredictionScoreForDay(catches, forecast) {
   const usable = (catches || []).filter(c =>
@@ -70,11 +74,13 @@ export function computePredictionScoreForDay(catches, forecast) {
     const pDiff = Math.abs(c.weatherPressure - forecast.pressure);
     if (pDiff > 8) penalty += (pDiff - 8) * 1.2;
 
-    // Pressure trend (direction aware)
+    // Pressure trend (direction aware: rising penalized more than falling rewarded)
     if (typeof forecast.pressureTrend === "number") {
       if (forecast.pressureTrend > 2.5) {
+        // rapid rise (post-front) -> negative
         penalty += (forecast.pressureTrend - 2.5) * 2.4;
       } else if (forecast.pressureTrend < -2.5) {
+        // falling (pre-front) -> small bonus
         penalty -= (Math.abs(forecast.pressureTrend) - 2.5) * 0.8;
       }
     }
@@ -88,7 +94,7 @@ export function computePredictionScoreForDay(catches, forecast) {
       if (d > 45) penalty += (d - 45) * 0.25;
     }
 
-    // Moon phase
+    // Moon phase (optional)
     if (typeof c.moonPhase === "number") {
       penalty += Math.abs(c.moonPhase - forecast.moonPhase) * 40;
     }
@@ -104,19 +110,24 @@ export function computePredictionScoreForDay(catches, forecast) {
 //
 
 export function computeDayScoreFromForecast(data, catches, dayOffset) {
-  const hourly = data.hourly;
-  const daily = data.daily;
+  const hourly = data?.hourly;
+  const daily = data?.daily;
   if (!hourly || !daily) return null;
 
-  const sunrise = new Date(daily.sunrise[dayOffset]);
-  const sunset = new Date(daily.sunset[dayOffset]);
+  const sunriseStr = daily.sunrise?.[dayOffset];
+  const sunsetStr  = daily.sunset?.[dayOffset];
+  if (!sunriseStr || !sunsetStr) return null;
+
+  const sunrise = new Date(sunriseStr);
+  const sunset  = new Date(sunsetStr);
 
   const start = new Date(sunrise);
   start.setHours(start.getHours() - 1);
+
   const end = new Date(sunset);
   end.setHours(end.getHours() + 1);
 
-  const dateStr = daily.sunrise[dayOffset].slice(0, 10);
+  const dateStr = sunriseStr.slice(0, 10);
   const scores = [];
 
   for (let i = 0; i < hourly.time.length; i++) {
@@ -126,12 +137,16 @@ export function computeDayScoreFromForecast(data, catches, dayOffset) {
     if (t < start || t > end) continue;
 
     const forecast = {
-      temp: hourly.temperature_2m[i],
-      windMs: hourly.wind_speed_10m[i],
+      temp: hourly.temperature_2m?.[i],
+      windMs: hourly.wind_speed_10m?.[i],
       windDir: hourly.wind_direction_10m?.[i],
-      pressure: hourly.pressure_msl[i],
+      pressure: hourly.pressure_msl?.[i],
       pressureTrend:
-        i >= 3 ? hourly.pressure_msl[i] - hourly.pressure_msl[i - 3] : 0,
+        (i >= 3 &&
+          typeof hourly.pressure_msl?.[i] === "number" &&
+          typeof hourly.pressure_msl?.[i - 3] === "number")
+          ? (hourly.pressure_msl[i] - hourly.pressure_msl[i - 3])
+          : 0,
       cloudCover: hourly.cloudcover?.[i],
       moonPhase: getApproxMoonPhase(t),
       sunrise,
@@ -147,23 +162,31 @@ export function computeDayScoreFromForecast(data, catches, dayOffset) {
 
   if (!scores.length) return null;
   scores.sort((a, b) => b - a);
-  return scores.slice(0, 8).reduce((a, b) => a + b, 0) / Math.min(8, scores.length);
+
+  // avgTopN (top 8)
+  const n = Math.min(8, scores.length);
+  return scores.slice(0, n).reduce((a, b) => a + b, 0) / n;
 }
 
 export function computeHotHoursFromForecast(data, catches, dayOffset = 1) {
-  const hourly = data.hourly;
-  const daily = data.daily;
+  const hourly = data?.hourly;
+  const daily = data?.daily;
   if (!hourly || !daily) return [];
 
-  const sunrise = new Date(daily.sunrise[dayOffset]);
-  const sunset = new Date(daily.sunset[dayOffset]);
+  const sunriseStr = daily.sunrise?.[dayOffset];
+  const sunsetStr  = daily.sunset?.[dayOffset];
+  if (!sunriseStr || !sunsetStr) return [];
+
+  const sunrise = new Date(sunriseStr);
+  const sunset  = new Date(sunsetStr);
 
   const start = new Date(sunrise);
   start.setHours(start.getHours() - 1);
+
   const end = new Date(sunset);
   end.setHours(end.getHours() + 1);
 
-  const dateStr = daily.sunrise[dayOffset].slice(0, 10);
+  const dateStr = sunriseStr.slice(0, 10);
   const out = [];
 
   for (let i = 0; i < hourly.time.length; i++) {
@@ -173,12 +196,16 @@ export function computeHotHoursFromForecast(data, catches, dayOffset = 1) {
     if (t < start || t > end) continue;
 
     const forecast = {
-      temp: hourly.temperature_2m[i],
-      windMs: hourly.wind_speed_10m[i],
+      temp: hourly.temperature_2m?.[i],
+      windMs: hourly.wind_speed_10m?.[i],
       windDir: hourly.wind_direction_10m?.[i],
-      pressure: hourly.pressure_msl[i],
+      pressure: hourly.pressure_msl?.[i],
       pressureTrend:
-        i >= 3 ? hourly.pressure_msl[i] - hourly.pressure_msl[i - 3] : 0,
+        (i >= 3 &&
+          typeof hourly.pressure_msl?.[i] === "number" &&
+          typeof hourly.pressure_msl?.[i - 3] === "number")
+          ? (hourly.pressure_msl[i] - hourly.pressure_msl[i - 3])
+          : 0,
       cloudCover: hourly.cloudcover?.[i],
       moonPhase: getApproxMoonPhase(t),
       sunrise,
